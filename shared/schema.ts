@@ -23,6 +23,8 @@ export const bookingStatusEnum = pgEnum('booking_status', ['PENDING', 'CONFIRMED
 export const payerTypeEnum = pgEnum('payer_type', ['SELF', 'MEMBER']);
 export const eventTypeEnum = pgEnum('event_type', ['ACADEMY', 'TOURNAMENT', 'CLASS', 'SOCIAL']);
 export const facilityStatusEnum = pgEnum('facility_status', ['OPENING_SOON', 'PLANNED', 'ACTIVE']);
+export const venueStatusEnum = pgEnum('venue_status', ['ACTIVE', 'COMING_SOON', 'PLANNED']);
+export const constructionPhaseStatusEnum = pgEnum('construction_phase_status', ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETE']);
 
 // Session storage table - Required for Replit Auth
 export const sessions = pgTable(
@@ -256,6 +258,7 @@ export const careers = pgTable("careers", {
   description: text("description"),
   requirements: text("requirements"),
   salary: varchar("salary"),
+  salaryHidden: boolean("salary_hidden").default(true),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -267,6 +270,77 @@ export const rules = pgTable("rules", {
   title: varchar("title").notNull(),
   category: varchar("category"),
   content: text("content"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Venues table
+export const venues = pgTable("venues", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: varchar("slug").unique().notNull(),
+  name: varchar("name").notNull(),
+  city: varchar("city").notNull(),
+  country: varchar("country").default('Pakistan'),
+  status: venueStatusEnum("status").default('PLANNED'),
+  isDefault: boolean("is_default").default(false),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Facility Venues table (many-to-many with per-venue status)
+export const facilityVenues = pgTable("facility_venues", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  facilityId: varchar("facility_id").notNull().references(() => facilities.id, { onDelete: 'cascade' }),
+  venueId: varchar("venue_id").notNull().references(() => venues.id, { onDelete: 'cascade' }),
+  status: venueStatusEnum("status").default('PLANNED'),
+  resourceCount: integer("resource_count").default(1),
+  priceOverride: integer("price_override"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Construction Phases table
+export const constructionPhases = pgTable("construction_phases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  venueId: varchar("venue_id").references(() => venues.id, { onDelete: 'cascade' }),
+  label: varchar("label").notNull(),
+  title: varchar("title").notNull(),
+  status: constructionPhaseStatusEnum("status").default('NOT_STARTED'),
+  progress: integer("progress").default(0),
+  isActive: boolean("is_active").default(false),
+  isComplete: boolean("is_complete").default(false),
+  timeframe: varchar("timeframe"),
+  milestones: jsonb("milestones").$type<string[]>().default([]),
+  highlights: jsonb("highlights").$type<string[]>().default([]),
+  icon: varchar("icon").default('clock'),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Site-wide CMS Pages table (for multi-page CMS)
+export const cmsPages = pgTable("cms_pages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: varchar("slug").unique().notNull(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// CMS Fields table (fields within each page/section)
+export const cmsFields = pgTable("cms_fields", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  pageSlug: varchar("page_slug").notNull(),
+  section: varchar("section"),
+  fieldKey: varchar("field_key").notNull(),
+  fieldType: varchar("field_type").default('text'),
+  label: varchar("label").notNull(),
+  value: text("value"),
+  metadata: jsonb("metadata"),
   sortOrder: integer("sort_order").default(0),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -425,6 +499,35 @@ export const insertRuleSchema = createInsertSchema(rules).omit({
   updatedAt: true,
 });
 
+export const insertVenueSchema = createInsertSchema(venues).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFacilityVenueSchema = createInsertSchema(facilityVenues).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertConstructionPhaseSchema = createInsertSchema(constructionPhases).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCmsPageSchema = createInsertSchema(cmsPages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCmsFieldSchema = createInsertSchema(cmsFields).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -470,3 +573,18 @@ export type InsertCareer = z.infer<typeof insertCareerSchema>;
 
 export type Rule = typeof rules.$inferSelect;
 export type InsertRule = z.infer<typeof insertRuleSchema>;
+
+export type Venue = typeof venues.$inferSelect;
+export type InsertVenue = z.infer<typeof insertVenueSchema>;
+
+export type FacilityVenue = typeof facilityVenues.$inferSelect;
+export type InsertFacilityVenue = z.infer<typeof insertFacilityVenueSchema>;
+
+export type ConstructionPhase = typeof constructionPhases.$inferSelect;
+export type InsertConstructionPhase = z.infer<typeof insertConstructionPhaseSchema>;
+
+export type CmsPage = typeof cmsPages.$inferSelect;
+export type InsertCmsPage = z.infer<typeof insertCmsPageSchema>;
+
+export type CmsField = typeof cmsFields.$inferSelect;
+export type InsertCmsField = z.infer<typeof insertCmsFieldSchema>;

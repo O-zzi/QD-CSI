@@ -1,116 +1,96 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "wouter";
-import { ChevronRight, Check, Clock, Wrench, Rocket } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronRight, Check, Clock, Hammer, Rocket, CheckCircle, Target, HardHat } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface PhaseData {
+interface ConstructionPhase {
   id: string;
+  venueId: string | null;
   label: string;
   title: string;
-  status: string;
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETE';
   progress: number;
-  isComplete: boolean;
   isActive: boolean;
-  icon: typeof Check;
+  isComplete: boolean;
+  timeframe: string | null;
   milestones: string[];
   highlights: string[];
-  timeframe: string;
+  icon: string;
+  sortOrder: number;
 }
+
+const iconMap: Record<string, typeof Check> = {
+  'check': Check,
+  'check-circle': CheckCircle,
+  'clock': Clock,
+  'hammer': Hammer,
+  'hard-hat': HardHat,
+  'rocket': Rocket,
+  'target': Target,
+};
 
 export function UpdatesSection() {
   const [hoveredPhase, setHoveredPhase] = useState<string | null>(null);
 
-  const phases: PhaseData[] = [
-    {
-      id: "phase1",
-      label: "Phase I",
-      title: "Land & Permits",
-      status: "Complete",
-      progress: 100,
-      isComplete: true,
-      isActive: false,
-      icon: Check,
-      timeframe: "Q1-Q2 2024",
-      milestones: [
-        "Land acquisition finalized",
-        "Environmental clearance obtained",
-        "Building permits approved",
-        "Architectural designs completed",
-      ],
-      highlights: [
-        "2.5 acre prime location secured",
-        "All regulatory approvals in place",
-        "Master plan approved by CDA",
-      ],
-    },
-    {
-      id: "phase2",
-      label: "Phase II",
-      title: "Foundation & Structure",
-      status: "80%",
-      progress: 80,
-      isComplete: false,
-      isActive: true,
-      icon: Wrench,
-      timeframe: "Q3 2024 - Q1 2025",
-      milestones: [
-        "Foundation work completed",
-        "Steel structure 100% done",
-        "Roofing phase in progress",
-        "MEP installations ongoing",
-      ],
-      highlights: [
-        "On schedule with timeline",
-        "Utilities trenching complete",
-        "Padel court glass ordered",
-      ],
-    },
-    {
-      id: "phase3",
-      label: "Phase III",
-      title: "Interiors & Equipment",
-      status: "Q1 2025",
-      progress: 0,
-      isComplete: false,
-      isActive: false,
-      icon: Clock,
-      timeframe: "Q2-Q4 2025",
-      milestones: [
-        "Interior finishing work",
-        "Court surface installation",
-        "Range equipment setup",
-        "HVAC & electrical completion",
-      ],
-      highlights: [
-        "Premium court surfaces",
-        "State-of-the-art equipment",
-        "Climate-controlled facilities",
-      ],
-    },
-    {
-      id: "launch",
-      label: "Launch",
-      title: "Grand Opening",
-      status: "Q4 2026",
-      progress: 0,
-      isComplete: false,
-      isActive: false,
-      icon: Rocket,
-      timeframe: "Q4 2026",
-      milestones: [
-        "Final inspections & certifications",
-        "Staff training complete",
-        "Soft launch for founding members",
-        "Grand public opening",
-      ],
-      highlights: [
-        "Founding member priority access",
-        "Launch events & tournaments",
-        "Full facility operational",
-      ],
-    },
-  ];
+  const { data: phases = [], isLoading } = useQuery<ConstructionPhase[]>({
+    queryKey: ['/api/construction-phases'],
+  });
 
-  const overallProgress = phases.reduce((acc, phase) => acc + phase.progress, 0) / phases.length;
+  const sortedPhases = useMemo(() => {
+    return [...phases].sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [phases]);
+
+  const overallProgress = useMemo(() => {
+    if (sortedPhases.length === 0) return 0;
+    return sortedPhases.reduce((acc, phase) => acc + phase.progress, 0) / sortedPhases.length;
+  }, [sortedPhases]);
+
+  const getStatusLabel = (phase: ConstructionPhase) => {
+    if (phase.isComplete) return 'Complete';
+    if (phase.isActive) return `${phase.progress}%`;
+    return phase.timeframe || 'Upcoming';
+  };
+
+  if (isLoading) {
+    return (
+      <section id="updates" className="qd-section bg-gray-50 dark:bg-slate-900">
+        <div className="qd-container">
+          <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
+            <div>
+              <Skeleton className="h-8 w-64 mb-2" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+          </div>
+          <div className="relative py-12">
+            <Skeleton className="h-1 w-full rounded-full" />
+            <div className="flex justify-between mt-8">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex flex-col items-center" style={{ width: '25%' }}>
+                  <Skeleton className="w-14 h-14 rounded-full" />
+                  <Skeleton className="h-4 w-16 mt-4" />
+                  <Skeleton className="h-3 w-24 mt-1" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (sortedPhases.length === 0) {
+    return (
+      <section id="updates" className="qd-section bg-gray-50 dark:bg-slate-900">
+        <div className="qd-container">
+          <div className="text-center py-12">
+            <h2 className="qd-section-title mb-4">Construction Updates</h2>
+            <p className="text-muted-foreground">Construction timeline coming soon.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="updates" className="qd-section bg-gray-50 dark:bg-slate-900">
@@ -148,15 +128,16 @@ export function UpdatesSection() {
 
           {/* Phase Points */}
           <div className="relative flex justify-between items-center">
-            {phases.map((phase, index) => {
-              const PhaseIcon = phase.icon;
+            {sortedPhases.map((phase, index) => {
+              const PhaseIcon = iconMap[phase.icon] || Clock;
               const isHovered = hoveredPhase === phase.id;
+              const phaseWidth = sortedPhases.length > 0 ? `${100 / sortedPhases.length}%` : '25%';
               
               return (
                 <div 
                   key={phase.id}
                   className="relative flex flex-col items-center"
-                  style={{ width: '25%' }}
+                  style={{ width: phaseWidth }}
                   onMouseEnter={() => setHoveredPhase(phase.id)}
                   onMouseLeave={() => setHoveredPhase(null)}
                 >
@@ -192,7 +173,7 @@ export function UpdatesSection() {
                     </div>
                     <div className="text-xs text-muted-foreground mt-0.5">{phase.title}</div>
                     <div className={`text-xs font-semibold mt-1 ${phase.isComplete ? 'text-green-600' : phase.isActive ? 'text-blue-600' : 'text-muted-foreground'}`}>
-                      {phase.status}
+                      {getStatusLabel(phase)}
                     </div>
                   </div>
 
@@ -203,7 +184,7 @@ export function UpdatesSection() {
                       border border-gray-200 dark:border-slate-700 shadow-2xl
                       transition-all duration-300 ease-out
                       ${isHovered ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}
-                      ${index >= 2 ? 'right-0' : 'left-0'}
+                      ${index >= sortedPhases.length / 2 ? 'right-0' : 'left-0'}
                     `}
                     style={{ 
                       top: '100%', 
@@ -212,7 +193,7 @@ export function UpdatesSection() {
                   >
                     {/* Tooltip Arrow */}
                     <div 
-                      className={`absolute -top-2 w-4 h-4 bg-white dark:bg-slate-800 border-l border-t border-gray-200 dark:border-slate-700 transform rotate-45 ${index >= 2 ? 'right-8' : 'left-8'}`}
+                      className={`absolute -top-2 w-4 h-4 bg-white dark:bg-slate-800 border-l border-t border-gray-200 dark:border-slate-700 transform rotate-45 ${index >= sortedPhases.length / 2 ? 'right-8' : 'left-8'}`}
                     />
                     
                     <div className="relative">
@@ -222,42 +203,40 @@ export function UpdatesSection() {
                           <PhaseIcon className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="font-bold text-sm">{phase.label}: {phase.title}</div>
+                          <div className="font-semibold text-sm">{phase.title}</div>
                           <div className="text-xs text-muted-foreground">{phase.timeframe}</div>
                         </div>
                       </div>
 
                       {/* Milestones */}
-                      <div className="mb-3">
-                        <div className="text-xs font-bold uppercase tracking-wide text-[#2a4060] dark:text-blue-400 mb-2">
-                          Milestones
+                      {phase.milestones && phase.milestones.length > 0 && (
+                        <div className="mb-3">
+                          <div className="text-xs font-semibold text-muted-foreground mb-1.5">MILESTONES</div>
+                          <ul className="space-y-1">
+                            {phase.milestones.map((milestone, i) => (
+                              <li key={i} className="flex items-start gap-2 text-xs">
+                                <Check className={`w-3 h-3 mt-0.5 flex-shrink-0 ${phase.isComplete ? 'text-green-500' : 'text-muted-foreground'}`} />
+                                <span>{milestone}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                        <ul className="space-y-1.5">
-                          {phase.milestones.map((milestone, i) => (
-                            <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                              <span className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${phase.isComplete ? 'bg-green-500' : phase.isActive && i < 2 ? 'bg-blue-500' : 'bg-gray-300 dark:bg-slate-600'}`} />
-                              {milestone}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      )}
 
-                      {/* Key Highlights */}
-                      <div>
-                        <div className="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-2">
-                          Key Highlights
+                      {/* Highlights */}
+                      {phase.highlights && phase.highlights.length > 0 && (
+                        <div className="pt-2 border-t border-gray-100 dark:border-slate-700">
+                          <div className="text-xs font-semibold text-muted-foreground mb-1.5">HIGHLIGHTS</div>
+                          <ul className="space-y-1">
+                            {phase.highlights.map((highlight, i) => (
+                              <li key={i} className="flex items-start gap-2 text-xs text-blue-600 dark:text-blue-400">
+                                <ChevronRight className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                                <span>{highlight}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {phase.highlights.map((highlight, i) => (
-                            <span 
-                              key={i} 
-                              className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 font-medium"
-                            >
-                              {highlight}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -266,51 +245,38 @@ export function UpdatesSection() {
           </div>
         </div>
 
-        {/* Progress Summary Cards */}
-        <div className="grid md:grid-cols-2 gap-6 mt-8">
-          <div className="qd-info-card">
-            <div className="text-sm font-bold uppercase tracking-wide text-[#2a4060] dark:text-blue-400 mb-3">
-              Overall Progress
-            </div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex-1">
-                <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-green-500 to-blue-500 rounded-full transition-all duration-1000"
-                    style={{ width: `${overallProgress}%` }}
-                  />
-                </div>
+        {/* Progress Summary Card */}
+        <div className="mt-8 p-6 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm">
+          <div className="flex flex-wrap gap-6 items-center justify-between">
+            <div>
+              <div className="text-sm font-medium text-muted-foreground">Overall Progress</div>
+              <div className="text-2xl font-bold text-[#2a4060] dark:text-white mt-1">
+                {Math.round(overallProgress)}% Complete
               </div>
-              <span className="text-2xl font-bold text-[#2a4060] dark:text-blue-400">{Math.round(overallProgress)}%</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Construction is on track. Phase II is 80% complete, focusing on structural framework and MEP installations.
-            </p>
-            <div className="flex flex-wrap gap-2 mt-4">
-              <span className="qd-tag">On Schedule</span>
-              <span className="qd-tag">Phase II Active</span>
-              <span className="qd-tag">MEP Work</span>
+            
+            <div className="flex-1 max-w-md">
+              <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-green-500 to-blue-500 rounded-full transition-all duration-1000"
+                  style={{ width: `${overallProgress}%` }}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="qd-info-card">
-            <div className="text-sm font-bold uppercase tracking-wide text-[#2a4060] dark:text-blue-400 mb-3">
-              Recent Milestones
-            </div>
-            <div className="space-y-3">
-              {[
-                { date: "Dec 2024", text: "Steel structure complete - moving to roofing phase", status: "done" },
-                { date: "Nov 2024", text: "All utilities trenching completed on schedule", status: "done" },
-                { date: "Oct 2024", text: "First glass panels for Padel courts ordered", status: "done" },
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
-                  <div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{item.date}</div>
-                    <div className="text-sm font-medium">{item.text}</div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex gap-4">
+              <div className="text-center">
+                <div className="text-lg font-bold text-green-600">{sortedPhases.filter(p => p.isComplete).length}</div>
+                <div className="text-xs text-muted-foreground">Completed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-blue-600">{sortedPhases.filter(p => p.isActive).length}</div>
+                <div className="text-xs text-muted-foreground">In Progress</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-muted-foreground">{sortedPhases.filter(p => !p.isComplete && !p.isActive).length}</div>
+                <div className="text-xs text-muted-foreground">Upcoming</div>
+              </div>
             </div>
           </div>
         </div>

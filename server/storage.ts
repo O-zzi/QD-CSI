@@ -15,6 +15,11 @@ import {
   pricingTiers,
   careers,
   rules,
+  venues,
+  facilityVenues,
+  constructionPhases,
+  cmsPages,
+  cmsFields,
   type User,
   type UpsertUser,
   type Membership,
@@ -39,6 +44,14 @@ import {
   type InsertCareer,
   type Rule,
   type InsertRule,
+  type Venue,
+  type InsertVenue,
+  type FacilityVenue,
+  type InsertFacilityVenue,
+  type ConstructionPhase,
+  type InsertConstructionPhase,
+  type CmsField,
+  type InsertCmsField,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
@@ -120,6 +133,32 @@ export interface IStorage {
   createFacility(data: InsertFacility): Promise<Facility>;
   updateFacility(id: string, data: Partial<InsertFacility>): Promise<Facility | undefined>;
   deleteFacility(id: string): Promise<void>;
+  
+  // Venue operations
+  getVenues(): Promise<Venue[]>;
+  getVenueBySlug(slug: string): Promise<Venue | undefined>;
+  createVenue(data: InsertVenue): Promise<Venue>;
+  updateVenue(id: string, data: Partial<InsertVenue>): Promise<Venue | undefined>;
+  deleteVenue(id: string): Promise<void>;
+  
+  // Facility Venue operations
+  getFacilityVenues(venueId: string): Promise<FacilityVenue[]>;
+  getFacilityVenuesByFacility(facilityId: string): Promise<FacilityVenue[]>;
+  createFacilityVenue(data: InsertFacilityVenue): Promise<FacilityVenue>;
+  updateFacilityVenue(id: string, data: Partial<InsertFacilityVenue>): Promise<FacilityVenue | undefined>;
+  deleteFacilityVenue(id: string): Promise<void>;
+  
+  // Construction Phase operations
+  getConstructionPhases(venueId?: string): Promise<ConstructionPhase[]>;
+  createConstructionPhase(data: InsertConstructionPhase): Promise<ConstructionPhase>;
+  updateConstructionPhase(id: string, data: Partial<InsertConstructionPhase>): Promise<ConstructionPhase | undefined>;
+  deleteConstructionPhase(id: string): Promise<void>;
+  
+  // CMS Fields operations
+  getCmsFields(pageSlug: string): Promise<CmsField[]>;
+  getAllCmsFields(): Promise<CmsField[]>;
+  upsertCmsField(data: InsertCmsField): Promise<CmsField>;
+  deleteCmsField(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -496,6 +535,120 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFacility(id: string): Promise<void> {
     await db.delete(facilities).where(eq(facilities.id, id));
+  }
+
+  // Venue operations
+  async getVenues(): Promise<Venue[]> {
+    return await db.select().from(venues).orderBy(asc(venues.sortOrder));
+  }
+
+  async getVenueBySlug(slug: string): Promise<Venue | undefined> {
+    const [venue] = await db.select().from(venues).where(eq(venues.slug, slug));
+    return venue;
+  }
+
+  async createVenue(data: InsertVenue): Promise<Venue> {
+    const [venue] = await db.insert(venues).values(data).returning();
+    return venue;
+  }
+
+  async updateVenue(id: string, data: Partial<InsertVenue>): Promise<Venue | undefined> {
+    const [updated] = await db
+      .update(venues)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(venues.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteVenue(id: string): Promise<void> {
+    await db.delete(venues).where(eq(venues.id, id));
+  }
+
+  // Facility Venue operations
+  async getFacilityVenues(venueId: string): Promise<FacilityVenue[]> {
+    return await db.select().from(facilityVenues).where(eq(facilityVenues.venueId, venueId));
+  }
+
+  async getFacilityVenuesByFacility(facilityId: string): Promise<FacilityVenue[]> {
+    return await db.select().from(facilityVenues).where(eq(facilityVenues.facilityId, facilityId));
+  }
+
+  async createFacilityVenue(data: InsertFacilityVenue): Promise<FacilityVenue> {
+    const [facilityVenue] = await db.insert(facilityVenues).values(data).returning();
+    return facilityVenue;
+  }
+
+  async updateFacilityVenue(id: string, data: Partial<InsertFacilityVenue>): Promise<FacilityVenue | undefined> {
+    const [updated] = await db
+      .update(facilityVenues)
+      .set(data)
+      .where(eq(facilityVenues.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteFacilityVenue(id: string): Promise<void> {
+    await db.delete(facilityVenues).where(eq(facilityVenues.id, id));
+  }
+
+  // Construction Phase operations
+  async getConstructionPhases(venueId?: string): Promise<ConstructionPhase[]> {
+    if (venueId) {
+      return await db.select().from(constructionPhases).where(eq(constructionPhases.venueId, venueId)).orderBy(asc(constructionPhases.sortOrder));
+    }
+    return await db.select().from(constructionPhases).orderBy(asc(constructionPhases.sortOrder));
+  }
+
+  async createConstructionPhase(data: InsertConstructionPhase): Promise<ConstructionPhase> {
+    const [phase] = await db.insert(constructionPhases).values(data).returning();
+    return phase;
+  }
+
+  async updateConstructionPhase(id: string, data: Partial<InsertConstructionPhase>): Promise<ConstructionPhase | undefined> {
+    const [updated] = await db
+      .update(constructionPhases)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(constructionPhases.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteConstructionPhase(id: string): Promise<void> {
+    await db.delete(constructionPhases).where(eq(constructionPhases.id, id));
+  }
+
+  // CMS Fields operations
+  async getCmsFields(pageSlug: string): Promise<CmsField[]> {
+    return await db.select().from(cmsFields).where(eq(cmsFields.pageSlug, pageSlug)).orderBy(asc(cmsFields.sortOrder));
+  }
+
+  async getAllCmsFields(): Promise<CmsField[]> {
+    return await db.select().from(cmsFields).orderBy(asc(cmsFields.sortOrder));
+  }
+
+  async upsertCmsField(data: InsertCmsField): Promise<CmsField> {
+    const existing = await db.select().from(cmsFields)
+      .where(and(
+        eq(cmsFields.pageSlug, data.pageSlug),
+        eq(cmsFields.fieldKey, data.fieldKey)
+      ));
+    
+    if (existing.length > 0) {
+      const [updated] = await db
+        .update(cmsFields)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(cmsFields.id, existing[0].id))
+        .returning();
+      return updated;
+    }
+    
+    const [created] = await db.insert(cmsFields).values(data).returning();
+    return created;
+  }
+
+  async deleteCmsField(id: string): Promise<void> {
+    await db.delete(cmsFields).where(eq(cmsFields.id, id));
   }
 }
 

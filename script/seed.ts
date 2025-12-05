@@ -9,6 +9,8 @@ import {
   announcements,
   galleryImages,
   cmsContent,
+  venues,
+  constructionPhases,
 } from "../shared/schema";
 
 async function seed() {
@@ -269,6 +271,115 @@ async function seed() {
   ]).onConflictDoNothing();
 
   console.log("Gallery images seeded");
+
+  // Seed Venues
+  const [islamabadVenue] = await db.insert(venues).values({
+    name: "Islamabad",
+    slug: "islamabad",
+    city: "Islamabad",
+    country: "Pakistan",
+    status: "COMING_SOON",
+    isDefault: true,
+    sortOrder: 1,
+  }).onConflictDoNothing().returning();
+
+  console.log("Venues seeded");
+
+  // Seed Construction Phases (only if venue was created)
+  if (islamabadVenue) {
+    await db.insert(constructionPhases).values([
+      {
+        venueId: islamabadVenue.id,
+        label: "Phase 1",
+        title: "Foundation & Site Work",
+        status: "COMPLETE" as const,
+        progress: 100,
+        isActive: false,
+        isComplete: true,
+        timeframe: "March - August 2024",
+        milestones: [
+          "Site clearing completed",
+          "Foundation poured",
+          "Drainage system installed",
+          "Utility connections established"
+        ],
+        highlights: [
+          "Completed ahead of schedule",
+          "All permits obtained"
+        ],
+        icon: "check-circle",
+        sortOrder: 1,
+      },
+      {
+        venueId: islamabadVenue.id,
+        label: "Phase 2",
+        title: "Structural Framework",
+        status: "COMPLETE" as const,
+        progress: 100,
+        isActive: false,
+        isComplete: true,
+        timeframe: "September 2024 - April 2025",
+        milestones: [
+          "Steel framework erected",
+          "Roofing completed",
+          "Exterior walls finished",
+          "Windows and doors installed"
+        ],
+        highlights: [
+          "Premium materials used",
+          "Weather-resistant construction"
+        ],
+        icon: "check-circle",
+        sortOrder: 2,
+      },
+      {
+        venueId: islamabadVenue.id,
+        label: "Phase 3",
+        title: "Interior & Court Construction",
+        status: "IN_PROGRESS" as const,
+        progress: 65,
+        isActive: true,
+        isComplete: false,
+        timeframe: "May 2025 - February 2026",
+        milestones: [
+          "Padel court surfaces laid",
+          "Squash court glass walls installed",
+          "Air rifle range lanes completed",
+          "Interior painting and finishing"
+        ],
+        highlights: [
+          "Italian court surfaces",
+          "Olympic-standard facilities"
+        ],
+        icon: "hammer",
+        sortOrder: 3,
+      },
+      {
+        venueId: islamabadVenue.id,
+        label: "Phase 4",
+        title: "Final Touches & Commissioning",
+        status: "NOT_STARTED" as const,
+        progress: 0,
+        isActive: false,
+        isComplete: false,
+        timeframe: "March - September 2026",
+        milestones: [
+          "Lighting systems tested",
+          "HVAC commissioning",
+          "Landscaping completed",
+          "Safety certifications obtained"
+        ],
+        highlights: [
+          "Grand opening Q4 2026",
+          "Founding member benefits"
+        ],
+        icon: "clock",
+        sortOrder: 4,
+      },
+    ]).onConflictDoNothing();
+
+    console.log("Construction phases seeded");
+  }
 
   // Seed CMS Content
   await db.insert(cmsContent).values([

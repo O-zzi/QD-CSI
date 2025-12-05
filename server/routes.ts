@@ -11,6 +11,9 @@ import {
   insertCareerSchema,
   insertRuleSchema,
   insertFacilitySchema,
+  insertVenueSchema,
+  insertConstructionPhaseSchema,
+  insertCmsFieldSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
@@ -124,6 +127,48 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching facility addons:", error);
       res.status(500).json({ message: "Failed to fetch facility addons" });
+    }
+  });
+
+  // ========== PUBLIC CAREERS ROUTE (salary hidden) ==========
+  app.get('/api/careers', async (req, res) => {
+    try {
+      const careers = await storage.getActiveCarers();
+      // Hide salary from public view when salaryHidden is true
+      const publicCareers = careers.map(career => {
+        if (career.salaryHidden) {
+          const { salary, ...publicData } = career;
+          return publicData;
+        }
+        return career;
+      });
+      res.json(publicCareers);
+    } catch (error) {
+      console.error("Error fetching careers:", error);
+      res.status(500).json({ message: "Failed to fetch careers" });
+    }
+  });
+
+  // ========== PUBLIC VENUES ROUTE ==========
+  app.get('/api/venues', async (req, res) => {
+    try {
+      const allVenues = await storage.getVenues();
+      res.json(allVenues);
+    } catch (error) {
+      console.error("Error fetching venues:", error);
+      res.status(500).json({ message: "Failed to fetch venues" });
+    }
+  });
+
+  // ========== PUBLIC CONSTRUCTION PHASES ROUTE ==========
+  app.get('/api/construction-phases', async (req, res) => {
+    try {
+      const { venueId } = req.query;
+      const phases = await storage.getConstructionPhases(venueId as string | undefined);
+      res.json(phases);
+    } catch (error) {
+      console.error("Error fetching construction phases:", error);
+      res.status(500).json({ message: "Failed to fetch construction phases" });
     }
   });
 
@@ -681,6 +726,154 @@ export async function registerRoutes(
     }
   });
 
+  // Admin Venues routes
+  app.get('/api/admin/venues', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const allVenues = await storage.getVenues();
+      res.json(allVenues);
+    } catch (error) {
+      console.error("Error fetching venues:", error);
+      res.status(500).json({ message: "Failed to fetch venues" });
+    }
+  });
+
+  app.post('/api/admin/venues', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertVenueSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const venue = await storage.createVenue(result.data);
+      res.status(201).json(venue);
+    } catch (error) {
+      console.error("Error creating venue:", error);
+      res.status(500).json({ message: "Failed to create venue" });
+    }
+  });
+
+  app.patch('/api/admin/venues/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertVenueSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateVenue(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Venue not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating venue:", error);
+      res.status(500).json({ message: "Failed to update venue" });
+    }
+  });
+
+  app.delete('/api/admin/venues/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteVenue(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting venue:", error);
+      res.status(500).json({ message: "Failed to delete venue" });
+    }
+  });
+
+  // Admin Construction Phases routes
+  app.get('/api/admin/construction-phases', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { venueId } = req.query;
+      const phases = await storage.getConstructionPhases(venueId as string | undefined);
+      res.json(phases);
+    } catch (error) {
+      console.error("Error fetching construction phases:", error);
+      res.status(500).json({ message: "Failed to fetch construction phases" });
+    }
+  });
+
+  app.post('/api/admin/construction-phases', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertConstructionPhaseSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const phase = await storage.createConstructionPhase(result.data);
+      res.status(201).json(phase);
+    } catch (error) {
+      console.error("Error creating construction phase:", error);
+      res.status(500).json({ message: "Failed to create construction phase" });
+    }
+  });
+
+  app.patch('/api/admin/construction-phases/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertConstructionPhaseSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateConstructionPhase(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Construction phase not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating construction phase:", error);
+      res.status(500).json({ message: "Failed to update construction phase" });
+    }
+  });
+
+  app.delete('/api/admin/construction-phases/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteConstructionPhase(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting construction phase:", error);
+      res.status(500).json({ message: "Failed to delete construction phase" });
+    }
+  });
+
+  // Admin CMS Fields routes
+  app.get('/api/admin/cms-fields', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { pageSlug } = req.query;
+      if (pageSlug) {
+        const fields = await storage.getCmsFields(pageSlug as string);
+        res.json(fields);
+      } else {
+        const fields = await storage.getAllCmsFields();
+        res.json(fields);
+      }
+    } catch (error) {
+      console.error("Error fetching CMS fields:", error);
+      res.status(500).json({ message: "Failed to fetch CMS fields" });
+    }
+  });
+
+  app.post('/api/admin/cms-fields', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertCmsFieldSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const field = await storage.upsertCmsField(result.data);
+      res.status(201).json(field);
+    } catch (error) {
+      console.error("Error creating CMS field:", error);
+      res.status(500).json({ message: "Failed to create CMS field" });
+    }
+  });
+
+  app.delete('/api/admin/cms-fields/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteCmsField(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting CMS field:", error);
+      res.status(500).json({ message: "Failed to delete CMS field" });
+    }
+  });
+
   // ========== STRIPE PAYMENT ROUTES ==========
   
   app.get('/api/stripe/publishable-key', async (req, res) => {
@@ -731,7 +924,7 @@ export async function registerRoutes(
     totalPrice: z.number(),
     coachBooked: z.boolean().optional(),
     isMatchmaking: z.boolean().optional(),
-    hallActivity: z.string().optional(),
+    hallActivity: z.string().nullable().optional(),
     addOns: z.array(z.object({ id: z.string(), quantity: z.number() })).optional(),
   });
 
