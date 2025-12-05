@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import membershipBg from "@assets/stock_images/modern_indoor_sports_8b182ff8.jpg";
 
 const membershipTiers = [
   {
@@ -41,8 +42,12 @@ export function MembershipSection() {
   };
 
   return (
-    <section id="membership" className="qd-section bg-gray-50 dark:bg-slate-900">
-      <div className="qd-container">
+    <section id="membership" className="qd-section bg-gray-50 dark:bg-slate-900 relative overflow-hidden">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-5 dark:opacity-10"
+        style={{ backgroundImage: `url(${membershipBg})` }}
+      />
+      <div className="qd-container relative z-10">
         <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
           <div>
             <h2 className="qd-section-title" data-testid="text-membership-title">Membership & Pricing</h2>

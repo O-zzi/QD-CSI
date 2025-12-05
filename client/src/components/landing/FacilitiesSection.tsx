@@ -2,6 +2,13 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Target, Dumbbell, Users, Coffee, Crosshair } from "lucide-react";
 
+import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
+import squashImage from "@assets/stock_images/professional_squash__c4dca43a.jpg";
+import airRifleImage from "@assets/stock_images/air_rifle_shooting_r_931e6002.jpg";
+import hallImage from "@assets/stock_images/multipurpose_event_h_e7c6ac62.jpg";
+import bridgeImage from "@assets/stock_images/bridge_card_game_clu_6f83cf65.jpg";
+import cafeImage from "@assets/stock_images/modern_cafe_interior_c554b982.jpg";
+
 const facilities = [
   {
     id: "padel",
@@ -12,6 +19,7 @@ const facilities = [
     statusLabel: "Opening Soon",
     description: "World-Class Padel Courts: Three premium glass-backed indoor Padel Courts optimized for competitive doubles play and available year-round, regardless of the weather.",
     footer: "3 courts planned",
+    image: padelImage,
   },
   {
     id: "squash",
@@ -22,6 +30,7 @@ const facilities = [
     statusLabel: "Opening Soon",
     description: "Dedicated Squash Facility: A single, premium-grade squash court built to international dimensions. Ideal for focused training, intense solo practice, and eventually, club ladder competitions.",
     footer: "Planned | 1 court",
+    image: squashImage,
   },
   {
     id: "air_rifle",
@@ -32,6 +41,7 @@ const facilities = [
     statusLabel: "Opening Soon",
     description: "Certified Precision Range: A safe, controlled, and sound-dampened indoor range compliant with all safety regulations. Access requires mandatory certification.",
     footer: "Certificate-based access",
+    image: airRifleImage,
   },
   {
     id: "hall",
@@ -42,6 +52,7 @@ const facilities = [
     statusLabel: "Planned",
     description: "Flexible Event & Training Space: A large, adaptable hall suitable for yoga, aerobics, martial arts, corporate workshops, and private functions. Available for flexible, block, and event-based bookings.",
     footer: "Use-cases evolving",
+    image: hallImage,
   },
   {
     id: "bridge",
@@ -52,6 +63,7 @@ const facilities = [
     statusLabel: "Planned",
     description: "The Mind Sport Lounge: A quiet, temperature-controlled space designed for comfort and concentration, perfect for Bridge, Chess, and other table-based mind sports and social gatherings.",
     footer: "Table-based bookings",
+    image: bridgeImage,
   },
   {
     id: "cafe",
@@ -62,6 +74,7 @@ const facilities = [
     statusLabel: "Planned",
     description: "The Quarterdeck Social Hub: A bright, spacious area offering artisanal coffee, healthy refreshments, light meals, and a view overlooking the main courts—perfect for post-match debriefs or casual meetings.",
     footer: "No booking required",
+    image: cafeImage,
   },
 ];
 
@@ -95,7 +108,15 @@ export function FacilitiesSection() {
           {facilities.map((facility) => {
             const Icon = facility.icon;
             return (
-              <article key={facility.id} className="qd-facility-card" data-testid={`card-facility-${facility.id}`}>
+              <article key={facility.id} className="qd-facility-card overflow-hidden" data-testid={`card-facility-${facility.id}`}>
+                <div className="relative h-32 -mx-6 -mt-[1.6rem] mb-4 rounded-t-[20px] overflow-hidden">
+                  <img 
+                    src={facility.image} 
+                    alt={facility.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/30 to-transparent dark:from-slate-800/90 dark:via-slate-800/30" />
+                </div>
                 <div className="flex justify-between items-center text-xs text-muted-foreground uppercase tracking-widest mb-3">
                   <span>{facility.category}</span>
                   <span className={`px-3 py-1 rounded-full font-semibold ${facility.status === "soon" ? "qd-status-soon" : "qd-status-planned"}`}>

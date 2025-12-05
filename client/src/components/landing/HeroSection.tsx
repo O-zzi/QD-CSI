@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import heroBackground from "@assets/stock_images/modern_indoor_sports_8b182ff8.jpg";
 
 export function HeroSection() {
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -35,8 +36,13 @@ export function HeroSection() {
   };
 
   return (
-    <section id="hero" className="qd-section pt-12">
-      <div className="qd-container">
+    <section id="hero" className="qd-section pt-12 relative overflow-hidden">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${heroBackground})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/90 to-white/70 dark:from-slate-900/95 dark:via-slate-900/90 dark:to-slate-900/70" />
+      <div className="qd-container relative z-10">
         <div className="qd-hero-grid">
           <div>
             <div className="qd-eyebrow">

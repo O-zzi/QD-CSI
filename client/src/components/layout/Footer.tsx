@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Instagram, Facebook, Linkedin } from "lucide-react";
+import footerBg from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
 
 export function Footer() {
   const scrollToSection = (id: string) => {
@@ -11,8 +12,13 @@ export function Footer() {
   };
 
   return (
-    <footer className="qd-footer">
-      <div className="qd-container">
+    <footer className="qd-footer relative overflow-hidden">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+        style={{ backgroundImage: `url(${footerBg})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#111827]/95 to-[#111827]/80" />
+      <div className="qd-container relative z-10">
         <div className="flex flex-wrap justify-between gap-6 items-center">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer" data-testid="link-footer-logo">
