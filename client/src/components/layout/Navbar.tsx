@@ -1,11 +1,24 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavbarProps {
   onScrollTo?: (section: string) => void;
+}
+
+interface NavLink {
+  label: string;
+  section?: string;
+  href?: string;
+  children?: { label: string; href: string }[];
 }
 
 export function Navbar({ onScrollTo }: NavbarProps) {
@@ -26,15 +39,24 @@ export function Navbar({ onScrollTo }: NavbarProps) {
     setMobileMenuOpen(false);
   };
 
-  const navLinks = [
+  const navLinks: NavLink[] = [
     { label: "Home", section: "hero" },
-    { label: "About", section: "about" },
-    { label: "Facilities", section: "facilities" },
-    { label: "Updates", section: "updates" },
+    { label: "About", href: "/vision" },
+    { label: "Facilities", href: "/facilities" },
+    { label: "Updates", href: "/roadmap" },
     { label: "Gallery", section: "gallery" },
     { label: "Membership", section: "membership" },
     { label: "Contact", section: "contact" },
   ];
+
+  const handleNavClick = (link: NavLink) => {
+    if (link.href) {
+      setMobileMenuOpen(false);
+      window.location.href = link.href;
+    } else if (link.section) {
+      scrollToSection(link.section);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-gray-200/90 dark:border-slate-700/90">
@@ -52,14 +74,22 @@ export function Navbar({ onScrollTo }: NavbarProps) {
 
           <div className="hidden lg:flex items-center gap-7 text-sm text-muted-foreground">
             {navLinks.map((link) => (
-              <button
-                key={link.section}
-                onClick={() => scrollToSection(link.section)}
-                className="qd-nav-link"
-                data-testid={`link-nav-${link.section}`}
-              >
-                {link.label}
-              </button>
+              link.href ? (
+                <Link key={link.label} href={link.href}>
+                  <span className="qd-nav-link cursor-pointer" data-testid={`link-nav-${link.label.toLowerCase()}`}>
+                    {link.label}
+                  </span>
+                </Link>
+              ) : (
+                <button
+                  key={link.section}
+                  onClick={() => scrollToSection(link.section!)}
+                  className="qd-nav-link"
+                  data-testid={`link-nav-${link.section}`}
+                >
+                  {link.label}
+                </button>
+              )
             ))}
           </div>
 
@@ -106,14 +136,26 @@ export function Navbar({ onScrollTo }: NavbarProps) {
         {mobileMenuOpen && (
           <div className="lg:hidden flex flex-col gap-2 pb-4 border-t border-gray-100 dark:border-slate-700 pt-4 animate-qd-fade-in">
             {navLinks.map((link) => (
-              <button
-                key={link.section}
-                onClick={() => scrollToSection(link.section)}
-                className="text-left py-2 text-sm text-muted-foreground hover:text-foreground"
-                data-testid={`link-mobile-nav-${link.section}`}
-              >
-                {link.label}
-              </button>
+              link.href ? (
+                <Link key={link.label} href={link.href}>
+                  <span 
+                    className="block text-left py-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+                    onClick={() => setMobileMenuOpen(false)}
+                    data-testid={`link-mobile-nav-${link.label.toLowerCase()}`}
+                  >
+                    {link.label}
+                  </span>
+                </Link>
+              ) : (
+                <button
+                  key={link.section}
+                  onClick={() => handleNavClick(link)}
+                  className="text-left py-2 text-sm text-muted-foreground hover:text-foreground"
+                  data-testid={`link-mobile-nav-${link.section}`}
+                >
+                  {link.label}
+                </button>
+              )
             ))}
             <div className="flex flex-col gap-2 mt-4">
               {isAuthenticated ? (

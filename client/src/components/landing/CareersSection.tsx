@@ -1,4 +1,6 @@
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { ChevronRight } from "lucide-react";
 
 const positions = [
   {
@@ -20,14 +22,6 @@ const positions = [
 ];
 
 export function CareersSection() {
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const yOffset = -80;
-    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top: y, behavior: "smooth" });
-  };
-
   return (
     <section id="careers" className="qd-section bg-gray-50 dark:bg-slate-900">
       <div className="qd-container">
@@ -38,21 +32,21 @@ export function CareersSection() {
               Join our team! We are looking for passionate, high-energy individuals to help us launch and run Islamabad's premier sports complex.
             </p>
           </div>
-          <Button
-            className="rounded-full"
-            onClick={() => scrollToSection("contact")}
-            data-testid="button-submit-cv"
-          >
-            Submit CV
-          </Button>
+          <Link href="/careers">
+            <Button className="rounded-full" data-testid="button-submit-cv">
+              View Open Positions <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </Link>
         </div>
 
         <div className="qd-rules-grid">
           {positions.map((position, index) => (
-            <div key={index} className="qd-rule-item" data-testid={`career-position-${index}`}>
-              <h4 className="font-bold text-foreground mb-2">{position.title}</h4>
-              <p className="text-sm text-muted-foreground">{position.description}</p>
-            </div>
+            <Link key={index} href="/careers">
+              <div className="qd-rule-item hover-elevate cursor-pointer" data-testid={`career-position-${index}`}>
+                <h4 className="font-bold text-foreground mb-2">{position.title}</h4>
+                <p className="text-sm text-muted-foreground">{position.description}</p>
+              </div>
+            </Link>
           ))}
         </div>
       </div>

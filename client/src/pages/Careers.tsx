@@ -1,0 +1,214 @@
+import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, MapPin, Clock, Briefcase, Mail, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import type { Career } from "@shared/schema";
+
+const defaultJobs = [
+  {
+    id: "1",
+    title: "Sports Facility Manager",
+    department: "Operations",
+    location: "Islamabad",
+    type: "Full-time",
+    description: "Lead the day-to-day operations of our sports facilities, ensuring excellent member experience and efficient facility management.",
+    requirements: "5+ years experience in sports facility management. Strong leadership and communication skills. Knowledge of sports equipment maintenance.",
+    salary: "PKR 150,000 - 200,000 / month",
+    isActive: true,
+  },
+  {
+    id: "2",
+    title: "Padel Tennis Coach",
+    department: "Sports",
+    location: "Islamabad",
+    type: "Full-time",
+    description: "Provide professional coaching for our Padel Tennis program, conducting group classes and private lessons for members of all skill levels.",
+    requirements: "Certified Padel Tennis instructor. 3+ years coaching experience. Fluent in English and Urdu.",
+    salary: "PKR 80,000 - 120,000 / month",
+    isActive: true,
+  },
+  {
+    id: "3",
+    title: "Member Relations Officer",
+    department: "Customer Service",
+    location: "Islamabad",
+    type: "Full-time",
+    description: "Serve as the primary point of contact for members, handling inquiries, feedback, and ensuring exceptional service standards.",
+    requirements: "2+ years customer service experience. Excellent communication skills. Proficiency in CRM systems.",
+    salary: "PKR 50,000 - 70,000 / month",
+    isActive: true,
+  },
+  {
+    id: "4",
+    title: "Range Safety Officer",
+    department: "Safety",
+    location: "Islamabad",
+    type: "Full-time",
+    description: "Ensure safe operations of the Air Rifle Range, conduct safety certifications, and supervise shooting sessions.",
+    requirements: "Military or law enforcement background preferred. Safety certification required. First aid trained.",
+    salary: "PKR 60,000 - 90,000 / month",
+    isActive: true,
+  },
+  {
+    id: "5",
+    title: "Events Coordinator",
+    department: "Events",
+    location: "Islamabad",
+    type: "Part-time",
+    description: "Plan and execute tournaments, social events, and corporate functions at The Quarterdeck.",
+    requirements: "Event management experience. Strong organizational skills. Weekend availability required.",
+    salary: "PKR 40,000 - 60,000 / month",
+    isActive: true,
+  },
+];
+
+export default function Careers() {
+  const { data: careers } = useQuery<Career[]>({
+    queryKey: ["/api/careers"],
+  });
+
+  const jobListings = careers && careers.length > 0 ? careers : defaultJobs;
+  const activeJobs = jobListings.filter(job => job.isActive);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="relative h-[40vh] min-h-[300px] bg-[#2a4060] overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-careers-title">
+            Join Our Team
+          </h1>
+          <p className="text-xl max-w-3xl opacity-90">
+            Be part of Islamabad's premier sports and recreation destination
+          </p>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-6 py-12">
+        <Link href="/">
+          <Button variant="ghost" className="mb-8" data-testid="button-back-home">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Home
+          </Button>
+        </Link>
+
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-[#2a4060] mb-4">Why Work at The Quarterdeck?</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 flex items-center justify-center mx-auto mb-4">
+                    <Briefcase className="w-6 h-6 text-[#2a4060]" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Career Growth</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Opportunities for advancement and professional development
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 flex items-center justify-center mx-auto mb-4">
+                    <MapPin className="w-6 h-6 text-[#2a4060]" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Prime Location</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Work in a beautiful, state-of-the-art facility in Islamabad
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 flex items-center justify-center mx-auto mb-4">
+                    <Clock className="w-6 h-6 text-[#2a4060]" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Flexible Hours</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Various shift options to accommodate work-life balance
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-2xl font-bold text-[#2a4060] mb-6">Open Positions</h2>
+            
+            {activeJobs.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground">
+                    No open positions at the moment. Check back soon or send us your CV for future opportunities.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {activeJobs.map((job) => (
+                  <Card key={job.id} className="hover-elevate cursor-pointer" data-testid={`card-job-${job.id}`}>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-lg">{job.title}</h3>
+                            <Badge variant="secondary" className="text-xs">{job.type}</Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-3">
+                            <span className="flex items-center gap-1">
+                              <Briefcase className="w-4 h-4" /> {job.department}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-4 h-4" /> {job.location}
+                            </span>
+                            {job.salary && (
+                              <span className="text-[#2a4060] font-medium">{job.salary}</span>
+                            )}
+                          </div>
+                          <p className="text-muted-foreground text-sm mb-3">{job.description}</p>
+                          {job.requirements && (
+                            <p className="text-sm">
+                              <span className="font-medium">Requirements: </span>
+                              <span className="text-muted-foreground">{job.requirements}</span>
+                            </p>
+                          )}
+                        </div>
+                        <Button 
+                          className="bg-[#2a4060] hover:bg-[#1e3048] flex-shrink-0"
+                          onClick={() => window.location.href = `mailto:careers@thequarterdeck.pk?subject=Application for ${job.title}`}
+                          data-testid={`button-apply-${job.id}`}
+                        >
+                          Apply Now <ChevronRight className="w-4 h-4 ml-1" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Card className="mt-12">
+            <CardHeader>
+              <CardTitle>Don't See the Right Fit?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                We're always looking for talented individuals to join our team. Send us your CV 
+                and we'll keep you in mind for future opportunities.
+              </p>
+              <Button 
+                className="bg-[#2a4060] hover:bg-[#1e3048]"
+                onClick={() => window.location.href = 'mailto:careers@thequarterdeck.pk?subject=General Application'}
+                data-testid="button-submit-cv"
+              >
+                <Mail className="w-4 h-4 mr-2" /> Send Your CV
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

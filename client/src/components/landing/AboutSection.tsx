@@ -1,14 +1,7 @@
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
 export function AboutSection() {
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const yOffset = -80;
-    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top: y, behavior: "smooth" });
-  };
-
   return (
     <section id="about" className="qd-section bg-gray-50 dark:bg-slate-900">
       <div className="qd-container">
@@ -19,14 +12,15 @@ export function AboutSection() {
               Our core vision: Excellence in Play and Community. We are building Islamabad's premier destination for indoor sports, recreation, and social gathering.
             </p>
           </div>
-          <Button
-            variant="outline"
-            className="rounded-full"
-            onClick={() => scrollToSection("updates")}
-            data-testid="button-see-vision"
-          >
-            See Our Vision
-          </Button>
+          <Link href="/vision">
+            <Button
+              variant="outline"
+              className="rounded-full"
+              data-testid="button-see-vision"
+            >
+              See Our Vision
+            </Button>
+          </Link>
         </div>
 
         <div className="qd-dev-grid">

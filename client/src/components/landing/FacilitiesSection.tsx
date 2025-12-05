@@ -79,15 +79,16 @@ const facilities = [
   },
 ];
 
-export function FacilitiesSection() {
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const yOffset = -80;
-    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top: y, behavior: "smooth" });
-  };
+const facilitySlugMap: Record<string, string> = {
+  padel: "padel-tennis",
+  squash: "squash",
+  air_rifle: "air-rifle-range",
+  hall: "multipurpose-hall",
+  bridge: "bridge-room",
+  cafe: "multipurpose-hall", // Cafe not separate page, link to hall
+};
 
+export function FacilitiesSection() {
   return (
     <section id="facilities" className="qd-section">
       <div className="qd-container">
@@ -133,8 +134,8 @@ export function FacilitiesSection() {
                 </p>
                 <div className="flex justify-between items-center text-sm text-muted-foreground pt-4 border-t border-gray-100 dark:border-slate-700">
                   <span>{facility.footer}</span>
-                  <Link href={`/facility/${facility.id}`}>
-                    <span className="font-semibold text-[#2a4060] dark:text-blue-400 cursor-pointer hover:underline">
+                  <Link href={`/facilities/${facilitySlugMap[facility.id] || facility.id}`}>
+                    <span className="font-semibold text-[#2a4060] dark:text-blue-400 cursor-pointer hover:underline" data-testid={`link-facility-detail-${facility.id}`}>
                       View details
                     </span>
                   </Link>

@@ -3,14 +3,6 @@ import { Instagram, Facebook, Linkedin } from "lucide-react";
 import footerBg from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
 
 export function Footer() {
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const yOffset = -80;
-    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top: y, behavior: "smooth" });
-  };
-
   return (
     <footer className="qd-footer relative overflow-hidden">
       <div 
@@ -30,35 +22,32 @@ export function Footer() {
             </div>
           </Link>
 
-          <div className="flex gap-4">
-            <button
-              onClick={() => scrollToSection("hero")}
-              className="text-gray-400 hover:text-white transition-colors"
-              data-testid="link-footer-home"
-            >
-              Home
-            </button>
-            <button
-              onClick={() => scrollToSection("rules")}
-              className="text-gray-400 hover:text-white transition-colors"
-              data-testid="link-footer-rules"
-            >
-              Rules & Safety
-            </button>
-            <button
-              onClick={() => scrollToSection("careers")}
-              className="text-gray-400 hover:text-white transition-colors"
-              data-testid="link-footer-careers"
-            >
-              Careers
-            </button>
-            <button
-              onClick={() => scrollToSection("contact")}
-              className="text-gray-400 hover:text-white transition-colors"
-              data-testid="link-footer-contact"
-            >
-              Contact
-            </button>
+          <div className="flex flex-wrap gap-4">
+            <Link href="/">
+              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-home">
+                Home
+              </span>
+            </Link>
+            <Link href="/facilities">
+              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-facilities">
+                Facilities
+              </span>
+            </Link>
+            <Link href="/rules">
+              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-rules">
+                Rules & Safety
+              </span>
+            </Link>
+            <Link href="/careers">
+              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-careers">
+                Careers
+              </span>
+            </Link>
+            <Link href="/#contact">
+              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-contact">
+                Contact
+              </span>
+            </Link>
           </div>
 
           <div className="flex gap-4">
@@ -91,7 +80,13 @@ export function Footer() {
 
         <p className="text-center mt-6 text-gray-500 text-xs">
           © 2025 The Quarterdeck – All rights reserved.{" "}
-          <span className="font-semibold">| Terms & Conditions | Privacy Policy</span>
+          <Link href="/terms" className="font-semibold hover:text-gray-300 cursor-pointer" data-testid="link-footer-terms">
+            Terms & Conditions
+          </Link>
+          {" | "}
+          <Link href="/privacy" className="font-semibold hover:text-gray-300 cursor-pointer" data-testid="link-footer-privacy">
+            Privacy Policy
+          </Link>
         </p>
       </div>
     </footer>

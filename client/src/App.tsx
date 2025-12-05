@@ -9,6 +9,14 @@ import Profile from "@/pages/Profile";
 import Events from "@/pages/Events";
 import Leaderboard from "@/pages/Leaderboard";
 import Gallery from "@/pages/Gallery";
+import Vision from "@/pages/Vision";
+import Facilities from "@/pages/Facilities";
+import FacilityDetail from "@/pages/FacilityDetail";
+import Roadmap from "@/pages/Roadmap";
+import Rules from "@/pages/Rules";
+import Careers from "@/pages/Careers";
+import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
 import NotFound from "@/pages/not-found";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import HomepageManagement from "@/pages/admin/HomepageManagement";
@@ -28,6 +36,14 @@ function Router() {
       <Route path="/events" component={Events} />
       <Route path="/leaderboard" component={Leaderboard} />
       <Route path="/gallery" component={Gallery} />
+      <Route path="/vision" component={Vision} />
+      <Route path="/facilities" component={Facilities} />
+      <Route path="/facilities/:slug" component={FacilityDetail} />
+      <Route path="/roadmap" component={Roadmap} />
+      <Route path="/rules" component={Rules} />
+      <Route path="/careers" component={Careers} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/homepage" component={HomepageManagement} />
       <Route path="/admin/facilities" component={FacilitiesManagement} />

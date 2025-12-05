@@ -1,0 +1,352 @@
+import { Link, useParams } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Clock, Users, MapPin, Check, AlertTriangle, Calendar } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import type { Facility, FacilityAddOn } from "@shared/schema";
+
+const defaultFacilities: Record<string, any> = {
+  "padel-tennis": {
+    id: 1,
+    name: "Padel Tennis",
+    slug: "padel-tennis",
+    description: "Experience the fastest-growing racquet sport on our 4 international-standard courts.",
+    longDescription: "Padel Tennis combines elements of tennis and squash in an exciting, social game format. Our courts feature tempered glass walls, professional-grade artificial turf, and state-of-the-art LED lighting for evening play. Whether you're a beginner or seasoned player, our facilities provide the perfect environment for this dynamic sport.",
+    imageUrl: "/images/padel.jpg",
+    courtCount: 4,
+    basePrice: "6000",
+    peakPrice: "8000",
+    operatingHours: "6:00 AM - 11:00 PM",
+    minPlayers: 4,
+    maxPlayers: 4,
+    amenities: ["LED Lighting", "Climate Control", "Locker Rooms", "Equipment Rental", "Coaching Available", "Video Analysis", "Pro Shop"],
+    requiresCertification: false,
+    isActive: true,
+    icon: "🎾",
+    features: [
+      "4 International-standard courts",
+      "Tempered glass walls",
+      "Professional-grade artificial turf",
+      "LED lighting system for night play",
+      "Covered and climate-controlled",
+    ],
+    addOns: [
+      { id: "racket", name: "Rent Racket", price: 500 },
+      { id: "balls", name: "Sleeve of Balls", price: 1500 },
+      { id: "water", name: "Mineral Water", price: 100 },
+      { id: "towel", name: "Fresh Towel", price: 300 },
+    ],
+  },
+  "squash": {
+    id: 2,
+    name: "Squash Courts",
+    slug: "squash",
+    description: "Two championship-grade squash courts built to World Squash Federation standards.",
+    longDescription: "Our squash courts meet international competition standards with specially designed maple floors, glass back walls for viewing, and professional lighting systems. The courts are perfect for casual games, serious training, or competitive matches.",
+    imageUrl: "/images/squash.jpg",
+    courtCount: 2,
+    basePrice: "4000",
+    peakPrice: "6000",
+    operatingHours: "6:00 AM - 11:00 PM",
+    minPlayers: 2,
+    maxPlayers: 2,
+    amenities: ["Glass Back Wall", "Pro Lighting", "Locker Rooms", "Equipment Rental", "Coaching Available"],
+    requiresCertification: false,
+    isActive: true,
+    icon: "🧱",
+    features: [
+      "2 Championship-grade courts",
+      "World Squash Federation compliant",
+      "Glass back walls for spectating",
+      "Professional maple flooring",
+      "Climate-controlled environment",
+    ],
+    addOns: [
+      { id: "sq_racket", name: "Squash Racket Rental", price: 500 },
+      { id: "sq_balls", name: "Squash Balls (Tube)", price: 1200 },
+      { id: "water", name: "Mineral Water", price: 100 },
+      { id: "towel", name: "Fresh Towel", price: 300 },
+    ],
+  },
+  "air-rifle-range": {
+    id: 3,
+    name: "Air Rifle Range",
+    slug: "air-rifle-range",
+    description: "Pakistan's premier 10-meter air rifle range with professional supervision.",
+    longDescription: "Our state-of-the-art 10-meter air rifle range features electronic scoring systems, professional-grade targets, and comprehensive safety measures. All shooters must complete our mandatory safety certification course before using the range. Professional supervision is provided at all times.",
+    imageUrl: "/images/rifle.jpg",
+    courtCount: 6,
+    basePrice: "6000",
+    peakPrice: "8000",
+    operatingHours: "9:00 AM - 9:00 PM",
+    minPlayers: 1,
+    maxPlayers: 6,
+    amenities: ["Electronic Scoring", "Safety Equipment", "Professional Supervision", "Rifle Rental", "Certification Course"],
+    requiresCertification: true,
+    isActive: true,
+    icon: "🎯",
+    features: [
+      "6 Shooting lanes",
+      "10-meter Olympic distance",
+      "Electronic scoring system",
+      "Professional-grade air rifles",
+      "Full safety equipment provided",
+    ],
+    addOns: [
+      { id: "ear_protection", name: "Ear Protection", price: 300 },
+      { id: "safety_glasses", name: "Safety Glasses", price: 400 },
+      { id: "water", name: "Mineral Water", price: 100 },
+    ],
+  },
+  "bridge-room": {
+    id: 4,
+    name: "Bridge Room",
+    slug: "bridge-room",
+    description: "Elegant Bridge Room with refined atmosphere for contract bridge enthusiasts.",
+    longDescription: "A sophisticated space designed specifically for serious bridge players. Features comfortable seating, proper lighting, quiet atmosphere, and complimentary tea service. This facility is exclusive to Founding Members and Forces category members.",
+    imageUrl: "/images/bridge.jpg",
+    courtCount: 5,
+    basePrice: "0",
+    peakPrice: "0",
+    operatingHours: "10:00 AM - 10:00 PM",
+    minPlayers: 4,
+    maxPlayers: 20,
+    amenities: ["5 Card Tables", "Tea Service", "Air Conditioning", "Quiet Atmosphere", "Card Sets Provided"],
+    requiresCertification: false,
+    isActive: true,
+    icon: "♠️",
+    restricted: true,
+    features: [
+      "5 Premium card tables",
+      "Comfortable ergonomic seating",
+      "Quiet, focused atmosphere",
+      "Complimentary tea/coffee service",
+      "Professional bridge equipment",
+    ],
+    addOns: [
+      { id: "tea_coffee", name: "Tea / Coffee Service", price: 300 },
+      { id: "snacks", name: "Snacks Platter", price: 800 },
+      { id: "water", name: "Mineral Water", price: 100 },
+    ],
+  },
+  "multipurpose-hall": {
+    id: 5,
+    name: "Multipurpose Hall",
+    slug: "multipurpose-hall",
+    description: "Versatile 500-capacity hall for events, fitness classes, and private functions.",
+    longDescription: "Our multipurpose hall offers flexible space for a variety of activities from aerobics classes to corporate events and private functions. The venue features a professional sound system, adjustable lighting, projector facilities, and full catering support.",
+    imageUrl: "/images/hall.jpg",
+    courtCount: 1,
+    basePrice: "6000",
+    peakPrice: "150000",
+    operatingHours: "8:00 AM - 10:00 PM",
+    minPlayers: 10,
+    maxPlayers: 500,
+    amenities: ["Sound System", "Projector", "Catering Available", "Flexible Layout", "Stage Available"],
+    requiresCertification: false,
+    isActive: true,
+    icon: "🏛️",
+    features: [
+      "500-person capacity",
+      "Professional sound system",
+      "HD Projector and screen",
+      "Flexible seating arrangements",
+      "Full catering kitchen",
+    ],
+    addOns: [
+      { id: "mats", name: "Floor Mats", price: 500 },
+      { id: "speaker", name: "Speaker & Mic Setup", price: 1500 },
+      { id: "water", name: "Mineral Water", price: 100 },
+    ],
+  },
+};
+
+export default function FacilityDetail() {
+  const { slug } = useParams();
+  
+  const { data: dbFacility } = useQuery<Facility>({
+    queryKey: ["/api/facilities", slug],
+    enabled: !!slug,
+  });
+
+  const facility = dbFacility || defaultFacilities[slug || ""];
+
+  if (!facility) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-bold mb-4">Facility Not Found</h2>
+            <p className="text-muted-foreground mb-6">
+              The facility you're looking for doesn't exist or has been removed.
+            </p>
+            <Link href="/facilities">
+              <Button className="bg-[#2a4060] hover:bg-[#1e3048]">
+                View All Facilities
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="relative h-[50vh] min-h-[400px] bg-[#2a4060] overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+          <div className="text-6xl mb-4">{facility.icon}</div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-facility-name">
+            {facility.name}
+          </h1>
+          {facility.requiresCertification && (
+            <Badge variant="destructive" className="mb-4">Safety Certification Required</Badge>
+          )}
+          {facility.restricted && (
+            <Badge className="bg-amber-500 mb-4">Founding & Forces Members Only</Badge>
+          )}
+          <p className="text-xl max-w-3xl opacity-90">{facility.description}</p>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-6 py-12">
+        <Link href="/facilities">
+          <Button variant="ghost" className="mb-8" data-testid="button-back-facilities">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Facilities
+          </Button>
+        </Link>
+
+        <div className="max-w-5xl mx-auto">
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <section>
+                <h2 className="text-2xl font-bold text-[#2a4060] mb-4">About This Facility</h2>
+                <p className="text-muted-foreground leading-relaxed">{facility.longDescription}</p>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold text-[#2a4060] mb-4">Features</h2>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {facility.features?.map((feature: string, index: number) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold text-[#2a4060] mb-4">Amenities</h2>
+                <div className="flex flex-wrap gap-2">
+                  {facility.amenities?.map((amenity: string, index: number) => (
+                    <Badge key={index} variant="secondary">{amenity}</Badge>
+                  ))}
+                </div>
+              </section>
+
+              {facility.addOns && facility.addOns.length > 0 && (
+                <section>
+                  <h2 className="text-2xl font-bold text-[#2a4060] mb-4">Available Add-Ons</h2>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {facility.addOns.map((addOn: any) => (
+                      <Card key={addOn.id}>
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <span>{addOn.name}</span>
+                          <span className="font-semibold text-[#2a4060]">
+                            PKR {addOn.price.toLocaleString()}
+                          </span>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Info</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Operating Hours</p>
+                      <p className="font-medium">{facility.operatingHours}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Players</p>
+                      <p className="font-medium">{facility.minPlayers} - {facility.maxPlayers} players</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Available Units</p>
+                      <p className="font-medium">{facility.courtCount} {facility.courtCount === 1 ? 'Unit' : 'Courts/Lanes'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pricing</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Off-Peak (10AM-5PM)</span>
+                      <span className="font-semibold text-[#2a4060]">
+                        PKR {parseInt(facility.basePrice || "0").toLocaleString()}/hr
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Peak Hours</span>
+                      <span className="font-semibold text-[#2a4060]">
+                        PKR {parseInt(facility.peakPrice || "0").toLocaleString()}/hr
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground pt-2 border-t">
+                      30% discount during off-peak hours
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {facility.requiresCertification && (
+                <Card className="border-amber-500/50 bg-amber-500/5">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold mb-1">Certification Required</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Safety certification is mandatory before using this facility. 
+                          Please complete the certification course first.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <Link href="/booking">
+                <Button className="w-full bg-[#2a4060] hover:bg-[#1e3048]" size="lg" data-testid="button-book-facility">
+                  <Calendar className="w-4 h-4 mr-2" /> Book This Facility
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

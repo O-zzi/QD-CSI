@@ -1,3 +1,7 @@
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { ChevronRight } from "lucide-react";
+
 const rules = [
   {
     title: "Padel/Squash Court Footwear",
@@ -21,19 +25,28 @@ export function RulesSection() {
   return (
     <section id="rules" className="qd-section">
       <div className="qd-container">
-        <div className="mb-8">
-          <h2 className="qd-section-title" data-testid="text-rules-title">Rules & Safety Protocols</h2>
-          <p className="text-muted-foreground max-w-2xl mt-2">
-            Ensuring a safe, respectful, and high-quality environment for all members and guests. These are our key rules.
-          </p>
+        <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
+          <div>
+            <h2 className="qd-section-title" data-testid="text-rules-title">Rules & Safety Protocols</h2>
+            <p className="text-muted-foreground max-w-2xl mt-2">
+              Ensuring a safe, respectful, and high-quality environment for all members and guests. These are our key rules.
+            </p>
+          </div>
+          <Link href="/rules">
+            <Button variant="outline" className="rounded-full" data-testid="button-view-all-rules">
+              View All Rules <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </Link>
         </div>
 
         <div className="qd-rules-grid">
           {rules.map((rule, index) => (
-            <div key={index} className="qd-rule-item" data-testid={`rule-item-${index}`}>
-              <h4 className="font-bold text-foreground mb-2">{rule.title}</h4>
-              <p className="text-sm text-muted-foreground">{rule.description}</p>
-            </div>
+            <Link key={index} href="/rules">
+              <div className="qd-rule-item hover-elevate cursor-pointer" data-testid={`rule-item-${index}`}>
+                <h4 className="font-bold text-foreground mb-2">{rule.title}</h4>
+                <p className="text-sm text-muted-foreground">{rule.description}</p>
+              </div>
+            </Link>
           ))}
         </div>
       </div>
