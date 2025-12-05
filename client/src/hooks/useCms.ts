@@ -65,7 +65,7 @@ export const CMS_DEFAULTS: Record<string, string> = {
   // Hero Section
   hero_title: 'A bright, premium <span class="qd-hero-highlight">multi-sport arena</span> built for play, performance & community.',
   hero_subtitle: 'The Quarterdeck brings state-of-the-art Padel Tennis, Squash, an Air Rifle Range, a Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience into a single, purpose-built complex. We are setting the new standard for indoor sports and recreation in Islamabad.',
-  hero_eyebrow: 'Target Launch: December 2025',
+  hero_eyebrow: 'Target Launch: December 25, 2025',
   hero_launch_date: '2025-12-25',
   hero_cta_1: 'Explore Facilities',
   hero_cta_2: 'View Site Updates',

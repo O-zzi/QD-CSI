@@ -40,7 +40,7 @@ export default function RoadmapManagement() {
   const [formData, setFormData] = useState<Record<string, Partial<ConstructionPhase>>>({});
 
   const { data: phases, isLoading } = useQuery<ConstructionPhase[]>({
-    queryKey: ["/api/construction-phases"],
+    queryKey: ["/api/admin/construction-phases"],
   });
 
   useEffect(() => {
