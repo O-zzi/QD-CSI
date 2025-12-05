@@ -22,6 +22,7 @@ import NotFound from "@/pages/not-found";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import HomepageManagement from "@/pages/admin/HomepageManagement";
 import FacilitiesManagement from "@/pages/admin/FacilitiesManagement";
+import EventsManagement from "@/pages/admin/EventsManagement";
 import PricingManagement from "@/pages/admin/PricingManagement";
 import AnnouncementsManagement from "@/pages/admin/AnnouncementsManagement";
 import CareersManagement from "@/pages/admin/CareersManagement";
@@ -49,6 +50,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/homepage" component={HomepageManagement} />
       <Route path="/admin/facilities" component={FacilitiesManagement} />
+      <Route path="/admin/events" component={EventsManagement} />
       <Route path="/admin/pricing" component={PricingManagement} />
       <Route path="/admin/announcements" component={AnnouncementsManagement} />
       <Route path="/admin/careers" component={CareersManagement} />

@@ -14,6 +14,7 @@ import {
   insertVenueSchema,
   insertConstructionPhaseSchema,
   insertCmsFieldSchema,
+  insertEventSchema,
   insertEventRegistrationSchema,
   insertCareerApplicationSchema,
   insertContactSubmissionSchema,
@@ -656,6 +657,59 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting gallery image:", error);
       res.status(500).json({ message: "Failed to delete gallery image" });
+    }
+  });
+
+  // Admin Events routes
+  app.get('/api/admin/events', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const events = await storage.getEvents();
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      res.status(500).json({ message: "Failed to fetch events" });
+    }
+  });
+
+  app.post('/api/admin/events', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertEventSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const event = await storage.createEvent(result.data);
+      res.status(201).json(event);
+    } catch (error) {
+      console.error("Error creating event:", error);
+      res.status(500).json({ message: "Failed to create event" });
+    }
+  });
+
+  app.patch('/api/admin/events/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertEventSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateEvent(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating event:", error);
+      res.status(500).json({ message: "Failed to update event" });
+    }
+  });
+
+  app.delete('/api/admin/events/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteEvent(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      res.status(500).json({ message: "Failed to delete event" });
     }
   });
 

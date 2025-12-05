@@ -98,6 +98,9 @@ export interface IStorage {
   // Event operations
   getEvents(): Promise<Event[]>;
   getEventsByFacility(facilityId: string): Promise<Event[]>;
+  createEvent(data: InsertEvent): Promise<Event>;
+  updateEvent(id: string, data: Partial<InsertEvent>): Promise<Event | undefined>;
+  deleteEvent(id: string): Promise<void>;
 
   // Leaderboard operations
   getLeaderboard(facilityId?: string): Promise<LeaderboardEntry[]>;
@@ -354,6 +357,24 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(events)
       .where(and(eq(events.facilityId, facilityId), eq(events.isActive, true)));
+  }
+
+  async createEvent(data: InsertEvent): Promise<Event> {
+    const [event] = await db.insert(events).values(data).returning();
+    return event;
+  }
+
+  async updateEvent(id: string, data: Partial<InsertEvent>): Promise<Event | undefined> {
+    const [updated] = await db
+      .update(events)
+      .set(data)
+      .where(eq(events.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteEvent(id: string): Promise<void> {
+    await db.delete(events).where(eq(events.id, id));
   }
 
   // Leaderboard operations - returns entries with player info

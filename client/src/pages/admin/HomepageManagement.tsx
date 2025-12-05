@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AdminLayout } from "./AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Database, FileText, CheckCircle2, AlertCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CMS_DEFAULTS } from "@/hooks/useCms";
 import type { CmsContent } from "@shared/schema";
 
 interface CmsSection {
@@ -51,6 +53,7 @@ const cmsSections: Record<string, { title: string; description: string; fields: 
     fields: [
       { key: "facilities_title", label: "Section Title", type: "text", placeholder: "World-Class Facilities" },
       { key: "facilities_subtitle", label: "Section Subtitle", type: "textarea" },
+      { key: "facilities_cta", label: "CTA Button Text", type: "text", placeholder: "Check Court Availability" },
     ],
   },
   membership: {
@@ -74,13 +77,40 @@ const cmsSections: Record<string, { title: string; description: string; fields: 
       { key: "contact_hours", label: "Operating Hours", type: "text" },
     ],
   },
+  updates: {
+    title: "Updates Section",
+    description: "Construction updates and progress section.",
+    fields: [
+      { key: "updates_title", label: "Section Title", type: "text", placeholder: "Construction Updates" },
+      { key: "updates_subtitle", label: "Section Subtitle", type: "textarea" },
+      { key: "updates_cta", label: "CTA Button Text", type: "text", placeholder: "View Full Roadmap" },
+    ],
+  },
+  gallery: {
+    title: "Gallery Section",
+    description: "Progress photos and renders section.",
+    fields: [
+      { key: "gallery_title", label: "Section Title", type: "text", placeholder: "Gallery & Progress Photos" },
+      { key: "gallery_subtitle", label: "Section Subtitle", type: "textarea" },
+      { key: "gallery_cta", label: "CTA Button Text", type: "text", placeholder: "View Full Gallery" },
+    ],
+  },
   careers: {
     title: "Careers Page",
     description: "Content for the careers/jobs section.",
     fields: [
       { key: "careers_title", label: "Page Title", type: "text", placeholder: "Join Our Team" },
       { key: "careers_subtitle", label: "Page Subtitle", type: "textarea" },
-      { key: "careers_intro", label: "Introduction Text", type: "textarea" },
+      { key: "careers_cta", label: "CTA Button Text", type: "text", placeholder: "View Open Positions" },
+    ],
+  },
+  rules: {
+    title: "Rules Page",
+    description: "Club rules and etiquette content.",
+    fields: [
+      { key: "rules_title", label: "Page Title", type: "text", placeholder: "Club Rules & Etiquette" },
+      { key: "rules_subtitle", label: "Page Subtitle", type: "textarea" },
+      { key: "rules_cta", label: "CTA Button Text", type: "text", placeholder: "View All Rules" },
     ],
   },
   events: {
@@ -99,13 +129,16 @@ const cmsSections: Record<string, { title: string; description: string; fields: 
       { key: "leaderboard_subtitle", label: "Page Subtitle", type: "textarea" },
     ],
   },
-  rules: {
-    title: "Rules Page",
-    description: "Club rules and etiquette content.",
+  coming_soon: {
+    title: "Coming Soon Page",
+    description: "Content for the pre-launch Coming Soon page.",
     fields: [
-      { key: "rules_title", label: "Page Title", type: "text", placeholder: "Club Rules & Etiquette" },
-      { key: "rules_subtitle", label: "Page Subtitle", type: "textarea" },
-      { key: "rules_intro", label: "Introduction Text", type: "textarea" },
+      { key: "coming_soon_title", label: "Page Title", type: "text", placeholder: "Something Amazing Is Coming" },
+      { key: "coming_soon_subtitle", label: "Subtitle", type: "textarea" },
+      { key: "coming_soon_description", label: "Description", type: "textarea" },
+      { key: "coming_soon_cta", label: "CTA Button Text", type: "text", placeholder: "Join the Waitlist" },
+      { key: "coming_soon_launch_date", label: "Launch Date", type: "date" },
+      { key: "coming_soon_location", label: "Location Text", type: "text" },
     ],
   },
   social: {
@@ -134,10 +167,22 @@ export default function HomepageManagement() {
   const { toast } = useToast();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [savingKeys, setSavingKeys] = useState<Set<string>>(new Set());
+  const [savedKeys, setSavedKeys] = useState<Set<string>>(new Set());
 
   const { data: cmsContent, isLoading } = useQuery<CmsContent[]>({
     queryKey: ["/api/admin/cms"],
   });
+
+  // Initialize form data with existing values when CMS content loads
+  useEffect(() => {
+    if (cmsContent) {
+      const initialData: Record<string, string> = {};
+      cmsContent.forEach(item => {
+        initialData[item.key] = item.content || "";
+      });
+      setFormData(prev => ({ ...initialData, ...prev }));
+    }
+  }, [cmsContent]);
 
   const saveMutation = useMutation({
     mutationFn: async (data: { key: string; content: string; title: string }) => {
@@ -155,6 +200,14 @@ export default function HomepageManagement() {
         next.delete(variables.key);
         return next;
       });
+      setSavedKeys(prev => new Set(prev).add(variables.key));
+      setTimeout(() => {
+        setSavedKeys(prev => {
+          const next = new Set(prev);
+          next.delete(variables.key);
+          return next;
+        });
+      }, 2000);
       toast({ title: "Content saved successfully" });
     },
     onError: (_, variables) => {
@@ -167,10 +220,32 @@ export default function HomepageManagement() {
     },
   });
 
-  const getContentValue = (key: string) => {
-    if (formData[key] !== undefined) return formData[key];
+  const getDbValue = (key: string): string | undefined => {
     const content = cmsContent?.find(c => c.key === key);
-    return content?.content || "";
+    return content?.content ?? undefined;
+  };
+
+  const getDefaultValue = (key: string): string => {
+    return CMS_DEFAULTS[key] || "";
+  };
+
+  const getCurrentValue = (key: string): string => {
+    // Priority: local edit > database > default
+    if (formData[key] !== undefined && formData[key] !== "") return formData[key];
+    const dbValue = getDbValue(key);
+    if (dbValue !== undefined && dbValue !== "") return dbValue;
+    return getDefaultValue(key);
+  };
+
+  const isFromDatabase = (key: string): boolean => {
+    const dbValue = getDbValue(key);
+    return dbValue !== undefined && dbValue !== "";
+  };
+
+  const hasLocalChanges = (key: string): boolean => {
+    const dbValue = getDbValue(key) || "";
+    const currentValue = formData[key];
+    return currentValue !== undefined && currentValue !== dbValue;
   };
 
   const handleChange = (key: string, value: string) => {
@@ -178,18 +253,24 @@ export default function HomepageManagement() {
   };
 
   const handleSave = (key: string, label: string) => {
+    const value = formData[key] ?? getDbValue(key) ?? "";
     setSavingKeys(prev => new Set(prev).add(key));
-    saveMutation.mutate({ key, content: getContentValue(key), title: label });
+    saveMutation.mutate({ key, content: value, title: label });
   };
 
   const handleSaveAll = (sectionKey: string) => {
     const section = cmsSections[sectionKey];
     section.fields.forEach(field => {
-      const value = getContentValue(field.key);
-      if (value) {
+      const value = formData[field.key] ?? getDbValue(field.key) ?? "";
+      if (value || hasLocalChanges(field.key)) {
         handleSave(field.key, field.label);
       }
     });
+  };
+
+  const handleResetToDefault = (key: string) => {
+    const defaultValue = getDefaultValue(key);
+    setFormData(prev => ({ ...prev, [key]: defaultValue }));
   };
 
   if (isLoading) {
@@ -210,9 +291,20 @@ export default function HomepageManagement() {
             <CardTitle>Edit Site Content</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground mb-6">
-              Manage all text content across the website. Changes will be reflected on the public site.
-            </p>
+            <div className="flex items-center gap-4 mb-6 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-green-600" />
+                <span className="text-sm">Saved in database</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-amber-600" />
+                <span className="text-sm">Using default value</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-blue-600" />
+                <span className="text-sm">Unsaved changes</span>
+              </div>
+            </div>
 
             <Tabs defaultValue="hero" className="w-full">
               <TabsList className="flex flex-wrap h-auto gap-1 mb-6">
@@ -241,50 +333,105 @@ export default function HomepageManagement() {
                       data-testid={`button-save-all-${sectionKey}`}
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      Save All
+                      Save All Changes
                     </Button>
                   </div>
 
-                  <div className="space-y-4">
-                    {section.fields.map((field) => (
-                      <div key={field.key} className="space-y-2 p-4 border rounded-md">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor={field.key}>{field.label}</Label>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleSave(field.key, field.label)}
-                            disabled={savingKeys.has(field.key)}
-                            data-testid={`button-save-${field.key}`}
-                          >
-                            {savingKeys.has(field.key) ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Save className="w-4 h-4" />
-                            )}
-                          </Button>
+                  <div className="space-y-6">
+                    {section.fields.map((field) => {
+                      const dbValue = getDbValue(field.key);
+                      const defaultValue = getDefaultValue(field.key);
+                      const currentValue = formData[field.key] ?? dbValue ?? "";
+                      const fromDb = isFromDatabase(field.key);
+                      const hasChanges = hasLocalChanges(field.key);
+
+                      return (
+                        <div key={field.key} className="space-y-2 p-4 border rounded-lg">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor={field.key} className="font-medium">{field.label}</Label>
+                              {savedKeys.has(field.key) ? (
+                                <Badge className="bg-green-500 text-xs">
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                  Saved
+                                </Badge>
+                              ) : hasChanges ? (
+                                <Badge variant="outline" className="text-blue-600 border-blue-600 text-xs">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  Unsaved
+                                </Badge>
+                              ) : fromDb ? (
+                                <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
+                                  <Database className="w-3 h-3 mr-1" />
+                                  Database
+                                </Badge>
+                              ) : defaultValue ? (
+                                <Badge variant="outline" className="text-amber-600 border-amber-600 text-xs">
+                                  <FileText className="w-3 h-3 mr-1" />
+                                  Default
+                                </Badge>
+                              ) : null}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {defaultValue && !fromDb && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleResetToDefault(field.key)}
+                                  className="text-xs"
+                                  title="Use default value"
+                                >
+                                  Reset
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleSave(field.key, field.label)}
+                                disabled={savingKeys.has(field.key)}
+                                data-testid={`button-save-${field.key}`}
+                              >
+                                {savingKeys.has(field.key) ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Save className="w-4 h-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Show current website value preview */}
+                          {defaultValue && !fromDb && (
+                            <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded border-l-2 border-amber-500">
+                              <span className="font-medium">Currently showing on website: </span>
+                              <span className="italic">{defaultValue.length > 150 ? defaultValue.substring(0, 150) + "..." : defaultValue}</span>
+                            </div>
+                          )}
+
+                          {field.type === "textarea" ? (
+                            <Textarea
+                              id={field.key}
+                              value={currentValue}
+                              onChange={(e) => handleChange(field.key, e.target.value)}
+                              placeholder={field.placeholder || defaultValue || "Enter content..."}
+                              rows={4}
+                              className={hasChanges ? "border-blue-500" : ""}
+                              data-testid={`input-${field.key}`}
+                            />
+                          ) : (
+                            <Input
+                              id={field.key}
+                              type={field.type === "date" ? "date" : field.type === "email" ? "email" : "text"}
+                              value={currentValue}
+                              onChange={(e) => handleChange(field.key, e.target.value)}
+                              placeholder={field.placeholder || defaultValue || "Enter content..."}
+                              className={hasChanges ? "border-blue-500" : ""}
+                              data-testid={`input-${field.key}`}
+                            />
+                          )}
                         </div>
-                        {field.type === "textarea" ? (
-                          <Textarea
-                            id={field.key}
-                            value={getContentValue(field.key)}
-                            onChange={(e) => handleChange(field.key, e.target.value)}
-                            placeholder={field.placeholder}
-                            rows={4}
-                            data-testid={`input-${field.key}`}
-                          />
-                        ) : (
-                          <Input
-                            id={field.key}
-                            type={field.type === "date" ? "date" : field.type === "email" ? "email" : "text"}
-                            value={getContentValue(field.key)}
-                            onChange={(e) => handleChange(field.key, e.target.value)}
-                            placeholder={field.placeholder}
-                            data-testid={`input-${field.key}`}
-                          />
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </TabsContent>
               ))}
