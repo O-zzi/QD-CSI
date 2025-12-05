@@ -72,19 +72,6 @@ const upload = multer({
   }
 });
 
-// Admin middleware - checks if user is ADMIN or SUPER_ADMIN
-async function isAdmin(req: any, res: any, next: any) {
-  if (!req.user) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-  const userId = req.user.claims.sub;
-  const user = await storage.getUser(userId);
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-    return res.status(403).json({ message: "Forbidden: Admin access required" });
-  }
-  next();
-}
-
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -104,8 +91,8 @@ export async function registerRoutes(
     }
   });
 
-  // Session heartbeat for all authenticated users
-  app.post('/api/session/heartbeat', sessionHeartbeat);
+  // Session heartbeat for all authenticated users - uses isAuthenticated for OIDC token refresh and timeout enforcement
+  app.post('/api/session/heartbeat', isAuthenticated, sessionHeartbeat);
 
   // ========== MEMBERSHIP ROUTES ==========
   app.get('/api/memberships/my', isAuthenticated, async (req: any, res) => {

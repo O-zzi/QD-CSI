@@ -40,19 +40,25 @@ An `/admin` panel provides role-based access (ADMIN, SUPER_ADMIN) for managing C
 
 The system incorporates double-booking prevention, membership number format validation (e.g., QD-XXXX), payer validation for booking on behalf of others, and role-based access control for admin routes. Server-side validation with Zod is implemented across all critical endpoints, including payment processing.
 
-### Admin Security Enhancements
+### Site-Wide Session Security
 
-The admin panel has enhanced security measures:
-- **Re-authentication Timeout**: Admin users must have logged in within the last 10 minutes to access admin routes
-- **Inactivity Timeout**: Admin sessions expire after 2 minutes of inactivity
-- **Activity Tracking**: User activity is tracked via `lastActivityAt` and `lastAuthenticatedAt` timestamps
-- **Heartbeat System**: Frontend sends activity heartbeats every 30 seconds to maintain admin sessions
+The entire website has uniform session security for all authenticated users:
+- **Re-authentication Timeout**: Users must have logged in within the last 10 minutes to access any protected routes
+- **Inactivity Timeout**: All sessions expire after 2 minutes of inactivity
+- **Activity Tracking**: User activity is tracked via `lastActivityAt` and `lastAuthenticatedAt` timestamps in the database
+- **Heartbeat System**: Frontend sends activity heartbeats every 30 seconds to maintain sessions
 - **Automatic Logout**: Users are automatically redirected to login when sessions expire
 
 Key files:
-- `server/replitAuth.ts`: Contains `isAdmin` middleware with security checks
-- `client/src/hooks/useAdminSession.ts`: Frontend activity tracking hook
+- `server/replitAuth.ts`: Contains `isAuthenticated` middleware with timeout checks for all users, plus `isAdmin` for admin-only access
+- `client/src/hooks/useSession.ts`: Frontend session tracking hook for all authenticated users
+- `client/src/hooks/useAdminSession.ts`: Legacy admin-specific session hook (uses same backend)
+- `client/src/components/SessionProvider.tsx`: App-wide session management wrapper
 - `client/src/pages/admin/AdminLayout.tsx`: Admin layout with session management
+
+API Endpoints:
+- `POST /api/session/heartbeat`: Session heartbeat for all authenticated users
+- `POST /api/admin/heartbeat`: Legacy admin heartbeat (same behavior)
 
 ## External Dependencies
 
