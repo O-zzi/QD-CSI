@@ -1,0 +1,225 @@
+You are upgrading an existing single-page website and booking console for
+“The Quarterdeck – Sports & Recreation Complex”
+into a complete full-stack web application.
+
+I will upload the current index.html (Tailwind + inline React/Babel).
+This file contains the entire landing page and the full booking console.
+Your job is NOT to redesign it.
+Your job is to rebuild it properly as a React + Node.js + PostgreSQL system.
+
+Very important rule: Do NOT change the design, spacing, layout, Tailwind classes, animations, or UI behavior.
+Everything must look and function exactly like the existing file.
+
+PROJECT STRUCTURE & TECHNOLOGY
+
+Create a monorepo with these folders:
+
+/server → Node.js + Express + PostgreSQL + Prisma or Knex
+/client → React + Vite + Tailwind (compiled via PostCSS)
+
+Tailwind must NOT use CDN.
+Inline <script type="text/babel"> must be removed and replaced with real React components.
+
+Root package.json scripts:
+
+dev – run server + client concurrently
+dev:server – backend only
+dev:client – frontend only
+
+FRONTEND: MIGRATE THE EXISTING HTML TO REACT
+
+Take the uploaded index.html and convert it into React components:
+
+Landing Page Components:
+Navbar
+Hero Section
+Facilities Overview
+Construction Updates
+Gallery
+Membership Tiers
+Rules & Safety
+Careers
+Contact
+Footer
+
+Booking Console Components:
+/client/src/components/Booking/*
+All UI from the embedded React app must be copied as-is into real components.
+
+Use React Router with routes for:
+/
+/booking
+/events
+/leaderboard
+/rules
+/careers
+/contact
+/facility/:slug
+/profile
+/login
+/register
+
+Do not alter the design.
+All Tailwind classes must be copied exactly.
+
+BOOKING CONSOLE – MUST BE IDENTICAL
+
+The booking console inside the uploaded file includes advanced logic.
+All of it must be preserved:
+
+Facility selection
+Venue selector
+Court/Resource selector
+60/90/120 minute durations
+Time-slot grid
+Off-peak discount logic
+Matchmaking toggle
+Coach booking toggle
+Add-ons with multi-quantity (+ / –)
+Payer selection: Self or Another Member
+Membership number validation
+Air Rifle Certification modal
+Liability Waiver modal
+Booking summary and total calculation
+Bookings list
+Leaderboard view
+Events & Academies view
+Profile view
+
+No redesign, no simplification, no removal of functionality.
+
+REMOVE ALL MOCK DATA & CONTENTFUL
+
+The uploaded HTML contains mock data (MOCK_USER, MOCK_EVENTS, MOCK_MEMBERSHIP_NUMBERS, etc.)
+It also contains Contentful CMS integration at the bottom.
+
+This must be removed completely.
+
+Replace all mock logic with real backend API calls.
+
+BACKEND – DATA MODELS (POSTGRESQL)
+
+Implement the following models using Prisma or Knex:
+
+USER
+id, fullName, email, phone, passwordHash
+role: USER, ADMIN, SUPER_ADMIN
+createdAt, updatedAt
+
+MEMBERSHIP
+id, userId, membershipNumber (e.g., QD-0001)
+tier, validFrom, validTo, status
+
+FACILITY
+id, name, slug, basePrice, minPlayers, requiresCertification
+
+BOOKING
+id, userId, venue, facilityId, resourceId
+date, startTime, endTime, durationMinutes
+status: PENDING, CONFIRMED, CANCELLED
+paymentMethod
+payerType (self / member)
+payerMembershipNumber
+totalPrice
+createdAt, updatedAt
+
+BOOKING ADD-ONS
+id, bookingId, addOnId, label, quantity, pricePerUnit
+
+EVENT / ACADEMY
+id, title, description, facilityId, scheduleDateTime
+coach, price, capacity, type (Event/Class/Academy), slug, image
+
+LEADERBOARD
+userId, facilityId, score, wins, losses, rankingPoints
+
+BACKEND – API ENDPOINTS
+
+AUTH
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/refresh
+
+FACILITIES
+GET /api/facilities
+
+MEMBERSHIP VALIDATION
+GET /api/memberships/validate?number=QD-0001
+
+BOOKINGS
+GET /api/bookings/me
+POST /api/bookings
+
+BOOKING RULES:
+Prevent double booking using database transactions.
+Server must revalidate all pricing: duration × rate, off-peak discount, add-on totals, quantities.
+
+ADMIN (role restricted)
+User management
+Membership management
+Event CRUD
+Leaderboard score updates
+Booking override/cancel/block
+
+CMS REQUIREMENTS
+
+Build a simple CMS layer (Express admin or Strapi-like) allowing admins to manage:
+
+Homepage content
+Facilities content
+Membership tiers
+Rules & policies
+Announcements & news
+Gallery images
+Careers page content
+Contact information
+
+All CMS content must be accessible to the React frontend via API.
+
+AUTHENTICATION
+
+Implement secure authentication:
+
+JWT access token
+HttpOnly refresh token
+Password hashing with bcrypt or argon2
+
+Frontend must include:
+Login
+Register
+Session persistence
+Show logged-in user’s name and membership tier in the booking header
+
+SEED DATA
+
+Create initial seeds for:
+
+Facilities
+Memberships QD-0001–QD-0005
+Demo users
+Demo leaderboard scores
+Demo events
+
+PAYMENTS (Phase 2 only)
+
+Do not build online payments yet.
+Backend must be architected so Stripe or PayFast can be added later.
+
+DEPLOYMENT REQUIREMENTS
+
+Use .env for all secrets.
+Configure CORS.
+Express must serve the Vite production build.
+"npm run dev" should start both apps concurrently.
+
+SUMMARY OF NON-NEGOTIABLES
+
+• Do NOT redesign anything.
+• All UI and behavior must be identical to the uploaded HTML.
+• Replace mock data with real API calls.
+• Convert inline React into proper components.
+• Add full backend for bookings, events, leaderboard, membership system.
+• Add authentication and admin roles.
+• Add CMS for content.
+• Prevent double bookings at database level.
+• Keep booking logic EXACT.

@@ -1,0 +1,2733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Quarterdeck – Sports & Recreation Complex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary: #2a4060;       /* Gold accent */
+      --primary-soft: #e2eaf4;  /* Soft gold background */
+      --bg-main: #f5f5f7;
+      --bg-card: #ffffff;
+      --text-main: #1f2933;
+      --text-muted: #6b7280;
+      --border-soft: #e5e7eb;
+      --nav-height: 70px;
+      --shadow-soft: 0 14px 30px rgba(15, 23, 42, 0.10);
+      --radius-lg: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #ffffff 0, #f5f5f7 55%, #eceff4 100%);
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    /* Layout helpers */
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .section {
+      padding: 4.5rem 0;
+    }
+
+    @media (min-width: 1024px) {
+      .section {
+        padding: 5.5rem 0;
+      }
+    }
+
+    /* Navbar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+    }
+
+    .nav {
+      height: var(--nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      background: conic-gradient(from 140deg, #fef3c7, #facc15, #cda434, #fef3c7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111827;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+    }
+
+    .logo-text-main {
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+    }
+
+    .logo-text-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .nav-links {
+      display: none;
+      gap: 1.75rem;
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    .nav-links a {
+      position: relative;
+      padding-bottom: 0.15rem;
+      cursor: pointer;
+    }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -0.15rem;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2a4060, #5a6481);
+      transition: width 0.2s ease;
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-cta {
+      display: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.65rem 1.4rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1f2937, #2a4060);
+      color: #f9fafb;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 36px rgba(202, 138, 4, 0.45);
+    }
+
+    .btn-outline {
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #1f2937;
+    }
+
+    .btn-outline:hover {
+      background: #f9fafb;
+    }
+
+    /* Mobile nav trigger (simple) */
+    .nav-burger {
+      border: none;
+      background: transparent;
+      display: inline-flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .nav-burger span {
+      width: 20px;
+      height: 2px;
+      background: #111827;
+      border-radius: 999px;
+    }
+
+    .nav-mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0 1.5rem 0.75rem;
+      border-top: 1px solid #e5e7eb;
+      background: rgba(255,255,255,0.98);
+    }
+
+    .nav-mobile-menu a {
+      font-size: 0.95rem;
+      color: #4b5563;
+      padding: 0.35rem 0;
+      cursor: pointer;
+    }
+
+    @media (min-width: 900px) {
+      .nav-burger,
+      .nav-mobile-menu {
+        display: none;
+      }
+      .nav-links {
+        display: flex;
+      }
+      .nav-cta {
+        display: inline-flex;
+      }
+    }
+
+    /* Hero */
+    #hero {
+      padding-top: 3.25rem;
+    }
+    
+    /* General Card Style */
+    .info-card {
+        background: var(--bg-card);
+        border-radius: 20px;
+        padding: 1.6rem 1.5rem;
+        border: 1px solid var(--border-soft);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    /* Gallery Grid - Tweak applied for 3 columns on large screens */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.25rem;
+    }
+    @media (min-width: 900px) {
+        .gallery-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr)); /* Strict 3 per line */
+        }
+    }
+    .gallery-item {
+        height: 200px;
+        background: #e5e7eb; /* Placeholder background */
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: #6b7280;
+    }
+
+    /* Rules & Safety/Membership/Careers Grid - Tweak applied for 2 columns on large screens */
+    .rules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    @media (min-width: 900px) {
+        .rules-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)); /* Strict 2 per line */
+        }
+    }
+    
+    .membership {
+      position: relative;
+      overflow: hidden;
+    }
+    .membership::after {
+      content: attr(data-tier);
+      position: absolute;
+      top: 0.85rem;
+      right: 1rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+      color: #0f172a;
+      background: #e5e7eb;
+    }
+    .membership.founding::after {
+      background: #fef3c7;
+      color: #92400e;
+      content: "Founding";
+    }
+    .membership.gold::after {
+      background: #e5e7eb;
+      color: #111827;
+      content: "Gold";
+    }
+    .membership.silver::after {
+      background: #e5e7eb;
+      color: #374151;
+      content: "Silver";
+    }
+    .membership.guest::after {
+      background: #e0f2fe;
+      color: #1d4ed8;
+      content: "Guest";
+    }
+.rule-item {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-left: 5px solid var(--primary);
+        padding: 1.25rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .rule-item h4 {
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+        color: #1f2933;
+    }
+    .rule-item p {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+    
+
+    /* Booking App Custom Styles */
+    .animate-fade-in {
+      animation: fade-in 0.4s ease-out;
+    }
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* ... (rest of the original CSS) ... */
+
+    /* Hero */
+    .hero-grid {
+      display: grid;
+      gap: 2.5rem;
+    }
+
+    @media (min-width: 900px) {
+      .hero-grid {
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+        align-items: center;
+      }
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 999px;
+      background: rgba(42, 64, 96, 0.08);
+      color: #92400e;
+      padding: 0.2rem 0.7rem 0.2rem 0.25rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      margin-bottom: 0.9rem;
+    }
+
+    .eyebrow-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #f97316, #facc15);
+    }
+
+    .hero-countdown {
+      margin-top: 1.4rem;
+      margin-bottom: 1.1rem;
+      padding: 0.9rem 1rem;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.02), rgba(42, 64, 96, 0.08));
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      display: inline-flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .hero-countdown-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #6b7280;
+      font-weight: 600;
+    }
+    .hero-countdown-values {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Mono", ui-monospace;
+    }
+    .hero-countdown-unit {
+      padding: 0.4rem 0.75rem;
+      border-radius: 12px;
+      background: #0f172a;
+      color: #e5e7eb;
+      text-align: center;
+      min-width: 3.2rem;
+    }
+    .hero-countdown-number {
+      display: block;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    .hero-countdown-unit-label {
+      display: block;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #9ca3af;
+    }
+    .hero-countdown-separator {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #64748b;
+      padding-bottom: 0.2rem;
+    }
+
+    .hero-title {
+      font-size: 2.3rem;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.85rem;
+    }
+
+    @media (min-width: 768px) {
+      .hero-title {
+        font-size: 2.9rem;
+      }
+    }
+
+    .hero-highlight {
+      background: linear-gradient(120deg, #1f2937, #2a4060, #5a6481);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 0.98rem;
+      color: var(--text-muted);
+      max-width: 32rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.75rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .hero-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .hero-tag-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.18);
+    }
+
+    .hero-card {
+      background: radial-gradient(circle at top, #ffffff 0, #f9fafb 50%, #f3f4f6 100%);
+      border-radius: 26px;
+      padding: 1.6rem 1.5rem 1.7rem;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(229, 231, 235, 0.8);
+    }
+
+    .hero-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .hero-card-title {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .hero-card-pill {
+      font-size: 0.7rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: #1f2933;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .hero-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 32%; /* adjust this percentage as needed */
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2a4060, #4f46e5, #5a6481);
+      position: relative;
+    }
+
+    .progress-fill::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0.5) 0,
+        transparent 35%,
+        transparent 100%
+      );
+      mix-blend-mode: soft-light;
+      opacity: 0.7;
+    }
+
+    .hero-card-sub {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 0.85rem;
+    }
+
+    .hero-card-milestones {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 1.1rem;
+      font-size: 0.78rem;
+    }
+
+    .hero-milestone {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      padding: 0.5rem 0.55rem;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+
+    .hero-milestone-label {
+      color: #6b7280;
+    }
+
+    .hero-milestone-value {
+      font-weight: 600;
+    }
+
+    /* Section headings */
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .section-subtitle {
+      color: var(--text-muted);
+      max-width: 40rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .section-title {
+        font-size: 2.6rem;
+      }
+    }
+
+    /* Facilities */
+    .facility-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.75rem;
+    }
+
+    .facility-card {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 1.6rem 1.5rem;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .facility-chip-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.6rem;
+    }
+
+    .facility-status {
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+    }
+
+    .facility-status.soon {
+      background: #ffedd5;
+      color: #9a3412;
+    }
+
+    .facility-status.planned {
+      background: #e0f2f1;
+      color: #064e3b;
+    }
+
+    .facility-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 0.5rem;
+      color: #111827;
+    }
+
+    .facility-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      min-height: 50px;
+    }
+
+    .facility-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #6b7280;
+      padding-top: 0.8rem;
+      border-top: 1px solid #f3f4f6;
+    }
+
+    .facility-link {
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* Development/Team */
+    #updates,
+    #about,
+    #membership,
+    #rules,
+    #careers {
+      background: var(--bg-main);
+    }
+
+    .dev-grid {
+      display: grid;
+      gap: 1.75rem;
+    }
+
+    @media (min-width: 768px) {
+      .dev-grid {
+        grid-template-columns: 2fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .dev-card {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 1.4rem 1.35rem;
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-soft);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .dev-tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .dev-tag {
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      font-size: 0.75rem;
+      background: #f9fafb;
+    }
+
+    .dev-matrix {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.7rem;
+      font-size: 0.78rem;
+    }
+
+    .dev-matrix-item {
+      padding: 0.5rem 0.6rem;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+
+    .dev-matrix-label {
+      color: #6b7280;
+    }
+
+    .dev-matrix-value {
+      font-weight: 600;
+    }
+
+    /* News */
+    .news-list {
+      display: grid;
+      gap: 0.9rem;
+      font-size: 0.83rem;
+    }
+
+    .news-item {
+      padding: 0.8rem 0.9rem;
+      border-radius: 14px;
+      border: 1px solid #e5e7eb;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .news-meta {
+      font-size: 0.72rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+    }
+
+    .news-title {
+      font-weight: 600;
+    }
+
+    /* Contact */
+    .contact-grid {
+      display: grid;
+      gap: 1.75rem;
+    }
+
+    @media (min-width: 768px) {
+      .contact-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .contact-card {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 1.6rem 1.5rem;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .contact-info-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .contact-form {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.9rem;
+    }
+
+    .contact-form textarea {
+      min-height: 100px;
+    }
+
+    .contact-form .btn {
+      margin-top: 0.5rem;
+    }
+
+    /* Footer */
+    footer {
+      background: #1f2933;
+      color: #d1d5db;
+      padding: 2.5rem 0;
+      font-size: 0.85rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .footer-links a {
+      color: #9ca3af;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+
+    .footer-socials {
+      display: flex;
+      gap: 1.25rem;
+    }
+
+    .footer-socials a {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #374151;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      transition: background 0.15s ease;
+      font-size: 1rem;
+    }
+
+    .footer-socials a:hover {
+      background: var(--primary);
+      color: #111827;
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-900">
+  <header>
+    <div class="container">
+      <nav class="nav">
+
+      <div class="nav-logo">
+        <img src="the-quarterdeck-logo.png" alt="The Quarterdeck" style="height: 40px; width: auto; display: block;" />
+        <div>
+          <div class="logo-text-main">The Quarterdeck</div>
+          <div class="logo-text-sub">Sports & Recreation Complex</div>
+        </div>
+      </div>
+        <div class="nav-links">
+          <a onclick="scrollToSection('hero')">Home</a>
+          <a onclick="scrollToSection('about')">About</a>
+          <a onclick="scrollToSection('facilities')">Facilities</a>
+          <a onclick="scrollToSection('updates')">Updates</a>
+          <a onclick="scrollToSection('gallery')">Gallery</a>
+          <a onclick="scrollToSection('membership')">Membership</a>
+          <a onclick="scrollToSection('contact')">Contact</a>
+        </div>
+        <div class="nav-cta">
+          <button class="btn btn-primary" onclick="scrollToSection('booking-placeholder')">
+            Book Now
+          </button>
+        </div>
+        <button class="nav-burger" aria-label="Toggle navigation" onclick="toggleMobileMenu()">
+          <span></span><span></span><span></span>
+        </button>
+      </nav>
+      <div id="mobileMenu" class="nav-mobile-menu">
+        <a onclick="scrollToSection('hero'); toggleMobileMenu()">Home</a>
+        <a onclick="scrollToSection('about'); toggleMobileMenu()">About The Quarterdeck</a>
+        <a onclick="scrollToSection('facilities'); toggleMobileMenu()">Facilities</a>
+        <a onclick="scrollToSection('updates'); toggleMobileMenu()">Construction Updates</a>
+        <a onclick="scrollToSection('gallery'); toggleMobileMenu()">Gallery</a>
+        <a onclick="scrollToSection('membership'); toggleMobileMenu()">Membership</a>
+        <a onclick="scrollToSection('rules'); toggleMobileMenu()">Rules & Safety</a>
+        <a onclick="scrollToSection('contact'); toggleMobileMenu()">Contact</a>
+        <a onclick="scrollToSection('careers'); toggleMobileMenu()">Careers</a>
+        <a onclick="scrollToSection('booking-placeholder'); toggleMobileMenu()">Pricing & Booking</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="hero" class="section">
+      <div class="container">
+        <div class="hero-grid">
+          <div>
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span> Target Launch: Q4 2026
+            </div>
+            <h1 class="hero-title">
+              A bright, premium <span class="hero-highlight">multi-sport arena</span> built for play, performance & community.
+            </h1>
+            <p class="hero-subtitle">
+              The Quarterdeck brings state-of-the-art Padel Tennis, Squash, an Air Rifle Range, a Multipurpose Hall, Bridge Room, and an Open Café/Bar experience into a single, purpose-built complex. We are setting the new standard for indoor sports and recreation in Islamabad.
+            </p>
+            
+            <div class="hero-countdown">
+              <div class="hero-countdown-label">Estimated Launch Countdown</div>
+              <div class="hero-countdown-values" id="bigLaunchCountdown">
+                <div class="hero-countdown-unit">
+                  <span class="hero-countdown-number">--</span>
+                  <span class="hero-countdown-unit-label">Days</span>
+                </div>
+                <div class="hero-countdown-separator">:</div>
+                <div class="hero-countdown-unit">
+                  <span class="hero-countdown-number">--</span>
+                  <span class="hero-countdown-unit-label">Hours</span>
+                </div>
+                <div class="hero-countdown-separator">:</div>
+                <div class="hero-countdown-unit">
+                  <span class="hero-countdown-number">--</span>
+                  <span class="hero-countdown-unit-label">Minutes</span>
+                </div>
+                <div class="hero-countdown-separator">:</div>
+                <div class="hero-countdown-unit">
+                  <span class="hero-countdown-number">--</span>
+                  <span class="hero-countdown-unit-label">Seconds</span>
+                </div>
+              </div>
+            </div>
+            <div class="hero-ctas">
+              <button class="btn btn-primary" onclick="scrollToSection('facilities')"> Explore Facilities </button>
+              <button class="btn btn-outline" onclick="scrollToSection('updates')"> View Site Updates </button>
+            </div>
+            <div class="hero-meta">
+              <span>
+                <span class="hero-tag-dot"></span> Construction Active
+              </span>
+              <span>Transparent progress updates</span>
+              <span>Early booking & waitlists planned</span>
+            </div>
+          </div>
+          <aside>
+            <div class="hero-card">
+              <div class="hero-card-header">
+                <div class="hero-card-title">Construction Status</div>
+                <span class="hero-card-pill">Phase II</span>
+              </div>
+              <div class="hero-progress-label">
+                <span>Phase II: Foundation & Structure</span>
+                <span>80% Complete</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" style="width: 80%;"></div>
+              </div>
+              <p class="hero-card-sub">
+                Structural steel erection is complete. Focus shifts to roofing insulation and external cladding to ensure all-weather play capability.
+              </p>
+              <div class="hero-card-milestones">
+                <div class="hero-milestone">
+                  <div class="hero-milestone-label">Steel Erection</div>
+                  <div class="hero-milestone-value">Complete</div>
+                </div>
+                <div class="hero-milestone">
+                  <div class="hero-milestone-label">Roofing & MEP</div>
+                  <div class="hero-milestone-value">In Progress</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section">
+        <div class="container">
+            <div class="section-heading">
+                <div>
+                    <h2 class="section-title">About The Quarterdeck</h2>
+                    <p class="section-subtitle">
+                        Our core vision: Excellence in Play and Community. We are building Islamabad's premier destination for indoor sports, recreation, and social gathering.
+                    </p>
+                </div>
+                <div class="nav-cta">
+                    <button class="btn btn-outline" onclick="scrollToSection('updates')">
+                      See Our Vision
+                    </button>
+                  </div>
+            </div>
+            <div class="dev-grid">
+                <div class="info-card">
+                    <div class="contact-info-label">Vision & Philosophy</div>
+                    <p>
+                        The Quarterdeck is born from a simple idea: that sports facilities should be world-class, accessible, and designed for social connection. We prioritize bright, modern architecture, superior court surfaces, and a welcoming atmosphere. Our aim is to cultivate a vibrant community around Padel, Squash, and recreational activities.
+                    </p>
+                    <p style="margin-top: 0.8rem;">
+                        We are locally invested and committed to transparency throughout the construction and launch phases, ensuring the highest standards of quality and service.
+                    </p>
+                    <div class="dev-tag-list">
+                        <span class="dev-tag">World-Class Courts</span>
+                        <span class="dev-tag">Community Focus</span>
+                        <span class="dev-tag">Transparency</span>
+                        <span class="dev-tag">All-Ages Friendly</span>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="contact-info-label">The Project Team</div>
+                    <p style="font-size: 0.85rem;">
+                        The project is managed by a consortium of local real estate developers, sports enthusiasts, and seasoned facility operators. We have brought together expertise in engineering, architecture, and sports management to deliver an exceptional facility.
+                    </p>
+                    <ul class="list-disc list-inside mt-4 text-sm space-y-1">
+                        <li>Lead Architect: Studio 78</li>
+                        <li>Structural Engineering: Eng. Solutions Pvt.</li>
+                        <li>Padel Court Consultant: International Padel Federation (Placeholder)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="facilities" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2 class="section-title">Facilities at a Glance</h2>
+            <p class="section-subtitle">
+              The complex is engineered for high-performance sports and comfortable recreation. Click "View details" for the dedicated facility pages (placeholder).
+            </p>
+          </div>
+          <a href="#" class="btn btn-primary" onclick="scrollToSection('booking-placeholder')">
+            Check Court Availability
+          </a>
+        </div>
+        <div class="facility-grid">
+          <article class="facility-card">
+            <div class="facility-chip-row">
+              <span>Indoor Court</span>
+              <span class="facility-status soon">Opening Soon</span>
+            </div>
+            <h3 class="facility-name">Padel Tennis 🎾</h3>
+            <p class="facility-desc">
+              **World-Class Padel Courts:** Three premium glass-backed indoor Padel Courts optimized for competitive doubles play and available year-round, regardless of the weather.
+            </p>
+            <div class="facility-footer">
+              <span>3 courts planned</span>
+              <span class="facility-link"> View details (Padel Tennis Page) </span>
+            </div>
+          </article>
+          <article class="facility-card">
+            <div class="facility-chip-row">
+              <span>Indoor Court</span>
+              <span class="facility-status soon">Opening Soon</span>
+            </div>
+            <h3 class="facility-name">Squash Court 🧱</h3>
+            <p class="facility-desc">
+              **Dedicated Squash Facility:** A single, premium-grade squash court built to international dimensions. Ideal for focused training, intense solo practice, and eventually, club ladder competitions.
+            </p>
+            <div class="facility-footer">
+              <span>Planned • 1 court</span>
+              <span class="facility-link"> View details (Squash Page) </span>
+            </div>
+          </article>
+          <article class="facility-card">
+            <div class="facility-chip-row">
+              <span>Precision Sport</span>
+              <span class="facility-status soon">Opening Soon</span>
+            </div>
+            <h3 class="facility-name">Air Rifle Range 🎯</h3>
+            <p class="facility-desc">
+              **Certified Precision Range:** A safe, controlled, and sound-dampened indoor range compliant with all safety regulations. Access requires mandatory certification.
+            </p>
+            <div class="facility-footer">
+              <span>Certificate-based access</span>
+              <span class="facility-link"> View details (Air Rifle Range Page) </span>
+            </div>
+          </article>
+          <article class="facility-card">
+            <div class="facility-chip-row">
+              <span>Indoor Space</span>
+              <span class="facility-status planned">Planned</span>
+            </div>
+            <h3 class="facility-name">Multipurpose Hall 🏛️</h3>
+            <p class="facility-desc">
+              **Flexible Event & Training Space:** A large, adaptable hall suitable for yoga, aerobics, martial arts, corporate workshops, and private functions. Available for flexible, block, and event-based bookings.
+            </p>
+            <div class="facility-footer">
+              <span>Use-cases evolving</span>
+              <span class="facility-link"> View details (Hall Page) </span>
+            </div>
+          </article>
+          <article class="facility-card">
+            <div class="facility-chip-row">
+              <span>Mind Sport</span>
+              <span class="facility-status planned">Planned</span>
+            </div>
+            <h3 class="facility-name">Bridge Room ♠️</h3>
+            <p class="facility-desc">
+              **The Mind Sport Lounge:** A quiet, temperature-controlled space designed for comfort and concentration, perfect for Bridge, Chess, and other table-based mind sports and social gatherings.
+            </p>
+            <div class="facility-footer">
+              <span>Table-based bookings</span>
+              <span class="facility-link"> View details (Bridge Room Page) </span>
+            </div>
+          </article>
+          <article class="facility-card">
+            <div class="facility-chip-row">
+              <span>Recreation</span>
+              <span class="facility-status planned">Planned</span>
+            </div>
+            <h3 class="facility-name">Open Café/Bar ☕</h3>
+            <p class="facility-desc">
+              **The The Quarterdeck Social Hub:** A bright, spacious area offering artisanal coffee, healthy refreshments, light meals, and a view overlooking the main courts—perfect for post-match debriefs or casual meetings.
+            </p>
+            <div class="facility-footer">
+              <span>Public access</span>
+              <span class="facility-link"> View details (Café Page) </span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="updates" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2 class="section-title">Construction & Launch Updates</h2>
+            <p class="section-subtitle">
+              Transparent, consolidated news on site progress, key milestones, and official announcements. Subscribe below for email alerts.
+            </p>
+          </div>
+          <a href="#" class="btn btn-outline" onclick="scrollToSection('contact')">
+            Get Email Updates
+          </a>
+        </div>
+        
+        <h3 class="text-xl font-bold mb-4">Overall Project Progress</h3>
+        <div class="dev-card mb-10">
+          <div class="hero-progress-label">
+            <span>Estimated overall progress</span>
+            <span>32% • Launch Q4 2026</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: 32%;"></div>
+          </div>
+          <p class="hero-card-sub">
+            This tracker shows the physical construction phase, ensuring a realistic timeline based on on-site milestones. We have now moved into the Mechanical, Electrical, and Plumbing (MEP) phase.
+          </p>
+        </div>
+        
+        <h3 class="text-xl font-bold mb-4">Construction Milestones: Phase II</h3>
+        <div class="dev-grid mb-10">
+          <div class="dev-card">
+            <div class="contact-info-label">Phase Update: Steel Erection Complete</div>
+            <p>
+              The construction team has successfully finished the primary structural steel framework. This marks a critical milestone and allows us to begin roofing and external facade work ahead of schedule.
+            </p>
+            <p style="margin-top: 0.8rem;">
+              The immediate focus is on installing the specialized roofing insulation necessary for temperature control and superior acoustics in the indoor courts.
+            </p>
+            <div class="dev-tag-list">
+              <span class="dev-tag">Local Investment</span>
+              <span class="dev-tag">Architectural Design</span>
+              <span class="dev-tag">MEP Installation</span>
+              <span class="dev-tag">Sports Operation Planning</span>
+            </div>
+          </div>
+          <div class="dev-card">
+            <div class="contact-info-label">Key Facility Status</div>
+            <div class="dev-matrix">
+              <div class="dev-matrix-item">
+                <div class="dev-matrix-label">Padel Courts</div>
+                <div class="dev-matrix-value">Structure complete • Glass ordered</div>
+              </div>
+              <div class="dev-matrix-item">
+                <div class="dev-matrix-label">Squash Court</div>
+                <div class="dev-matrix-value">Acoustic panel design locked</div>
+              </div>
+              <div class="dev-matrix-item">
+                <div class="dev-matrix-label">Air Rifle Range</div>
+                <div class="dev-matrix-value">Sound-dampening insulation installed</div>
+              </div>
+              <div class="dev-matrix-item">
+                <div class="dev-matrix-label">Multipurpose Hall</div>
+                <div class="dev-matrix-value">Flooring material finalized</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-xl font-bold mb-4">News & Announcements</h3>
+        <div class="news-list">
+          <article class="news-item">
+            <div class="news-meta">ANNOUNCEMENT • Q4 2025</div>
+            <div class="news-title">Updated Target Launch Date for Q4 2026</div>
+            <p>
+              After a comprehensive review of the construction schedule, the target launch date has been confirmed for Q4 2026. This allows buffer for the crucial interior finishing and court installation phase.
+            </p>
+          </article>
+          <article class="news-item">
+            <div class="news-meta">CONSTRUCTION • PHASE 2</div>
+            <div class="news-title">All indoor court structural steel is now erected</div>
+            <p>
+              The main skeletal structure for the padel, squash, and multipurpose halls is complete. This is a major milestone, allowing roofing and cladding work to begin.
+            </p>
+          </article>
+          <article class="news-item">
+            <div class="news-meta">DESIGN • FINALIZED</div>
+            <div class="news-title">Final Padel Court Glass Specifications Locked</div>
+            <p>
+              We have finalized the supplier and specifications for the panoramic glass back walls for the three Padel Courts, ensuring an elite playing experience.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+    
+    <section id="gallery" class="section">
+        <div class="container">
+            <div class="section-heading">
+                <div>
+                    <h2 class="section-title">Gallery & Media</h2>
+                    <p class="section-subtitle">
+                        Renders of the finished facility and on-site construction photos. Follow our progress visually. (Placeholder content)
+                    </p>
+                </div>
+            </div>
+            <div class="gallery-grid">
+                <div class="gallery-item">Finished Render: Court View</div>
+                <div class="gallery-item">Construction Photo: Steel Erection</div>
+                <div class="gallery-item">Finished Render: Cafe Area</div>
+                <div class="gallery-item">Construction Photo: Foundation Work</div>
+                <div class="gallery-item">Finished Render: Exterior View</div>
+                <div class="gallery-item">Construction Photo: Roofing</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="membership" class="section">
+        <div class="container">
+            <div class="section-heading">
+                <div>
+                    <h2 class="section-title">Membership & Pricing</h2>
+                    <p class="section-subtitle">
+                        Membership tiers will offer exclusive benefits, early booking access, and discounts on court time and coaching. Join our waitlist to be notified of pricing models.
+                    </p>
+                </div>
+                <a href="#" class="btn btn-primary" onclick="scrollToSection('contact')">
+                    Join Waitlist
+                  </a>
+            </div>
+            <div class="rules-grid">
+                <div class="rule-item membership founding">
+                    <h4>Founding Member Tier (Closed)</h4>
+                    <p>Exclusive benefits for early investors/supporters. Includes **Lifetime Priority Booking** and permanent credit bonuses. (PKR 35,000/mo equivalent)</p>
+                </div>
+                <div class="rule-item membership gold">
+                    <h4>Gold Membership (Premium)</h4>
+                    <p>Premium access tier: **7-day advance booking window**, 20% discount on court bookings, 4 free guest passes per month. (PKR 15,000/mo est.)</p>
+                </div>
+                <div class="rule-item membership silver">
+                    <h4>Silver Membership (Standard)</h4>
+                    <p>Standard access tier: **5-day advance booking window**, 10% discount on off-peak bookings, discounted clinic rates. (PKR 5,000/mo est.)</p>
+                </div>
+                <div class="rule-item membership guest">
+                    <h4>Non-Member Pay-to-Play</h4>
+                    <p>Guests can play at the standard rate (no discount), with a **2-day advance booking window**. Subject to availability after member priority booking.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="rules" class="section">
+        <div class="container">
+            <div class="section-heading">
+                <div>
+                    <h2 class="section-title">Rules & Safety Protocols</h2>
+                    <p class="section-subtitle">
+                        Ensuring a safe, respectful, and high-quality environment for all members and guests. These are our key rules.
+                    </p>
+                </div>
+            </div>
+            <div class="rules-grid">
+                <div class="rule-item">
+                    <h4>Padel/Squash Court Footwear</h4>
+                    <p>Only **non-marking, appropriate indoor court shoes** are permitted on playing surfaces. This preserves the court integrity and ensures maximum grip and safety for players.</p>
+                </div>
+                <div class="rule-item">
+                    <h4>Air Rifle Certification</h4>
+                    <p>Mandatory 30-minute safety course and proficiency test required before accessing the range. **No exceptions** for first-time users, regardless of previous experience.</p>
+                </div>
+                <div class="rule-item">
+                    <h4>Booking & Cancellation Policy</h4>
+                    <p>**24-hour notice** is required for all cancellations to avoid a penalty equal to the court fee. Late cancellations will forfeit the fee/credit to ensure fair slot availability for all members.</p>
+                </div>
+                <div class="rule-item">
+                    <h4>General Conduct & Dress</h4>
+                    <p>Respect for staff, facilities, and fellow players is mandatory. Appropriate sports attire must be worn. The use of courteous language is expected at all times.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="booking-placeholder" class="section bg-light-gray">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2 class="section-title">Pricing & Booking Console</h2>
+            <p class="section-subtitle">
+              Interactive console to check availability, book facilities, and view leaderboards. This section is powered by the integrated React/Tailwind app. (Live data will be available at launch).
+            </p>
+          </div>
+        </div>
+        <div id="booking-root" class="mt-8"></div>
+      </div>
+    </section>
+
+    <section id="careers" class="section">
+        <div class="container">
+            <div class="section-heading">
+                <div>
+                    <h2 class="section-title">Careers at The Quarterdeck</h2>
+                    <p class="section-subtitle">
+                        Join our team! We are looking for passionate, high-energy individuals to help us launch and run Islamabad's premier sports complex.
+                    </p>
+                </div>
+                <a href="#" class="btn btn-primary" onclick="scrollToSection('contact')">
+                    Submit CV
+                  </a>
+            </div>
+            <div class="rules-grid">
+                <div class="rule-item">
+                    <h4>Court Attendants & Desk Staff</h4>
+                    <p>Full-time and part-time positions available. Responsible for member check-in, court maintenance, customer service, and managing court flow. Excellent communication skills required.</p>
+                </div>
+                <div class="rule-item">
+                    <h4>Padel & Squash Coaches</h4>
+                    <p>Experienced, certified coaches to run academies, private lessons, and group clinics. Certification is mandatory. Competitive salary and commission structure offered.</p>
+                </div>
+                <div class="rule-item">
+                    <h4>Café & Barista Staff</h4>
+                    <p>Staff to manage the open café, serving refreshments, light meals, and ensuring a clean, welcoming social environment. Food and beverage experience preferred.</p>
+                </div>
+                <div class="rule-item">
+                    <h4>Facility Management</h4>
+                    <p>Experienced individuals for oversight of daily operations, maintenance schedules, staff management, and corporate/event booking coordination. Must have 3+ years in facility operations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="section">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2 class="section-title">Contact & Early Interest</h2>
+            <p class="section-subtitle">
+              Connect with Our Development Team: Use the form to subscribe to our construction updates, inquire about corporate partnerships, or apply for our pre-launch membership waitlist.
+            </p>
+          </div>
+        </div>
+        <div class="contact-grid">
+          <div class="contact-card">
+            <div class="contact-info-label">Early Interest Form</div>
+            <p style="margin-top:0.4rem;">
+              This is a simple placeholder form. In the live site, this can connect to your CRM, email list, or bespoke booking waitlist system.
+            </p>
+            <form class="contact-form">
+              <input type="text" placeholder="Your Name" required />
+              <input type="email" placeholder="Your Email" required />
+              <textarea placeholder="Your Message/Interest (e.g., Padel Coaching, Corporate Event, Career Inquiry)" required></textarea>
+              <button class="btn btn-primary" type="submit">Send Message</button>
+            </form>
+          </div>
+          <div class="contact-card">
+            <div class="contact-info-label">Socials & Location</div>
+            <p>
+              Follow our official channels for the most recent updates and progress photos:
+            </p>
+            <div class="footer-socials" style="justify-content: flex-start; margin-bottom: 1.5rem;">
+              <a href="#" aria-label="Instagram">📸</a>
+              <a href="#" aria-label="Facebook">📘</a>
+              <a href="#" aria-label="LinkedIn">🔗</a>
+            </div>
+            <div class="contact-info-label">Site Status</div>
+            <p style="font-size: 0.88rem; line-height: 1.4;">
+              The complex is currently under **active construction**. No public access or walk-ins are permitted for safety reasons. All updates will be digital.
+            </p>
+            <a onclick="scrollToSection('rules')" class="text-sm font-semibold mt-3 block cursor-pointer" style="color: var(--primary);">View Terms & Privacy Policy (Placeholder)</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+
+        <div class="nav-logo" style="color: white;">
+          <img src="the-quarterdeck-logo.png" alt="The Quarterdeck" style="height: 32px; width: auto; display: block;" />
+          <div>
+            <div class="logo-text-main" style="color:#e5e7eb;">The Quarterdeck</div>
+            <div class="logo-text-sub" style="color:#9ca3af;">Sports & Recreation Complex</div>
+          </div>
+        </div>
+        <div class="footer-links">
+          <a onclick="scrollToSection('hero')">Home</a>
+          <a onclick="scrollToSection('rules')">Rules & Safety</a>
+          <a onclick="scrollToSection('careers')">Careers</a>
+          <a onclick="scrollToSection('contact')">Contact</a>
+        </div>
+      </div>
+      <p style="text-align: center; margin-top: 1.5rem; color: #6b7280; font-size: 0.78rem;">
+        © 2025 The Quarterdeck – All rights reserved. <span style="font-weight: 600;">| Terms & Conditions | Privacy Policy</span>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      // Adjust offset for sticky header height
+      const yOffset = -80;
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById("mobileMenu");
+      if (!menu) return;
+      const isVisible = menu.style.display === "flex";
+      // Use CSS classes or data attributes for more complex mobile menu state management if needed
+      menu.style.display = isVisible ? "none" : "flex";
+    }
+
+    // Scroll to the booking app when the page loads if an anchor links to it
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.location.hash === '#booking-placeholder') {
+        setTimeout(() => scrollToSection('booking-placeholder'), 100);
+      }
+    });
+
+  </script>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // --- CONFIG ---
+    const FACILITIES = [
+      { id: 'padel', label: 'Padel Tennis', count: 4, basePrice: 6000, minPlayers: 4, icon: '🎾', requiresCert: false },
+      { id: 'squash', label: 'Squash', count: 2, basePrice: 4000, minPlayers: 2, icon: '🧱', requiresCert: false },
+      { id: 'air_rifle', label: 'Air Rifle Range', count: 6, basePrice: 6000, minPlayers: 1, icon: '🎯', requiresCert: true },
+      { id: 'bridge', label: 'Bridge Room', count: 5, basePrice: 0, minPlayers: 4, icon: '♠️', restricted: true, requiresCert: false },
+      { id: 'hall', label: 'Multipurpose Hall', count: 1, basePrice: 6000, minPlayers: 10, icon: '🏛️', requiresCert: false },
+    ];
+
+    const ADD_ONS = [
+      { id: 'racket', label: 'Rent Racket', price: 500, icon: '🏸' },
+      { id: 'balls', label: 'Sleeve of Balls', price: 1500, icon: '🎾' },
+      { id: 'water', label: 'Mineral Water', price: 100, icon: '💧' },
+      { id: 'towel', label: 'Fresh Towel', price: 300, icon: '🧖' },
+    ];
+
+    const VENUES = ['Islamabad', 'Karachi', 'Lahore', 'Rawalpindi'];
+
+    const FACILITY_ADD_ONS = {
+      padel: ADD_ONS,
+      squash: [
+        { id: 'sq_racket', label: 'Squash Racket Rental', price: 500, icon: '🏸' },
+        { id: 'sq_balls', label: 'Squash Balls (Tube)', price: 1200, icon: '🎾' },
+        { id: 'water', label: 'Mineral Water', price: 100, icon: '💧' },
+        { id: 'towel', label: 'Fresh Towel', price: 300, icon: '🧖' },
+      ],
+      air_rifle: [
+        { id: 'ear_protection', label: 'Ear Protection', price: 300, icon: '🎧' },
+        { id: 'safety_glasses', label: 'Safety Glasses', price: 400, icon: '🕶️' },
+        { id: 'water', label: 'Mineral Water', price: 100, icon: '💧' },
+      ],
+      bridge: [
+        { id: 'tea_coffee', label: 'Tea / Coffee Service', price: 300, icon: '☕' },
+        { id: 'snacks', label: 'Snacks Platter', price: 800, icon: '🥨' },
+        { id: 'water', label: 'Mineral Water', price: 100, icon: '💧' },
+      ],
+      hall: [
+        { id: 'mats', label: 'Floor Mats', price: 500, icon: '🧘' },
+        { id: 'speaker', label: 'Speaker & Mic Setup', price: 1500, icon: '🔊' },
+        { id: 'water', label: 'Mineral Water', price: 100, icon: '💧' },
+      ],
+    };
+    const MOCK_MEMBERSHIP_NUMBERS = ['QD-0001', 'QD-0002', 'QD-0003', 'QD-0004'];
+
+
+
+    const MOCK_USER_PROFILE = {
+      id: 'demo-user',
+      name: 'Mr. Kamran',
+      email: 'kamran@example.com',
+      creditBalance: 150000,
+      totalHoursPlayed: 45,
+      membershipTier: 'Founding',
+      category: 'Individual',
+      referenceName: '',
+      companyName: '',
+      isSafetyCertified: true,
+      hasSignedWaiver: true,
+      guestPasses: 5,
+    };
+
+    const CUMULATIVE_LEADERBOARD = [
+      { name: 'Major Hamza', points: 1240, tier: 'Founding', avatar: '👨‍✈️' },
+      { name: 'Sarah Khan', points: 980, tier: 'Gold', avatar: '👩‍💼' },
+      { name: 'Ali Raza', points: 850, tier: 'Silver', avatar: '🏃' },
+      { name: 'TechSol Team', points: 720, tier: 'Corporate', avatar: '🏢' },
+      { name: 'Asif Nadeem', points: 610, tier: 'Silver', avatar: '🏋️' },
+    ];
+    const PADEL_LEADERBOARD = [
+      { name: 'Sarah Khan', points: 450, tier: 'Gold', avatar: '👩‍💼', facility: 'padel' },
+      { name: 'Ali Raza', points: 310, tier: 'Silver', avatar: '🏃', facility: 'padel' },
+      { name: 'Major Hamza', points: 290, tier: 'Founding', avatar: '👨‍✈️', facility: 'padel' },
+      { name: 'Waseem Akram', points: 200, tier: 'Silver', avatar: '🎾', facility: 'padel' },
+    ];
+    const SQUASH_LEADERBOARD = [
+      { name: 'Asif Nadeem', points: 300, tier: 'Silver', avatar: '🏋️', facility: 'squash' },
+      { name: 'Major Hamza', points: 150, tier: 'Founding', avatar: '👨‍✈️', facility: 'squash' },
+      { name: 'Kamran Ali', points: 110, tier: 'Corporate', avatar: '👤', facility: 'squash' },
+    ];
+    const AIR_RIFLE_LEADERBOARD = [
+      { name: 'Major Hamza', points: 500, tier: 'Founding', avatar: '👨‍✈️', facility: 'air_rifle' },
+      { name: 'TechSol Team', points: 300, tier: 'Corporate', avatar: '🏢', facility: 'air_rifle' },
+      { name: 'Sarah Khan', points: 280, tier: 'Gold', avatar: '👩‍💼', facility: 'air_rifle' },
+    ];
+    const LEADERBOARD_DATA = {
+      cumulative: CUMULATIVE_LEADERBOARD,
+      padel: PADEL_LEADERBOARD,
+      squash: SQUASH_LEADERBOARD,
+      air_rifle: AIR_RIFLE_LEADERBOARD,
+      bridge: [],
+      hall: [],
+    };
+
+    const MOCK_EVENTS = [
+      { id: 'e1', type: 'Academy', facility: 'padel', title: 'Junior Padel Academy (U-18)', instructor: 'Coach Faraz', day: 'Mon/Wed', time: '4:00 PM', pricePKR: 20000, description: 'Elite two-session per week coaching focusing on technique and match play.' },
+      { id: 'e2', type: 'Tournament', facility: 'padel', title: 'Padel Doubles Clash', instructor: 'Event Team', day: 'Sat', time: '10:00 AM', pricePKR: 5000, description: 'Monthly open doubles tournament for all Gold/Founding members.' },
+      { id: 'e3', type: 'Class', facility: 'squash', title: 'Squash Conditioning Drills', instructor: 'Coach Adil', day: 'Tue', time: '7:00 PM', pricePKR: 1500, description: 'High-intensity drills focused on footwork and stamina for intermediate players.' },
+      { id: 'e4', type: 'Social', facility: 'squash', title: 'Squash Mixer Night', instructor: 'Social Host', day: 'Fri', time: '8:00 PM', pricePKR: 500, description: 'Casual, rotating partner sessions. Great for meeting new opponents.' },
+      { id: 'e5', type: 'Academy', facility: 'air_rifle', title: 'Marksman Certification', instructor: 'Sgt. Retired', day: 'Mon/Thurs', time: '5:00 PM', pricePKR: 2000, description: 'Mandatory 30-minute safety and proficiency certification class.' },
+      { id: 'e6', type: 'Tournament', facility: 'air_rifle', title: 'Precision Challenge', instructor: 'Range Master', day: 'Sun', time: '2:00 PM', pricePKR: 3000, description: 'Monthly competition for the highest grouping score. Prizes for the top 3.' },
+      { id: 'e7', type: 'Class', facility: 'bridge', title: 'Beginner Bridge Workshop', instructor: 'Ms. Saadia', day: 'Wed', time: '11:00 AM', pricePKR: 500, description: 'Learn the basics of bidding and conventions in a friendly group setting.' },
+      { id: 'e8', type: 'Social', facility: 'bridge', title: 'Contract Bridge Social', instructor: 'Social Host', day: 'Sat', time: '3:00 PM', pricePKR: 0, description: 'Open table social for Founders and Referrals. Free to attend.' },
+      { id: 'e9', type: 'Class', facility: 'hall', title: 'Morning Aerobics', instructor: 'Ms. Sara', day: 'Mon/Wed/Fri', time: '10:00 AM', pricePKR: 1500, description: 'High-energy fitness class suitable for all levels.' },
+      { id: 'e10', type: 'Academy', facility: 'hall', title: 'PR/Corporate Event Booking', instructor: 'Management', day: 'Any', time: 'Any', pricePKR: 150000, description: 'Book the entire hall for private corporate functions, product launches, or large group training.' },
+    ];
+
+    // --- UTIL ---
+    function formatPKR(val) {
+      return val.toLocaleString('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 });
+    }
+    function calculateEndTime(start, duration) {
+      const [h, m] = start.split(':').map(Number);
+      const totalMins = h * 60 + m + duration;
+      const endH = Math.floor(totalMins / 60);
+      const endM = totalMins % 60;
+      return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+    }
+    function isOffPeak(time) {
+      const hour = parseInt(time.split(':')[0]);
+      return hour >= 10 && hour < 17;
+    }
+    function canAccessRestricted(profile) {
+      if (!profile) return false;
+      return profile.membershipTier === 'Founding' || profile.category === 'Forces';
+    }
+    function getLeaderboardTitle(type) {
+      if (type === 'cumulative') return 'Global Arena Leaderboard';
+      const fac = FACILITIES.find((f) => f.id === type);
+      return `${fac ? fac.label : 'Facility'} Top Scorers`;
+    }
+
+    // --- MAIN APP ---
+    function ArenaOneApp() {
+      const [currentView, setCurrentView] = useState('booking');
+      const [userProfile, setUserProfile] = useState({ ...MOCK_USER_PROFILE });
+      const [bookings, setBookings] = useState([]);
+      const [selectedFacility, setSelectedFacility] = useState(FACILITIES[0]);
+      const [selectedVenue, setSelectedVenue] = useState('Islamabad');
+      const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+      const [selectedDuration, setSelectedDuration] = useState(60);
+      const [selectedResourceId, setSelectedResourceId] = useState(1);
+      const [selectedStartTime, setSelectedStartTime] = useState(null);
+      const [paymentMethod, setPaymentMethod] = useState('cash');
+      const [payerType, setPayerType] = useState('self');
+      const [payerMembershipNumber, setPayerMembershipNumber] = useState('');
+      const [payerMembershipValid, setPayerMembershipValid] = useState(null);
+      const [selectedHallActivity, setSelectedHallActivity] = useState(null);
+      const [selectedAddOns, setSelectedAddOns] = useState(() => new Set());
+      const [addOnQuantities, setAddOnQuantities] = useState({});
+      const [coachBooked, setCoachBooked] = useState(false);
+      const [isMatchmaking, setIsMatchmaking] = useState(false);
+      const [currentGroupSize, setCurrentGroupSize] = useState(1);
+      const [joiningMatchId, setJoiningMatchId] = useState(null);
+      const [currentLeaderboardType, setCurrentLeaderboardType] = useState('cumulative');
+      const [showSafetyModal, setShowSafetyModal] = useState(false);
+      const [showWaiverModal, setShowWaiverModal] = useState(false);
+      const [message, setMessage] = useState(null);
+
+      const handleBookingBack = () => {
+        const heroSection = document.getElementById('hero') || document.getElementById('booking-placeholder');
+        if (heroSection) {
+          heroSection.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      };
+
+      const leaderboardFacilities = useMemo(
+        () => FACILITIES.filter((f) => f.id !== 'bridge' && f.id !== 'hall'),
+        []
+      );
+      const currentLeaderboard = useMemo(
+        () => LEADERBOARD_DATA[currentLeaderboardType] || [],
+        [currentLeaderboardType]
+      );
+
+
+      function handleMembershipNumberChange(value) {
+        const trimmed = value.trim().toUpperCase();
+        setPayerMembershipNumber(trimmed);
+        if (!trimmed) {
+          setPayerMembershipValid(null);
+        } else {
+          setPayerMembershipValid(MOCK_MEMBERSHIP_NUMBERS.includes(trimmed));
+        }
+      }
+      const bookingSummary = useMemo(() => {
+        if (!selectedStartTime) return null;
+        const fac = selectedFacility;
+        const perMinutePrice = fac.basePrice / 60;
+        let base = perMinutePrice * selectedDuration;
+        let discount = 0;
+        if (isOffPeak(selectedStartTime)) discount = base * 0.3;
+        const addOnList = FACILITY_ADD_ONS[fac.id] || [];
+        let addOnTotal = 0;
+        selectedAddOns.forEach((id) => {
+          const item = addOnList.find((a) => a.id === id);
+          if (item) {
+            const qty = addOnQuantities[id] ?? 1;
+            addOnTotal += item.price * qty;
+          }
+        });
+        if (coachBooked) addOnTotal += 4000;
+        return {
+          basePrice: Math.round(base),
+          discount: Math.round(discount),
+          addOnTotal,
+          totalPrice: Math.round(base - discount + addOnTotal),
+          date: selectedDate,
+          startTime: selectedStartTime,
+          endTime: calculateEndTime(selectedStartTime, selectedDuration),
+        };
+      }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate]);
+
+      function toggleAddOn(item) {
+        const newSet = new Set(selectedAddOns);
+        if (newSet.has(item.id)) {
+          newSet.delete(item.id);
+        } else {
+          newSet.add(item.id);
+          setAddOnQuantities((prev) => ({
+            ...prev,
+            [item.id]: prev[item.id] ?? 1,
+          }));
+        }
+        setSelectedAddOns(newSet);
+      }
+
+      function changeAddOnQuantity(id, delta) {
+        setAddOnQuantities((prev) => {
+          const current = prev[id] ?? 1;
+          const next = Math.min(10, Math.max(1, current + delta));
+          return { ...prev, [id]: next };
+        });
+      }
+
+      function getSlotMatchStatus(time) {
+        return bookings.find(
+          (b) =>
+            b.date === selectedDate &&
+            b.facilityType === selectedFacility.id &&
+            b.resourceId === selectedResourceId &&
+            b.startTime === time &&
+            b.isMatchmaking &&
+            b.currentPlayers < b.maxPlayers
+        );
+      }
+      function isSlotTaken(time) {
+        return bookings.some(
+          (b) =>
+            b.date === selectedDate &&
+            b.facilityType === selectedFacility.id &&
+            b.resourceId === selectedResourceId &&
+            b.startTime === time
+        );
+      }
+
+      function confirmBooking() {
+        if (!bookingSummary || !userProfile) return;
+        if (selectedFacility.requiresCert && !userProfile.isSafetyCertified) {
+          setShowSafetyModal(true);
+          return;
+        }
+        if (!userProfile.hasSignedWaiver) {
+          setShowWaiverModal(true);
+          return;
+        }
+        if (paymentMethod === 'credits' && userProfile.creditBalance < bookingSummary.totalPrice) {
+          setMessage({ title: 'Error', body: 'Insufficient Credit Balance.' });
+          return;
+        }
+        if (joiningMatchId) {
+          setBookings((prev) =>
+            prev.map((b) =>
+              b.id === joiningMatchId
+                ? { ...b, currentPlayers: b.currentPlayers + currentGroupSize }
+                : b
+            )
+          );
+        } else {
+          const newBooking = {
+            id: `b${Date.now()}`,
+            facilityType: selectedFacility.id,
+            resourceId: selectedResourceId,
+            date: bookingSummary.date,
+            startTime: bookingSummary.startTime,
+            endTime: bookingSummary.endTime,
+            durationMinutes: selectedDuration,
+            pricePKR: bookingSummary.totalPrice,
+            paymentMethod,
+            payer: {
+              type: payerType,
+              membershipNumber: payerMembershipNumber,
+              membershipValid: payerMembershipValid,
+            },
+            userId: userProfile.id,
+            bookedAt: new Date().toISOString(),
+            isMatchmaking,
+            currentPlayers: currentGroupSize,
+            maxPlayers: selectedFacility.minPlayers,
+            hallActivity: selectedHallActivity || 'General',
+            addOns: Array.from(selectedAddOns).map((id) => {
+              const list = FACILITY_ADD_ONS[selectedFacility.id] || [];
+              const item = list.find((a) => a.id === id);
+              if (!item) return id;
+              const qty = addOnQuantities[id] ?? 1;
+              return qty > 1 ? `${item.label} x${qty}` : item.label;
+            }),
+            coachBooked,
+          };
+          setBookings((prev) => [...prev, newBooking]);
+        }
+        setUserProfile((prev) => {
+          const newBalance =
+            paymentMethod === 'credits'
+              ? prev.creditBalance - bookingSummary.totalPrice
+              : prev.creditBalance;
+          const newHours = prev.totalHoursPlayed + selectedDuration / 60;
+          return { ...prev, creditBalance: newBalance, totalHoursPlayed: newHours };
+        });
+        setSelectedStartTime(null);
+        setSelectedAddOns(new Set());
+        setCoachBooked(false);
+        setIsMatchmaking(false);
+        setCurrentGroupSize(1);
+        setJoiningMatchId(null);
+        setMessage({
+          title: 'Booking Confirmed',
+          body: `Total: ${formatPKR(bookingSummary.totalPrice)}`,
+        });
+      }
+
+      function completeSafetyClass() {
+        setUserProfile((prev) => ({
+          ...prev,
+          isSafetyCertified: true,
+          creditBalance: prev.creditBalance - 2000,
+        }));
+        setShowSafetyModal(false);
+        setMessage({
+          title: 'Certification Complete',
+          body: 'You are now certified for Air Rifle! You can proceed to book the range.',
+        });
+      }
+
+      function signWaiver() {
+        setUserProfile((prev) => ({ ...prev, hasSignedWaiver: true }));
+        setShowWaiverModal(false);
+        confirmBooking();
+      }
+
+      function toggleSafety() {
+        setUserProfile((prev) => ({ ...prev, isSafetyCertified: !prev.isSafetyCertified }));
+      }
+
+      function getFacilityLabel(id) {
+        const f = FACILITIES.find((fac) => fac.id === id);
+        return f ? f.label : id;
+      }
+
+      function getEventTypeClass(type) {
+        switch (type) {
+          case 'Academy':
+            return 'bg-indigo-100 text-indigo-800';
+          case 'Tournament':
+            return 'bg-sky-100 text-amber-800';
+          case 'Social':
+            return 'bg-emerald-100 text-emerald-800';
+          case 'Class':
+            return 'bg-purple-100 text-purple-800';
+          default:
+            return 'bg-slate-100 text-slate-800';
+        }
+      }
+
+      return (
+        // MODIFIED: Removed min-h-screen to prevent layout break, added min-h to contain sidebar
+        <div className="flex flex-col md:flex-row border border-slate-200 rounded-2xl shadow-2xl overflow-hidden min-h-[700px]">
+          {/* Sidebar */}
+          <aside className="bg-white/95 backdrop-blur border-b md:border-b-0 md:border-r border-slate-200 w-full md:w-72 flex-shrink-0 p-6 flex flex-col justify-between shadow-sm">
+            <div>
+              <h1 className="text-2xl font-extrabold text-sky-600 mb-1 tracking-tight">
+                THE QUARTERDECK
+              </h1>
+              <p className="text-[11px] text-slate-500 mb-6 uppercase tracking-[0.18em]">
+                Central Booking Console – The Quarterdeck
+              </p>
+              <nav className="space-y-2">
+                <button
+                  onClick={() => setCurrentView('booking')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'booking'
+                      ? 'bg-sky-600 text-white shadow-md'
+                      : 'text-slate-700 hover:bg-sky-50'
+                  }`}
+                >
+                  <span>📅</span> Book Facility
+                </button>
+                <button
+                  onClick={() => setCurrentView('events')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'events'
+                      ? 'bg-sky-600 text-white shadow-md'
+                      : 'text-slate-700 hover:bg-sky-50'
+                  }`}
+                >
+                  <span>🏆</span> Events & Academies
+                </button>
+                <button
+                  onClick={() => setCurrentView('leaderboard')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'leaderboard'
+                      ? 'bg-sky-600 text-white shadow-md'
+                      : 'text-slate-700 hover:bg-sky-50'
+                  }`}
+                >
+                  <span>🥇</span> Leaderboard
+                </button>
+                <button
+                  onClick={() => setCurrentView('profile')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'profile'
+                      ? 'bg-sky-600 text-white shadow-md'
+                      : 'text-slate-700 hover:bg-sky-50'
+                  }`}
+                >
+                  <span>👤</span> My Profile
+                </button>
+              </nav>
+            </div>
+            {userProfile && (
+              <div className="border-t border-slate-200 pt-4 mt-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">💰</span>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-semibold">Credit Balance</p>
+                    <p className="text-lg font-bold text-slate-800">
+                      {formatPKR(userProfile.creditBalance)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">⏱️</span>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-semibold">Hours Played</p>
+                    <p className="text-lg font-bold text-slate-800">
+                      {userProfile.totalHoursPlayed} hrs
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🎫</span>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-semibold">Guest Passes</p>
+                    <p className="text-lg font-bold text-slate-800">{userProfile.guestPasses}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </aside>
+          {/* Main Content - MODIFIED: Removed h-screen and overflow classes */}
+          <div className="flex-grow p-4 md:p-8 relative overflow-auto">
+            {/* BOOKING VIEW */}
+            {currentView === 'booking' && (
+              <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
+                <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleBookingBack}
+                      className="inline-flex items-center px-3 py-1.5 rounded-full border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                    >
+                      <span className="mr-1">←</span>
+                      Back
+                    </button>
+                    <div>
+                      <h2 className="text-2xl font-extrabold text-slate-900"> Central Booking – The Quarterdeck </h2>
+                      <p className="text-sm text-slate-500"> Choose your venue, facility, time and extras. This is a front-end preview; no real backend yet. </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 sm:mt-0">
+                    <div className="max-w-xs sm:text-right">
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                        Venue
+                      </label>
+                      <select
+                        value={selectedVenue}
+                        onChange={(e) => setSelectedVenue(e.target.value)}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      >
+                        {VENUES.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        Booking preview for: {selectedVenue}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+                {/* Facility Selector */}
+                <section>
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3"> 1. Select Facility </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {FACILITIES.map((fac) => {
+                      const restricted = fac.restricted && !canAccessRestricted(userProfile);
+                      const disabled = restricted || (fac.requiresCert && !userProfile?.isSafetyCertified);
+                      const isSelected = selectedFacility.id === fac.id;
+                      return (
+                        <button key={fac.id} onClick={() => { if (disabled) { setMessage({ title: 'Restricted Area', body: 'Exclusive to Founding Members and Armed Forces.', }); } else { setSelectedFacility(fac); setSelectedResourceId(1); setSelectedStartTime(null); setIsMatchmaking(false); setSelectedHallActivity(null); } }} className={`p-4 rounded-xl shadow-sm border flex flex-col items-center justify-center transition-all relative overflow-hidden cursor-pointer ${ disabled ? 'opacity-60 bg-slate-100 border-slate-200' : isSelected ? 'ring-4 ring-amber-300 bg-white border-amber-500' : 'bg-white border-slate-200 hover:border-sky-500' }`} >
+                          <span className="text-3xl mb-1">{fac.icon}</span>
+                          <p className="font-semibold text-sm text-slate-700">{fac.label}</p>
+                          <p className="text-[10px] text-slate-400">{fac.count} available</p>
+                          {restricted && ( <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xs font-bold">RESTRICTED</div> )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                {/* Booking Console */}
+                <div className="grid md:grid-cols-3 gap-6">
+                  {/* Time & Resources Column */}
+                  <div className="md:col-span-2 space-y-6">
+                    {/* Resource Selector (Courts 1-4, etc) */}
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                      <h4 className="font-bold text-slate-700 border-b pb-2 text-sm">
+                        2. Select Resource ({selectedFacility.label})
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {Array.from({ length: selectedFacility.count }).map((_, i) => (
+                          <button
+                            key={i + 1}
+                            onClick={() => setSelectedResourceId(i + 1)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                              selectedResourceId === i + 1
+                                ? 'bg-sky-600 text-white shadow-md'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            }`}
+                          >
+                            Court {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                      {selectedFacility.id === 'hall' && (
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                            Activity Type
+                          </label>
+                          <select
+                            value={selectedHallActivity || ''}
+                            onChange={(e) => setSelectedHallActivity(e.target.value)}
+                            className="w-full p-2 border rounded-lg text-sm bg-slate-50"
+                          >
+                            <option value="">-- Select Activity --</option>
+                            <option value="Training">Team Training</option>
+                            <option value="Event">Private Event/Party</option>
+                            <option value="General">General Practice</option>
+                          </select>
+                        </div>
+                      )}
+                      {selectedFacility.id !== 'hall' && !selectedFacility.restricted && (
+                        <div className="flex justify-between items-center pt-2 border-t">
+                          <label className="text-sm font-medium text-slate-600">
+                            Enable Matchmaking (Join a game)
+                          </label>
+                          <button
+                            onClick={() => setIsMatchmaking(!isMatchmaking)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                              isMatchmaking ? 'bg-sky-600' : 'bg-slate-300'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                                isMatchmaking ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            ></span>
+                          </button>
+                        </div>
+                      )}
+                      {isMatchmaking && (
+                        <select
+                          value={currentGroupSize}
+                          onChange={(e) => setCurrentGroupSize(parseInt(e.target.value))}
+                          className="w-full p-2 border rounded-lg text-sm bg-sky-50 border-amber-200"
+                        >
+                          <option value={1}>Just Me (1)</option>
+                          <option value={2}>Pair (2)</option>
+                          <option value={3}>Three (3)</option>
+                        </select>
+                      )}
+                      <div className="flex justify-between items-center pt-2 border-t">
+                        <label className="text-sm font-medium text-slate-600">
+                          Book a coach?
+                        </label>
+                        <button
+                          onClick={() => setCoachBooked(!coachBooked)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                            coachBooked ? 'bg-sky-600' : 'bg-slate-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                              coachBooked ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          ></span>
+                        </button>
+                      </div>
+                      {coachBooked && (
+                        <p className="text-[10px] text-amber-700 font-semibold text-right">
+                          +4,000 PKR
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Time Slot Picker */}
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                      <div className="flex justify-between items-center mb-4 border-b pb-2">
+                        <h4 className="font-bold text-slate-700 text-sm">3. Select Time Slot</h4>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                            Date
+                          </label>
+                          <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => {
+                              setSelectedDate(e.target.value);
+                              setSelectedStartTime(null); // Reset selection on date change
+                            }}
+                            className="p-1 border rounded-lg text-xs bg-slate-50"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {[60, 90, 120].map((duration) => (
+                          <button
+                            key={duration}
+                            onClick={() => {
+                              setSelectedDuration(duration);
+                              setSelectedStartTime(null);
+                            }}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                              selectedDuration === duration
+                                ? 'bg-slate-900 text-white'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            }`}
+                          >
+                            {duration} min
+                          </button>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-5 gap-3">
+                        {['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'].map((time) => {
+                          const taken = isSlotTaken(time);
+                          const match = getSlotMatchStatus(time);
+                          const isSelected = selectedStartTime === time && !joiningMatchId;
+                          const isJoining = joiningMatchId && getSlotMatchStatus(time)?.id === joiningMatchId;
+                          
+                          let btnClass = 'bg-white text-slate-700 hover:bg-sky-50 border-slate-200';
+                          if (taken) {
+                            btnClass = 'bg-slate-200 text-slate-500 cursor-not-allowed opacity-70';
+                          } else if (match) {
+                            btnClass = 'bg-sky-600 text-white shadow-lg border-amber-500';
+                          } else if (isSelected || isJoining) {
+                            btnClass = 'bg-green-500 text-white shadow-lg border-green-500';
+                          }
+
+                          return (
+                            <button
+                              key={time}
+                              onClick={() => {
+                                if (taken) return;
+                                if (match) {
+                                  setJoiningMatchId(match.id);
+                                  setSelectedStartTime(time);
+                                } else {
+                                  setJoiningMatchId(null);
+                                  setSelectedStartTime(time);
+                                }
+                              }}
+                              className={`py-2 px-1 rounded border text-sm font-medium transition relative overflow-hidden ${btnClass}`}
+                            >
+                              {time}
+                              {isOffPeak(time) && !match && !taken && (
+                                <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-400 rounded-bl-md" />
+                              )}
+                              {match && (
+                                <div className="absolute inset-0 bg-sky-600/95 text-white flex flex-col items-center justify-center text-[10px]">
+                                  <span className="font-bold">JOIN</span>
+                                  <span> {match.currentPlayers}/{match.maxPlayers} </span>
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Summary & Payment Column */}
+                  <div className="md:col-span-1 space-y-6">
+                    <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-sky-500">
+                      <h3 className="font-bold text-lg text-slate-800 mb-4"> 4. Extras &amp; Payment </h3>
+                      {bookingSummary ? (
+                        <>
+                          <div className="mb-6">
+  <h4 className="text-xs font-bold text-slate-500 uppercase mb-2"> Add-ons </h4>
+  <div className="flex gap-2 overflow-x-auto pb-2">
+    {(FACILITY_ADD_ONS[selectedFacility.id] || []).map((item) => {
+      const selected = selectedAddOns.has(item.id);
+      const qty = addOnQuantities[item.id] ?? 1;
+      return (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => toggleAddOn(item)}
+          className={`flex-shrink-0 border rounded-xl px-4 py-3 flex items-center gap-2 text-sm transition hover:shadow-sm ${
+            selected ? 'bg-sky-50 border-amber-500 text-amber-800' : 'bg-white border-slate-200 text-slate-600'
+          }`}
+        >
+          <span className="text-xl">{item.icon}</span>
+          <div className="text-left">
+            <p className="font-semibold">{item.label}</p>
+            <p className="text-[10px] text-slate-400">
+              Rs {formatPKR(item.price)} per unit
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-1 text-xs">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                changeAddOnQuantity(item.id, -1);
+              }}
+              className="h-6 w-6 rounded-full border border-slate-300 flex items-center justify-center text-slate-600"
+            >
+              -
+            </button>
+            <span className="min-w-[1.5rem] text-center font-semibold text-slate-700">
+              {qty}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                changeAddOnQuantity(item.id, 1);
+              }}
+              className="h-6 w-6 rounded-full border border-slate-300 flex items-center justify-center text-slate-600"
+            >
+              +
+            </button>
+          </div>
+        </button>
+      );
+    })}
+  </div>
+</div>
+
+<div className="mb-6">
+  <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Payer Details</h4>
+  <div className="flex flex-col gap-2">
+    <div className="flex gap-4 text-xs">
+      <label className="inline-flex items-center gap-1">
+        <input
+          type="radio"
+          name="payer-type"
+          value="self"
+          checked={payerType === 'self'}
+          onChange={() => setPayerType('self')}
+        />
+        <span>Self (use my account)</span>
+      </label>
+      <label className="inline-flex items-center gap-1">
+        <input
+          type="radio"
+          name="payer-type"
+          value="member"
+          checked={payerType === 'member'}
+          onChange={() => setPayerType('member')}
+        />
+        <span>Another member will pay</span>
+      </label>
+    </div>
+    {payerType === 'member' && (
+      <div className="space-y-1">
+        <label className="block text-xs font-semibold text-slate-600">
+          Membership number of the payer
+        </label>
+        <input
+          type="text"
+          value={payerMembershipNumber}
+          onChange={(e) => handleMembershipNumberChange(e.target.value)}
+          placeholder="e.g. QD-0001"
+          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+        />
+        {payerMembershipValid === true && (
+          <p className="text-[10px] text-emerald-600">
+            ✅ Membership found in preview list.
+          </p>
+        )}
+        {payerMembershipValid === false && (
+          <p className="text-[10px] text-rose-500">
+            ⚠️ Membership number not found in this preview. Please double-check.
+          </p>
+        )}
+        {payerMembershipValid === null && payerMembershipNumber === '' && (
+          <p className="text-[10px] text-slate-400">
+            Enter a membership number to preview validation.
+          </p>
+        )}
+      </div>
+    )}
+  </div>
+</div>
+<h4 className="text-xs font-bold text-slate-500 uppercase mb-2 border-t pt-4"> Summary </h4>
+                          <div className="space-y-1 text-sm mb-4">
+                            <div className="flex justify-between">
+                              <span className="text-slate-600">Base Rate ({selectedDuration} min)</span>
+                              <span>{formatPKR(bookingSummary.basePrice)}</span>
+                            </div>
+                            <div className="flex justify-between text-red-500">
+                              <span className="text-slate-600">Off-Peak Discount (30%)</span>
+                              <span>- {formatPKR(bookingSummary.discount)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-600">Add-Ons & Coach</span>
+                              <span>+ {formatPKR(bookingSummary.addOnTotal)}</span>
+                            </div>
+                          </div>
+                          <div className="flex justify-between border-t border-dashed pt-3">
+                            <span className="font-bold text-lg">TOTAL DUE</span>
+                            <span className="font-extrabold text-2xl text-sky-700">
+                              {formatPKR(bookingSummary.totalPrice)}
+                            </span>
+                          </div>
+
+                          <div className="mt-6">
+                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                              Payment Method
+                            </label>
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => setPaymentMethod('cash')}
+                                className={`flex-grow px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                                  paymentMethod === 'cash'
+                                    ? 'bg-green-500 text-white border-green-500'
+                                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                }`}
+                              >
+                                💵 Cash/Card (On-Site)
+                              </button>
+                              <button
+                                onClick={() => setPaymentMethod('credits')}
+                                className={`flex-grow px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                                  paymentMethod === 'credits'
+                                    ? 'bg-slate-900 text-white border-slate-900'
+                                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                }`}
+                              >
+                                💳 Credits
+                              </button>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={confirmBooking}
+                            className="w-full mt-6 py-3 rounded-xl font-bold text-white transition-all bg-sky-600 hover:bg-sky-500 shadow-lg"
+                          >
+                            Confirm Booking
+                          </button>
+                        </>
+                      ) : (
+                        <p className="text-center text-slate-400 italic text-sm">
+                          Please select a time slot to calculate price.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* EVENTS VIEW */}
+            {currentView === 'events' && (
+              <div className="max-w-6xl mx-auto space-y-10 animate-fade-in">
+                <div className="text-center mb-6">
+                  <h2 className="text-3xl font-extrabold text-slate-900"> Events &amp; Academy </h2>
+                  <p className="text-slate-500 mt-2 text-sm"> Classes, tournaments and social events – preview only. </p>
+                </div>
+                {FACILITIES.map((fac) => (
+                  <section key={fac.id} className={`mb-8 p-6 bg-white rounded-2xl shadow-md border-t-4 ${ fac.id === 'padel' ? 'border-sky-500' : fac.id === 'air_rifle' ? 'border-red-400' : fac.id === 'squash' ? 'border-slate-400' : fac.id === 'bridge' ? 'border-sky-500' : 'border-purple-400' }`} >
+                    <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
+                      <span className="text-3xl">{fac.icon}</span>
+                      <h3 className="text-xl font-extrabold text-slate-900"> {fac.label} Programs </h3>
+                    </div>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {MOCK_EVENTS.filter((e) => e.facility === fac.id).length > 0 ? (
+                        MOCK_EVENTS.filter((e) => e.facility === fac.id).map((event) => (
+                          <div key={event.id} className="bg-slate-50 p-5 rounded-xl border border-slate-100 flex flex-col justify-between" >
+                            <div>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className={`${getEventTypeClass(event.type)} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase`}>
+                                  {event.type}
+                                </span>
+                                <span className="text-sm font-semibold text-sky-700">{formatPKR(event.pricePKR)}</span>
+                              </div>
+                              <h4 className="font-bold text-lg text-slate-900 mb-1">{event.title}</h4>
+                              <p className="text-xs text-slate-500 mb-3">
+                                {event.day} at {event.time}
+                              </p>
+                              <p className="text-sm text-slate-700">{event.description}</p>
+                            </div>
+                            <div className="flex justify-between items-center mt-4 border-t pt-3">
+                              <span className="text-xs text-slate-500">
+                                Instructor: {event.instructor}
+                              </span>
+                              <button
+                                onClick={() => setMessage({ title: 'Event Registration', body: `Simulating registration for: ${event.title}` })}
+                                className="bg-sky-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-sky-500"
+                              >
+                                Register
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="col-span-3 p-8 text-center bg-slate-50 rounded-xl text-slate-400 italic">
+                          No programs scheduled for this facility yet.
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
+
+            {/* LEADERBOARD VIEW */}
+            {currentView === 'leaderboard' && (
+              <div className="max-w-4xl mx-auto animate-fade-in">
+                <div className="text-center mb-6">
+                  <h2 className="text-3xl font-extrabold text-slate-900"> Quarterdeck Leaderboards </h2>
+                  <p className="text-slate-500 mt-2 text-sm"> Top players across all facilities and total points. </p>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center mb-6">
+                  <button
+                    onClick={() => setCurrentLeaderboardType('cumulative')}
+                    className={`px-4 py-2 rounded-full text-sm font-bold transition ${
+                      currentLeaderboardType === 'cumulative'
+                        ? 'bg-slate-900 text-white shadow-lg'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    All Sports
+                  </button>
+                  {leaderboardFacilities.map((fac) => (
+                    <button
+                      key={fac.id}
+                      onClick={() => setCurrentLeaderboardType(fac.id)}
+                      className={`px-4 py-2 rounded-full text-sm font-bold transition ${
+                        currentLeaderboardType === fac.id
+                          ? 'bg-slate-900 text-white shadow-lg'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {fac.icon} {fac.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                  <div className="p-6 bg-slate-50 border-b border-slate-200">
+                    <h3 className="font-extrabold text-lg text-slate-800"> {getLeaderboardTitle(currentLeaderboardType)} </h3>
+                  </div>
+                  {currentLeaderboard.length > 0 ? (
+                    currentLeaderboard.map((player, i) => (
+                      <div key={player.name} className="flex items-center p-4 border-b border-slate-100 hover:bg-slate-50 transition" >
+                        <div className={`w-10 text-center font-extrabold text-xl ${ i === 0 ? 'text-sky-600' : 'text-slate-400' }`} > #{i + 1} </div>
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xl shadow-inner">
+                          {player.avatar}
+                        </div>
+                        <div className="flex-grow ml-4">
+                          <h4 className="font-bold text-slate-800">{player.name}</h4>
+                          <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-600">
+                            {player.tier}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-extrabold text-sky-700 text-xl"> {player.points} </p>
+                          <p className="text-[10px] text-slate-400 uppercase">Score</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-slate-400 italic">
+                      No ranking data for this category yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* PROFILE VIEW */}
+            {currentView === 'profile' && userProfile && (
+              <div className="max-w-4xl mx-auto animate-fade-in">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-3xl font-bold text-slate-900">Member Profile</h2>
+                  <div className="flex gap-2">
+                    <span className="px-3 py-1 bg-sky-100 text-amber-800 rounded-full text-xs font-bold">
+                      {userProfile.membershipTier} Tier
+                    </span>
+                    <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold">
+                      {userProfile.category}
+                    </span>
+                  </div>
+                </div>
+                <div className="bg-white p-6 rounded-2xl shadow-xl border-t-4 border-slate-900">
+                  <h3 className="font-bold text-xl text-slate-800 mb-4">Account Summary</h3>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-slate-500 uppercase font-semibold">Name</p>
+                      <p className="font-medium text-slate-800">{userProfile.name}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-slate-500 uppercase font-semibold">Email</p>
+                      <p className="font-medium text-slate-800">{userProfile.email}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-slate-500 uppercase font-semibold">Total Bookings</p>
+                      <p className="font-medium text-slate-800">{bookings.length}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-slate-500 uppercase font-semibold">Safety Certified?</p>
+                      <p className="font-medium text-slate-800">
+                        {userProfile.isSafetyCertified ? '✅ Yes' : '❌ No'}
+                      </p>
+                    </div>
+                    {userProfile.category === 'Company' && (
+                      <div className="p-3 bg-slate-50 rounded-lg col-span-2">
+                        <p className="text-xs text-slate-500 uppercase font-semibold">Company Name</p>
+                        <p className="font-medium text-slate-800">{userProfile.companyName}</p>
+                      </div>
+                    )}
+                    {userProfile.category === 'Reference' && (
+                      <div className="p-3 bg-slate-50 rounded-lg col-span-2">
+                        <p className="text-xs text-slate-500 uppercase font-semibold">Reference</p>
+                        <p className="font-medium text-slate-800">{userProfile.referenceName}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-xl mt-6 border-t-4 border-amber-500">
+                  <h3 className="font-bold text-xl text-slate-800 mb-4">Booking History (Last 5)</h3>
+                  {bookings.length > 0 ? (
+                    <div className="space-y-3">
+                      {bookings
+                        .slice(-5)
+                        .reverse()
+                        .map((b) => (
+                          <div key={b.id} className="p-3 bg-slate-50 rounded-lg flex justify-between items-center text-sm">
+                            <div>
+                              <p className="font-bold text-slate-800">{getFacilityLabel(b.facilityType)} ({b.durationMinutes} min)</p>
+                              <p className="text-xs text-slate-500">
+                                {b.date} from {b.startTime} to {b.endTime}
+                              </p>
+                            </div>
+                            <span className="font-extrabold text-sky-700">{formatPKR(b.pricePKR)}</span>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="text-center text-slate-400 italic text-sm">
+                      No bookings yet. Start your first session!
+                    </p>
+                  )}
+                </div>
+
+                {/* DEV SIMULATOR - RETAIN FOR PREVIEW PURPOSES */}
+                <div className="bg-slate-100 p-4 rounded-xl mt-6">
+                  <h4 className="text-[10px] text-slate-600 uppercase tracking-wide"> Admin Simulator (Preview) </h4>
+                  <button onClick={toggleSafety} className="text-[10px] bg-white border border-amber-200 px-2 py-1 rounded shadow-sm hover:bg-sky-50" > Toggle Safety Cert </button>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <button onClick={() => setUserProfile((prev) => ({ ...prev, category: 'Individual', membershipTier: 'Founding', })) } className="px-3 py-1 bg-white border border-yellow-300 rounded text-xs font-bold text-yellow-700 hover:bg-sky-50 shadow-sm" > 👑 Founding Member </button>
+                    <button onClick={() => setUserProfile((prev) => ({ ...prev, category: 'Forces', membershipTier: 'Gold', })) } className="px-3 py-1 bg-white border border-slate-200 rounded text-xs hover:bg-slate-50" > 🛡️ Forces </button>
+                    <button onClick={() => setUserProfile((prev) => ({ ...prev, category: 'Company', membershipTier: 'Corporate', companyName: 'TechSol Pvt Ltd', })) } className="px-3 py-1 bg-white border border-slate-200 rounded text-xs hover:bg-slate-50" > 🏢 Corporate </button>
+                    <button onClick={() => setUserProfile((prev) => ({ ...prev, category: 'Reference', membershipTier: 'Silver', companyName: '', referenceName: 'Ref: Mr. Ahmed', })) } className="px-3 py-1 bg-white border border-slate-200 rounded text-xs hover:bg-slate-50" > 🤝 Silver (Referral) </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* MODALS (Fixed Position) */}
+            {showSafetyModal && (
+              <div
+                className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                onClick={() => setShowSafetyModal(false)}
+              >
+                <div
+                  className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="font-bold text-2xl mb-2">Air Rifle Safety Class</h3>
+                  <p className="text-slate-600 mb-6 text-sm">
+                    To use the Air Rifle range, you must complete a one-time safety certification.
+                  </p>
+                  <div className="bg-slate-50 p-4 rounded-lg text-left mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-bold text-slate-800"> Intro to Range Safety </span>
+                      <span className="font-bold text-sky-700"> {formatPKR(2000)} </span>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      30-minute online course. Fee is charged to your credit balance.
+                    </p>
+                  </div>
+                  <button
+                    onClick={completeSafetyClass}
+                    className="w-full bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-500"
+                  >
+                    Complete Certification & Pay Now
+                  </button>
+                </div>
+              </div>
+            )}
+            {showWaiverModal && (
+              <div
+                className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                onClick={() => setShowWaiverModal(false)}
+              >
+                <div
+                  className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="font-bold text-2xl mb-2">Facility Waiver</h3>
+                  <p className="text-slate-600 mb-4 text-sm">
+                    Please digitally sign the liability waiver before your first booking.
+                  </p>
+                  <div className="bg-red-50 border border-red-300 rounded-xl p-4 mb-6">
+                    <h4 className="text-lg font-semibold text-red-700 mb-2">Liability Waiver Summary</h4>
+                    <div className="text-xs text-red-600 h-24 overflow-y-scroll p-2 border border-red-200 rounded-lg bg-white/70">
+                      <p className="font-bold">Key Terms:</p>
+                      <ul className="list-disc list-inside space-y-1 mt-1">
+                        <li>**Assumption of Risk:** The User acknowledges and assumes all risks associated with physical activity.</li>
+                        <li>**Waiver of Liability:** The User agrees to waive all claims against The Quarterdeck management and staff.</li>
+                        <li>**Facility Rules:** The User agrees to abide by all posted rules.</li>
+                      </ul>
+                      <p className="mt-2 text-right text-red-500 italic">...Scroll for full Legal Text...</p>
+                    </div>
+                    <button
+                      onClick={signWaiver}
+                      className="w-full bg-sky-600 hover:bg-sky-500 text-white py-3 rounded-xl font-bold shadow-lg mt-4"
+                    >
+                      I Agree & Sign Digitally
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {message && (
+              <div
+                className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                onClick={() => setMessage(null)}
+              >
+                <div
+                  className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="font-bold text-lg mb-2">{message.title}</h3>
+                  <p className="text-slate-600 mb-6 text-sm">{message.body}</p>
+                  <button
+                    onClick={() => setMessage(null)}
+                    className="w-full bg-slate-900 text-white py-2.5 rounded-lg font-bold hover:bg-slate-800"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('booking-root'));
+    root.render(<ArenaOneApp />);
+  </script>
+  
+  <script>
+    (function() {
+      var el = document.getElementById('bigLaunchCountdown');
+      if (!el) return;
+      var launchDate = new Date('2026-12-01T18:00:00+05:00').getTime();
+      function update() {
+        var now = Date.now();
+        var diff = launchDate - now;
+        var numbers = el.querySelectorAll('.hero-countdown-number');
+        if (diff <= 0) {
+          numbers[0].textContent = '0';
+          numbers[1].textContent = '0';
+          numbers[2].textContent = '0';
+          numbers[3].textContent = '0';
+          return;
+        }
+        var dayMs = 1000 * 60 * 60 * 24;
+        var days = Math.floor(diff / dayMs);
+        diff -= days * dayMs;
+        var hours = Math.floor(diff / (1000 * 60 * 60));
+        diff -= hours * 1000 * 60 * 60;
+        var minutes = Math.floor(diff / (1000 * 60));
+        diff -= minutes * 1000 * 60;
+        var seconds = Math.floor(diff / 1000);
+        numbers[0].textContent = days;
+        numbers[1].textContent = hours.toString().padStart(2, '0');
+        numbers[2].textContent = minutes.toString().padStart(2, '0');
+        numbers[3].textContent = seconds.toString().padStart(2, '0');
+      }
+      update();
+      setInterval(update, 1000);
+    })();
+  </script>
+
+<!-- Contentful Integration -->
+<script src="https://cdn.jsdelivr.net/npm/contentful@latest/dist/contentful.browser.min.js"></script>
+<script>
+const client = contentful.createClient({
+  space: "e9y6s79q3nk2",
+  accessToken: "IV_9Sa6ihqcz4ydiJj8X4Jn_oMTMNRzXeP6ZX0-OG6I"
+});
+
+// Example placeholder fetch
+client.getEntries({ content_type: "quarterdeckWebsiteCms" }).then(res => {
+  console.log("Contentful Connected", res);
+});
+</script>
+
+</body>
+</html>
