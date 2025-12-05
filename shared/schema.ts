@@ -315,6 +315,23 @@ export const siteSettings = pgTable("site_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Site Images table (for managing images across the website)
+export const siteImages = pgTable("site_images", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: varchar("key").unique().notNull(),
+  imageUrl: text("image_url").notNull(),
+  alt: varchar("alt"),
+  title: varchar("title"),
+  description: text("description"),
+  page: varchar("page").notNull(), // 'landing', 'facilities', 'coming-soon', etc
+  section: varchar("section"), // 'hero', 'gallery', 'facility-padel', etc
+  dimensions: varchar("dimensions"), // recommended dimensions like '1920x1080'
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Navbar Items table (for editable navigation links)
 export const navbarItems = pgTable("navbar_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -611,6 +628,11 @@ export const insertContactSubmissionSchema = createInsertSchema(contactSubmissio
 export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertSiteImageSchema = createInsertSchema(siteImages).omit({
+  id: true,
+  createdAt: true,
   updatedAt: true,
 });
 
@@ -691,6 +713,9 @@ export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSche
 
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
+
+export type SiteImage = typeof siteImages.$inferSelect;
+export type InsertSiteImage = z.infer<typeof insertSiteImageSchema>;
 
 export type NavbarItem = typeof navbarItems.$inferSelect;
 export type InsertNavbarItem = z.infer<typeof insertNavbarItemSchema>;

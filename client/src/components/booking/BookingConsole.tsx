@@ -33,8 +33,18 @@ import floorMatsImg from "@assets/stock_images/yoga_floor_exercise__ef8642d4.jpg
 import speakerMicImg from "@assets/stock_images/microphone_speaker_a_0daceca0.jpg";
 import squashRacketImg from "@assets/stock_images/squash_racket_sports_6d7b2f44.jpg";
 
-const FACILITIES = [
-  { id: 'padel-tennis', label: 'Padel Tennis', count: 4, basePrice: 6000, minPlayers: 4, icon: GiTennisRacket, requiresCert: false },
+// Icon mapping for facilities based on slug
+const FACILITY_ICONS: Record<string, typeof GiTennisRacket> = {
+  'padel-tennis': GiTennisRacket,
+  'squash': GiSquare,
+  'air-rifle-range': Crosshair,
+  'bridge-room': Spade,
+  'multipurpose-hall': Building2,
+};
+
+// Default fallback facilities (only used if API fails)
+const DEFAULT_FACILITIES = [
+  { id: 'padel-tennis', label: 'Padel Tennis', count: 3, basePrice: 6000, minPlayers: 4, icon: GiTennisRacket, requiresCert: false },
   { id: 'squash', label: 'Squash Courts', count: 2, basePrice: 4000, minPlayers: 2, icon: GiSquare, requiresCert: false },
   { id: 'air-rifle-range', label: 'Air Rifle Range', count: 6, basePrice: 6000, minPlayers: 1, icon: Crosshair, requiresCert: true },
   { id: 'bridge-room', label: 'Bridge Room', count: 5, basePrice: 0, minPlayers: 4, icon: Spade, restricted: true, requiresCert: false },
@@ -139,7 +149,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   const { toast } = useToast();
   
   const [currentView, setCurrentView] = useState(initialView);
-  const [selectedFacility, setSelectedFacility] = useState(FACILITIES[0]);
+  const [selectedFacility, setSelectedFacility] = useState(DEFAULT_FACILITIES[0]);
   const [selectedVenue, setSelectedVenue] = useState('Islamabad');
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [selectedDuration, setSelectedDuration] = useState(60);
@@ -222,7 +232,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   }
 
   // Fetch facilities from API to map IDs to slugs
-  const { data: apiFacilities = [] } = useQuery<{ id: string; slug: string; name: string }[]>({
+  const { data: apiFacilities = [] } = useQuery<Facility[]>({
     queryKey: ['/api/facilities'],
   });
 
@@ -234,6 +244,48 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     });
     return map;
   }, [apiFacilities]);
+
+  // Transform API facilities to the format used by the component
+  const FACILITIES = useMemo(() => {
+    if (apiFacilities.length === 0) {
+      return DEFAULT_FACILITIES;
+    }
+    
+    return apiFacilities
+      .filter(f => f.status === 'ACTIVE')
+      .map(f => ({
+        id: f.slug,
+        label: f.name,
+        count: f.resourceCount || 1,
+        basePrice: f.basePrice,
+        minPlayers: f.minPlayers || 1,
+        icon: FACILITY_ICONS[f.slug] || Building2,
+        requiresCert: f.requiresCertification || false,
+        restricted: f.isRestricted || false,
+      }))
+      .sort((a, b) => {
+        // Sort by the order in DEFAULT_FACILITIES
+        const orderA = DEFAULT_FACILITIES.findIndex(df => df.id === a.id);
+        const orderB = DEFAULT_FACILITIES.findIndex(df => df.id === b.id);
+        return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+      });
+  }, [apiFacilities]);
+
+  // Update selected facility when FACILITIES changes
+  useEffect(() => {
+    if (FACILITIES.length > 0 && !FACILITIES.find(f => f.id === selectedFacility.id)) {
+      setSelectedFacility(FACILITIES[0]);
+    } else if (FACILITIES.length > 0) {
+      // Update selected facility data if it changed in the API
+      const updatedFacility = FACILITIES.find(f => f.id === selectedFacility.id);
+      if (updatedFacility && (
+        updatedFacility.count !== selectedFacility.count ||
+        updatedFacility.basePrice !== selectedFacility.basePrice
+      )) {
+        setSelectedFacility(updatedFacility);
+      }
+    }
+  }, [FACILITIES, selectedFacility.id]);
   
   const { data: apiEvents = [] } = useQuery<EventData[]>({
     queryKey: ['/api/events'],

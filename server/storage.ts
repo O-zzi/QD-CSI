@@ -23,6 +23,7 @@ import {
   careerApplications,
   contactSubmissions,
   siteSettings,
+  siteImages,
   navbarItems,
   type User,
   type UpsertUser,
@@ -64,6 +65,8 @@ import {
   type InsertContactSubmission,
   type SiteSetting,
   type InsertSiteSetting,
+  type SiteImage,
+  type InsertSiteImage,
   type NavbarItem,
   type InsertNavbarItem,
 } from "@shared/schema";
@@ -205,6 +208,14 @@ export interface IStorage {
   getSiteSetting(key: string): Promise<SiteSetting | undefined>;
   upsertSiteSetting(data: InsertSiteSetting): Promise<SiteSetting>;
   deleteSiteSetting(key: string): Promise<void>;
+  
+  // Site Images operations
+  getSiteImages(): Promise<SiteImage[]>;
+  getSiteImage(key: string): Promise<SiteImage | undefined>;
+  getSiteImagesByPage(page: string): Promise<SiteImage[]>;
+  createSiteImage(data: InsertSiteImage): Promise<SiteImage>;
+  updateSiteImage(id: string, data: Partial<InsertSiteImage>): Promise<SiteImage | undefined>;
+  deleteSiteImage(id: string): Promise<void>;
   
   // Navbar Items operations
   getNavbarItems(): Promise<NavbarItem[]>;
@@ -890,6 +901,38 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSiteSetting(key: string): Promise<void> {
     await db.delete(siteSettings).where(eq(siteSettings.key, key));
+  }
+
+  // Site Images operations
+  async getSiteImages(): Promise<SiteImage[]> {
+    return await db.select().from(siteImages).orderBy(asc(siteImages.page), asc(siteImages.sortOrder));
+  }
+
+  async getSiteImage(key: string): Promise<SiteImage | undefined> {
+    const [image] = await db.select().from(siteImages).where(eq(siteImages.key, key));
+    return image;
+  }
+
+  async getSiteImagesByPage(page: string): Promise<SiteImage[]> {
+    return await db.select().from(siteImages).where(eq(siteImages.page, page)).orderBy(asc(siteImages.sortOrder));
+  }
+
+  async createSiteImage(data: InsertSiteImage): Promise<SiteImage> {
+    const [image] = await db.insert(siteImages).values(data).returning();
+    return image;
+  }
+
+  async updateSiteImage(id: string, data: Partial<InsertSiteImage>): Promise<SiteImage | undefined> {
+    const [image] = await db
+      .update(siteImages)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(siteImages.id, id))
+      .returning();
+    return image;
+  }
+
+  async deleteSiteImage(id: string): Promise<void> {
+    await db.delete(siteImages).where(eq(siteImages.id, id));
   }
 
   // Navbar Items operations

@@ -30,6 +30,7 @@ import AnnouncementsManagement from "@/pages/admin/AnnouncementsManagement";
 import CareersManagement from "@/pages/admin/CareersManagement";
 import RulesManagement from "@/pages/admin/RulesManagement";
 import GalleryManagement from "@/pages/admin/GalleryManagement";
+import SiteImagesManagement from "@/pages/admin/SiteImagesManagement";
 import BookingsManagement from "@/pages/admin/BookingsManagement";
 import BrandingManagement from "@/pages/admin/BrandingManagement";
 
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/admin/careers" component={CareersManagement} />
       <Route path="/admin/rules" component={RulesManagement} />
       <Route path="/admin/gallery" component={GalleryManagement} />
+      <Route path="/admin/site-images" component={SiteImagesManagement} />
       <Route path="/admin/bookings" component={BookingsManagement} />
       <Route path="/admin/branding" component={BrandingManagement} />
       <Route component={NotFound} />

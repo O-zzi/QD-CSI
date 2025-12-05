@@ -29,6 +29,7 @@ import {
   insertCareerApplicationSchema,
   insertContactSubmissionSchema,
   insertSiteSettingSchema,
+  insertSiteImageSchema,
   insertNavbarItemSchema,
 } from "@shared/schema";
 import { z } from "zod";
@@ -1585,6 +1586,83 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting site setting:", error);
       res.status(500).json({ message: "Failed to delete site setting" });
+    }
+  });
+
+  // ========== SITE IMAGES ROUTES ==========
+  app.get('/api/site-images', async (req, res) => {
+    try {
+      const { page } = req.query;
+      let images;
+      if (page) {
+        images = await storage.getSiteImagesByPage(page as string);
+      } else {
+        images = await storage.getSiteImages();
+      }
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching site images:", error);
+      res.status(500).json({ message: "Failed to fetch site images" });
+    }
+  });
+
+  app.get('/api/site-images/:key', async (req, res) => {
+    try {
+      const image = await storage.getSiteImage(req.params.key);
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      res.json(image);
+    } catch (error) {
+      console.error("Error fetching site image:", error);
+      res.status(500).json({ message: "Failed to fetch site image" });
+    }
+  });
+
+  app.get('/api/admin/site-images', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const images = await storage.getSiteImages();
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching site images:", error);
+      res.status(500).json({ message: "Failed to fetch site images" });
+    }
+  });
+
+  app.post('/api/admin/site-images', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertSiteImageSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const image = await storage.createSiteImage(result.data);
+      res.status(201).json(image);
+    } catch (error) {
+      console.error("Error creating site image:", error);
+      res.status(500).json({ message: "Failed to create site image" });
+    }
+  });
+
+  app.patch('/api/admin/site-images/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const image = await storage.updateSiteImage(req.params.id, req.body);
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      res.json(image);
+    } catch (error) {
+      console.error("Error updating site image:", error);
+      res.status(500).json({ message: "Failed to update site image" });
+    }
+  });
+
+  app.delete('/api/admin/site-images/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteSiteImage(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting site image:", error);
+      res.status(500).json({ message: "Failed to delete site image" });
     }
   });
 

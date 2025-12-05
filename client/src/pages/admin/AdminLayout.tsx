@@ -41,6 +41,7 @@ const navItems = [
   { path: "/admin/careers", label: "Careers", icon: Briefcase },
   { path: "/admin/rules", label: "Rules & Policies", icon: FileText },
   { path: "/admin/gallery", label: "Gallery", icon: Image },
+  { path: "/admin/site-images", label: "Site Images", icon: Image },
 ];
 
 interface AdminLayoutProps {

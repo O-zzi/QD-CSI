@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CMS_DEFAULTS } from "@/hooks/useCms";
-import heroBackground from "@assets/stock_images/padel_tennis_court_i_37ae0ba3.jpg";
-import type { CmsContent } from "@shared/schema";
+import heroBackgroundDefault from "@assets/stock_images/padel_tennis_court_i_37ae0ba3.jpg";
+import type { CmsContent, SiteImage } from "@shared/schema";
 
 interface ConstructionPhase {
   id: string;
@@ -35,6 +35,17 @@ export function HeroSection() {
     queryKey: ['/api/construction-phases'],
     staleTime: 1000 * 60 * 5,
   });
+
+  const { data: siteImages = [] } = useQuery<SiteImage[]>({
+    queryKey: ['/api/site-images', 'landing'],
+    queryFn: () => fetch('/api/site-images?page=landing').then(res => res.json()),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const heroBackground = useMemo(() => {
+    const heroImage = siteImages.find(img => img.section === 'hero' && img.isActive);
+    return heroImage?.imageUrl || heroBackgroundDefault;
+  }, [siteImages]);
 
   const sortedPhases = useMemo(() => {
     return [...phases].sort((a, b) => a.sortOrder - b.sortOrder);
