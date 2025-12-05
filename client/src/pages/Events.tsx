@@ -1,18 +1,49 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Calendar, Users, Clock, Trophy, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Event } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 
+const registrationFormSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email"),
+  phone: z.string().optional(),
+  guestCount: z.number().min(0).max(10).default(0),
+  notes: z.string().optional(),
+});
+
+type RegistrationFormData = z.infer<typeof registrationFormSchema>;
+
 export default function Events() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  const form = useForm<RegistrationFormData>({
+    resolver: zodResolver(registrationFormSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phone: "",
+      guestCount: 0,
+      notes: "",
+    },
+  });
   
   const { data: events = [], isLoading } = useQuery<Event[]>({
     queryKey: ['/api/events'],
@@ -24,8 +55,8 @@ export default function Events() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (eventId: string) => {
-      return await apiRequest("POST", `/api/events/${eventId}/register`);
+    mutationFn: async (data: RegistrationFormData & { eventId: string }) => {
+      return await apiRequest("POST", `/api/events/${data.eventId}/register`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/event-registrations'] });
@@ -34,6 +65,9 @@ export default function Events() {
         title: "Registration Successful",
         description: "You have been registered for this event.",
       });
+      setIsDialogOpen(false);
+      setSelectedEvent(null);
+      form.reset();
     },
     onError: (error: Error) => {
       toast({
@@ -86,16 +120,21 @@ export default function Events() {
     SOCIAL: 'bg-pink-100 dark:bg-pink-900/30 text-pink-800 dark:text-pink-300',
   };
 
-  const handleRegister = (eventId: string) => {
-    if (!user) {
-      toast({
-        title: "Login Required",
-        description: "Please log in to register for events.",
-        variant: "destructive",
-      });
-      return;
+  const openRegistrationDialog = (event: Event) => {
+    setSelectedEvent(event);
+    // Pre-fill form with user data if logged in
+    if (user) {
+      form.setValue("fullName", user.firstName && user.lastName 
+        ? `${user.firstName} ${user.lastName}` 
+        : user.firstName || "");
+      form.setValue("email", user.email || "");
     }
-    registerMutation.mutate(eventId);
+    setIsDialogOpen(true);
+  };
+
+  const handleRegistrationSubmit = (data: RegistrationFormData) => {
+    if (!selectedEvent) return;
+    registerMutation.mutate({ ...data, eventId: selectedEvent.id });
   };
 
   const handleCancel = (eventId: string) => {
@@ -203,17 +242,11 @@ export default function Events() {
                       ) : (
                         <Button 
                           size="sm" 
-                          onClick={() => handleRegister(event.id)}
-                          disabled={isProcessing || isFull}
+                          onClick={() => openRegistrationDialog(event)}
+                          disabled={isFull}
                           data-testid={`button-register-event-${event.id}`}
                         >
-                          {isProcessing ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : isFull ? (
-                            'Full'
-                          ) : (
-                            'Register'
-                          )}
+                          {isFull ? 'Full' : 'Register'}
                         </Button>
                       )}
                     </div>
@@ -239,6 +272,146 @@ export default function Events() {
           </Card>
         )}
       </div>
+
+      {/* Registration Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle data-testid="text-registration-title">Event Registration</DialogTitle>
+            <DialogDescription>
+              {selectedEvent?.title && (
+                <span className="font-medium text-foreground">{selectedEvent.title}</span>
+              )}
+              {selectedEvent?.price ? ` - PKR ${selectedEvent.price.toLocaleString()}` : ' - Free'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleRegistrationSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter your full name" 
+                        {...field} 
+                        data-testid="input-reg-fullname"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="email"
+                        placeholder="your@email.com" 
+                        {...field} 
+                        data-testid="input-reg-email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="+92 300 1234567" 
+                        {...field} 
+                        data-testid="input-reg-phone"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="guestCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Guests</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        min={0}
+                        max={10}
+                        placeholder="0"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        data-testid="input-reg-guests"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Additional Notes</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Any special requirements or notes..."
+                        className="resize-none"
+                        {...field} 
+                        data-testid="textarea-reg-notes"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                  data-testid="button-cancel-registration"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={registerMutation.isPending}
+                  data-testid="button-submit-registration"
+                >
+                  {registerMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Registering...
+                    </>
+                  ) : (
+                    'Complete Registration'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

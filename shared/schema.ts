@@ -166,7 +166,12 @@ export const events = pgTable("events", {
 export const eventRegistrations = pgTable("event_registrations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: 'cascade' }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  fullName: varchar("full_name").notNull(),
+  email: varchar("email").notNull(),
+  phone: varchar("phone"),
+  guestCount: integer("guest_count").default(0),
+  notes: text("notes"),
   status: varchar("status").default('REGISTERED'),
   createdAt: timestamp("created_at").defaultNow(),
 });

@@ -176,6 +176,7 @@ export interface IStorage {
   getEventRegistrations(eventId: string): Promise<EventRegistration[]>;
   getUserEventRegistrations(userId: string): Promise<EventRegistration[]>;
   isUserRegisteredForEvent(userId: string, eventId: string): Promise<boolean>;
+  isEmailRegisteredForEvent(email: string, eventId: string): Promise<boolean>;
   cancelEventRegistration(id: string): Promise<void>;
   
   // Career Application operations
@@ -706,6 +707,15 @@ export class DatabaseStorage implements IStorage {
     const [existing] = await db.select().from(eventRegistrations)
       .where(and(
         eq(eventRegistrations.userId, userId),
+        eq(eventRegistrations.eventId, eventId)
+      ));
+    return !!existing;
+  }
+
+  async isEmailRegisteredForEvent(email: string, eventId: string): Promise<boolean> {
+    const [existing] = await db.select().from(eventRegistrations)
+      .where(and(
+        eq(eventRegistrations.email, email),
         eq(eventRegistrations.eventId, eventId)
       ));
     return !!existing;
