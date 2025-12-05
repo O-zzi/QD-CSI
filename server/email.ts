@@ -14,6 +14,12 @@ class ResendEmailService implements EmailService {
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+    console.log('[email] Attempting to send email:');
+    console.log('[email] - API Key configured:', this.apiKey ? 'YES (length: ' + this.apiKey.length + ')' : 'NO');
+    console.log('[email] - From:', this.fromEmail);
+    console.log('[email] - To:', to);
+    console.log('[email] - Subject:', subject);
+    
     if (!this.apiKey) {
       console.log('[email] Resend API key not configured - email would be sent to:', to);
       console.log('[email] Subject:', subject);
@@ -618,6 +624,8 @@ export async function sendWelcomeEmail(user: any): Promise<boolean> {
 
 export async function sendContactFormEmail(submission: { name: string; email: string; phone?: string; message: string }): Promise<boolean> {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@thequarterdeck.pk';
+  console.log('[email] Contact form - ADMIN_EMAIL env:', process.env.ADMIN_EMAIL ? 'SET' : 'NOT SET');
+  console.log('[email] Contact form - Sending to:', adminEmail);
   const html = emailTemplates.contactFormSubmission(submission);
   return emailService.sendEmail(
     adminEmail,
