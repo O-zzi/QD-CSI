@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import type { Booking } from "@shared/schema";
+import type { Booking, Facility } from "@shared/schema";
 
 type PaymentStatus = "PENDING_PAYMENT" | "PENDING_VERIFICATION" | "VERIFIED" | "REJECTED";
 type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
@@ -49,6 +49,16 @@ export default function BookingsManagement() {
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ["/api/admin/bookings"],
   });
+
+  const { data: facilities } = useQuery<Facility[]>({
+    queryKey: ["/api/admin/facilities"],
+  });
+
+  const getFacilityName = (facilityId: string | null) => {
+    if (!facilityId || !facilities) return "Unknown";
+    const facility = facilities.find(f => f.id === facilityId);
+    return facility?.name || "Unknown";
+  };
 
   const updatePaymentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { paymentStatus?: PaymentStatus; paymentNotes?: string; status?: BookingStatus } }) => {
@@ -132,9 +142,10 @@ export default function BookingsManagement() {
   };
 
   const filteredBookings = bookings?.filter((booking) => {
+    const facilityName = getFacilityName(booking.facilityId);
     const matchesSearch = 
       booking.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.facilityId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      facilityName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       booking.userId?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesPayment = paymentFilter === "all" || booking.paymentStatus === paymentFilter;
@@ -252,7 +263,7 @@ export default function BookingsManagement() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="text-sm">{booking.facilityId}</div>
+                          <div className="text-sm">{getFacilityName(booking.facilityId)}</div>
                           <div className="text-xs text-muted-foreground">
                             Resource #{booking.resourceId}
                           </div>

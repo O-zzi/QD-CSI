@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Pencil, Trash2, Save, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, Image as ImageIcon, Info, Upload, Link as LinkIcon, HelpCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,28 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { GalleryImage } from "@shared/schema";
+
+const IMAGE_GUIDELINES = {
+  dimensions: {
+    recommended: "1920 x 1080 px (16:9 aspect ratio)",
+    minimum: "1280 x 720 px",
+    maximum: "4096 x 2160 px",
+  },
+  formats: ["JPEG", "PNG", "WebP"],
+  maxFileSize: "5 MB",
+  categories: {
+    Renders: "3D architectural renders and concept designs for The Quarterdeck complex",
+    Construction: "Progress photos from the construction site showing different phases",
+    Facilities: "Photos of completed or in-progress facilities (courts, halls, etc.)",
+  },
+};
 
 export default function GalleryManagement() {
   const { toast } = useToast();
@@ -137,14 +158,44 @@ export default function GalleryManagement() {
     );
   }
 
+  const renderCount = images?.filter(i => i.category === "Renders").length || 0;
+  const constructionCount = images?.filter(i => i.category === "Construction").length || 0;
+  const facilitiesCount = images?.filter(i => i.category === "Facilities").length || 0;
+  const activeCount = images?.filter(i => i.isActive).length || 0;
+  const hiddenCount = images?.filter(i => !i.isActive).length || 0;
+
   return (
     <AdminLayout title="Gallery">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <p className="text-muted-foreground">
-            Manage gallery images shown on the website.
-          </p>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+        <div className="bg-gradient-to-r from-purple-500/10 via-orange-500/10 to-blue-500/10 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold mb-1">Gallery Management</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Manage gallery images shown on the website. Images should be high-quality and relevant to The Quarterdeck.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-purple-500" />
+                  <span className="text-sm">{renderCount} Renders</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-orange-500" />
+                  <span className="text-sm">{constructionCount} Construction</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500" />
+                  <span className="text-sm">{facilitiesCount} Facilities</span>
+                </div>
+                <div className="border-l pl-3 flex items-center gap-2">
+                  <span className="text-sm text-green-600 dark:text-green-400">{activeCount} Active</span>
+                  {hiddenCount > 0 && (
+                    <span className="text-sm text-muted-foreground">/ {hiddenCount} Hidden</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
             if (!open) {
               setEditingImage(null);
@@ -156,33 +207,94 @@ export default function GalleryManagement() {
                 <Plus className="w-4 h-4 mr-2" /> Add Image
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingImage ? "Edit Image" : "Add New Image"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="imageUrl">Image URL</Label>
-                  <Input
-                    id="imageUrl"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://..."
-                    data-testid="input-gallery-url"
-                  />
-                  {formData.imageUrl && (
-                    <div className="mt-2 rounded-md overflow-hidden border">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium text-blue-800 dark:text-blue-300 mb-2">Image Guidelines</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-blue-700 dark:text-blue-400">
+                        <div>
+                          <span className="font-medium">Recommended:</span>
+                          <p className="text-xs">{IMAGE_GUIDELINES.dimensions.recommended}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Formats:</span>
+                          <p className="text-xs">{IMAGE_GUIDELINES.formats.join(", ")}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Max Size:</span>
+                          <p className="text-xs">{IMAGE_GUIDELINES.maxFileSize}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Tabs defaultValue="url" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="url" className="flex items-center gap-2" data-testid="tab-url">
+                      <LinkIcon className="w-4 h-4" /> URL
+                    </TabsTrigger>
+                    <TabsTrigger value="upload" className="flex items-center gap-2" data-testid="tab-upload">
+                      <Upload className="w-4 h-4" /> Upload (Testing)
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="url" className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="imageUrl">Image URL</Label>
+                      <Input
+                        id="imageUrl"
+                        value={formData.imageUrl}
+                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                        placeholder="https://example.com/image.jpg"
+                        data-testid="input-gallery-url"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Paste a direct link to your image. Supports any publicly accessible URL.
+                      </p>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="upload" className="space-y-4 mt-4">
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
+                      <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="font-medium mb-1">File Upload (Coming Soon)</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Direct file upload is planned for a future release.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        For now, please use external image hosting services and paste the URL.
+                      </p>
+                      <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                        <p className="text-xs text-amber-700 dark:text-amber-400">
+                          <strong>Tip:</strong> You can use free services like Imgur, ImgBB, or Cloudinary for image hosting.
+                        </p>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                {formData.imageUrl && (
+                  <div className="space-y-2">
+                    <Label>Preview</Label>
+                    <div className="rounded-md overflow-hidden border aspect-video bg-muted">
                       <img 
                         src={formData.imageUrl} 
                         alt="Preview" 
-                        className="w-full h-32 object-cover"
+                        className="w-full h-full object-cover"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="title">Title</Label>
@@ -190,11 +302,26 @@ export default function GalleryManagement() {
                       id="title"
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="e.g., Padel Court Construction - Week 12"
                       data-testid="input-gallery-title"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="category">Category</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <div className="space-y-2 text-xs">
+                            <p><strong>Renders:</strong> {IMAGE_GUIDELINES.categories.Renders}</p>
+                            <p><strong>Construction:</strong> {IMAGE_GUIDELINES.categories.Construction}</p>
+                            <p><strong>Facilities:</strong> {IMAGE_GUIDELINES.categories.Facilities}</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Select
                       value={formData.category}
                       onValueChange={(value) => setFormData({ ...formData, category: value })}
@@ -203,9 +330,24 @@ export default function GalleryManagement() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Renders">Renders</SelectItem>
-                        <SelectItem value="Construction">Construction</SelectItem>
-                        <SelectItem value="Facilities">Facilities</SelectItem>
+                        <SelectItem value="Renders">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-purple-500" />
+                            Renders
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="Construction">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-orange-500" />
+                            Construction
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="Facilities">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-500" />
+                            Facilities
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -254,6 +396,7 @@ export default function GalleryManagement() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
