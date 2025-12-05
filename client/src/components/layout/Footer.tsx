@@ -25,7 +25,12 @@ export function Footer() {
           <div className="flex flex-wrap gap-4">
             <Link href="/vision">
               <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-about">
-                About
+                About Us
+              </span>
+            </Link>
+            <Link href="/facilities">
+              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-facilities">
+                Facilities
               </span>
             </Link>
             <Link href="/rules">

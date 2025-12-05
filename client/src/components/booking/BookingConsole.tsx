@@ -218,8 +218,22 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     price: number;
     capacity: number;
     enrolledCount: number;
-    facilitySlug: string;
+    facilityId: string;
   }
+
+  // Fetch facilities from API to map IDs to slugs
+  const { data: apiFacilities = [] } = useQuery<{ id: string; slug: string; name: string }[]>({
+    queryKey: ['/api/facilities'],
+  });
+
+  // Create a map from facility ID to slug
+  const facilityIdToSlug = useMemo(() => {
+    const map: Record<string, string> = {};
+    apiFacilities.forEach(f => {
+      map[f.id] = f.slug;
+    });
+    return map;
+  }, [apiFacilities]);
   
   const { data: apiEvents = [] } = useQuery<EventData[]>({
     queryKey: ['/api/events'],
@@ -1118,7 +1132,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
             {apiEvents.length > 0 ? (
               FACILITIES.map((fac) => {
                 const FacIcon = fac.icon;
-                const facEvents = apiEvents.filter((e) => e.facilitySlug === fac.id);
+                const facEvents = apiEvents.filter((e) => facilityIdToSlug[e.facilityId] === fac.id);
                 if (facEvents.length === 0) return null;
                 return (
                   <section
