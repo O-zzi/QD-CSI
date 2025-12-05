@@ -97,6 +97,7 @@ export default function ComingSoonManagement() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/cms"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cms/bulk"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/site-settings"] });
       setEditedFields((prev) => {
         const next = new Set(prev);
@@ -126,6 +127,7 @@ export default function ComingSoonManagement() {
     try {
       await Promise.all(promises);
       queryClient.invalidateQueries({ queryKey: ["/api/cms"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cms/bulk"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/site-settings"] });
       setEditedFields(new Set());
       toast({ title: "All changes saved successfully" });

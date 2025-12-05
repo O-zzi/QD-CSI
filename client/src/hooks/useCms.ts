@@ -191,12 +191,12 @@ export const CMS_DEFAULTS: Record<string, string> = {
   
   // Coming Soon Page
   coming_soon_title: 'Something Amazing Is Coming',
-  coming_soon_subtitle: 'Pakistan\'s Premier Sports & Recreation Complex is under construction. Get ready for world-class Padel Tennis, Squash, Air Rifle Range, and more.',
+  coming_soon_subtitle: 'Padel Courts & Cafe/Bar opening December 2025. Full complex with 3-floor building (Multipurpose Hall, Bridge Room, Air Rifle Range) coming 2026.',
   coming_soon_description: 'The Quarterdeck will feature world-class Padel Tennis courts, Squash facilities, an Air Rifle Range, Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience.',
   coming_soon_cta: 'Join the Waitlist',
   coming_soon_progress_label: 'Construction Progress',
   coming_soon_launch_date: '2025-12-25',
-  coming_soon_location: 'Sector F-7, Islamabad',
+  coming_soon_location: 'TBD, Pakistan',
   
   // Site-wide Settings
   site_name: 'The Quarterdeck',
