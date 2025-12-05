@@ -2,8 +2,9 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ChevronRight, Users, Clock, Star, Target, Dumbbell, Crosshair, Spade, Building } from "lucide-react";
+import { ArrowLeft, ChevronRight, Users, Clock, Star, Crosshair, Spade, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { GiTennisRacket, GiSquare } from "react-icons/gi";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_d29f9aaf.jpg";
 import squashImage from "@assets/stock_images/professional_squash__c4dca43a.jpg";
@@ -12,11 +13,11 @@ import bridgeImage from "@assets/stock_images/bridge_card_game_clu_6f83cf65.jpg"
 import hallImage from "@assets/stock_images/multipurpose_event_h_e7c6ac62.jpg";
 
 const facilityIcons: Record<string, any> = {
-  "padel-tennis": Target,
-  "squash": Dumbbell,
+  "padel-tennis": GiTennisRacket,
+  "squash": GiSquare,
   "air-rifle-range": Crosshair,
   "bridge-room": Spade,
-  "multipurpose-hall": Building,
+  "multipurpose-hall": Building2,
 };
 
 const facilityImages: Record<string, string> = {
@@ -185,7 +186,7 @@ export default function Facilities() {
                             <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
                             <div className="absolute bottom-4 left-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
                               {(() => {
-                                const Icon = facilityIcons[facility.slug] || Target;
+                                const Icon = facilityIcons[facility.slug] || GiTennisRacket;
                                 return <Icon className="w-5 h-5 text-white" />;
                               })()}
                             </div>
@@ -193,7 +194,7 @@ export default function Facilities() {
                         ) : (
                           <div className="w-full h-full bg-[#2a4060]/10 flex items-center justify-center">
                             {(() => {
-                              const Icon = facilityIcons[facility.slug] || Target;
+                              const Icon = facilityIcons[facility.slug] || GiTennisRacket;
                               return <Icon className="w-12 h-12 text-[#2a4060]/50" />;
                             })()}
                           </div>

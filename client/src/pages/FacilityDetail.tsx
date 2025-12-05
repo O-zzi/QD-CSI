@@ -2,8 +2,9 @@ import { Link, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Clock, Users, MapPin, Check, AlertTriangle, Calendar, Target, Dumbbell, Crosshair, Spade, Building } from "lucide-react";
+import { ArrowLeft, Clock, Users, MapPin, Check, AlertTriangle, Calendar, Crosshair, Spade, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { GiTennisRacket, GiSquare } from "react-icons/gi";
 import type { Facility, FacilityAddOn } from "@shared/schema";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
@@ -13,11 +14,11 @@ import bridgeImage from "@assets/stock_images/elegant_card_game_ro_42b0454d.jpg"
 import hallImage from "@assets/stock_images/large_event_hall_int_32ffc7ae.jpg";
 
 const facilityIcons: Record<string, any> = {
-  "padel-tennis": Target,
-  "squash": Dumbbell,
+  "padel-tennis": GiTennisRacket,
+  "squash": GiSquare,
   "air-rifle-range": Crosshair,
   "bridge-room": Spade,
-  "multipurpose-hall": Building,
+  "multipurpose-hall": Building2,
 };
 
 const facilityImages: Record<string, string> = {
@@ -216,7 +217,7 @@ export default function FacilityDetail() {
     );
   }
 
-  const FacilityIcon = facilityIcons[slug || ""] || Target;
+  const FacilityIcon = facilityIcons[slug || ""] || GiTennisRacket;
   const facilityBgImage = facilityImages[slug || ""] || padelImage;
 
   return (

@@ -11,47 +11,48 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatPKR, calculateEndTime, isOffPeak } from "@/lib/authUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { 
-  Target, Dumbbell, Crosshair, Users, Building, 
+  Crosshair, Building2, Spade,
   Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight,
   MapPin, AlertCircle, Check, Wallet, Timer, Ticket,
   Trophy, User, CalendarDays, Minus, Plus,
   Headphones, Glasses, Droplets, Coffee, Speaker, CircleDot,
-  ShieldCheck, FileCheck
+  ShieldCheck, FileCheck, Target
 } from "lucide-react";
+import { GiTennisRacket, GiSquare } from "react-icons/gi";
 import type { Facility, Booking } from "@shared/schema";
 
 const FACILITIES = [
-  { id: 'padel', label: 'Padel Tennis', count: 4, basePrice: 6000, minPlayers: 4, icon: Target, requiresCert: false },
-  { id: 'squash', label: 'Squash', count: 2, basePrice: 4000, minPlayers: 2, icon: Dumbbell, requiresCert: false },
-  { id: 'air_rifle', label: 'Air Rifle Range', count: 6, basePrice: 6000, minPlayers: 1, icon: Crosshair, requiresCert: true },
-  { id: 'bridge', label: 'Bridge Room', count: 5, basePrice: 0, minPlayers: 4, icon: Users, restricted: true, requiresCert: false },
-  { id: 'hall', label: 'Multipurpose Hall', count: 1, basePrice: 6000, minPlayers: 10, icon: Building, requiresCert: false },
+  { id: 'padel-tennis', label: 'Padel Tennis', count: 4, basePrice: 6000, minPlayers: 4, icon: GiTennisRacket, requiresCert: false },
+  { id: 'squash', label: 'Squash Courts', count: 2, basePrice: 4000, minPlayers: 2, icon: GiSquare, requiresCert: false },
+  { id: 'air-rifle-range', label: 'Air Rifle Range', count: 6, basePrice: 6000, minPlayers: 1, icon: Crosshair, requiresCert: true },
+  { id: 'bridge-room', label: 'Bridge Room', count: 5, basePrice: 0, minPlayers: 4, icon: Spade, restricted: true, requiresCert: false },
+  { id: 'multipurpose-hall', label: 'Multipurpose Hall', count: 1, basePrice: 6000, minPlayers: 10, icon: Building2, requiresCert: false },
 ];
 
 const FACILITY_ADD_ONS: Record<string, Array<{ id: string; label: string; price: number; icon: typeof Target }>> = {
-  padel: [
+  'padel-tennis': [
     { id: 'racket', label: 'Rent Racket', price: 500, icon: Target },
     { id: 'balls', label: 'Sleeve of Balls', price: 1500, icon: CircleDot },
     { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
     { id: 'towel', label: 'Fresh Towel', price: 300, icon: ShieldCheck },
   ],
-  squash: [
+  'squash': [
     { id: 'sq_racket', label: 'Squash Racket Rental', price: 500, icon: Target },
     { id: 'sq_balls', label: 'Squash Balls (Tube)', price: 1200, icon: CircleDot },
     { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
     { id: 'towel', label: 'Fresh Towel', price: 300, icon: ShieldCheck },
   ],
-  air_rifle: [
+  'air-rifle-range': [
     { id: 'ear_protection', label: 'Ear Protection', price: 300, icon: Headphones },
     { id: 'safety_glasses', label: 'Safety Glasses', price: 400, icon: Glasses },
     { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
   ],
-  bridge: [
+  'bridge-room': [
     { id: 'tea_coffee', label: 'Tea / Coffee Service', price: 300, icon: Coffee },
     { id: 'snacks', label: 'Snacks Platter', price: 800, icon: ShieldCheck },
     { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
   ],
-  hall: [
+  'multipurpose-hall': [
     { id: 'mats', label: 'Floor Mats', price: 500, icon: ShieldCheck },
     { id: 'speaker', label: 'Speaker & Mic Setup', price: 1500, icon: Speaker },
     { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
@@ -69,16 +70,16 @@ const HALL_ACTIVITIES = [
 ];
 
 const MOCK_EVENTS = [
-  { id: 'e1', type: 'Academy', facility: 'padel', title: 'Junior Padel Academy (U-18)', instructor: 'Coach Faraz', day: 'Mon/Wed', time: '4:00 PM', pricePKR: 20000, description: 'Elite two-session per week coaching focusing on technique and match play.' },
-  { id: 'e2', type: 'Tournament', facility: 'padel', title: 'Padel Doubles Clash', instructor: 'Event Team', day: 'Sat', time: '10:00 AM', pricePKR: 5000, description: 'Monthly open doubles tournament for all Gold/Founding members.' },
+  { id: 'e1', type: 'Academy', facility: 'padel-tennis', title: 'Junior Padel Academy (U-18)', instructor: 'Coach Faraz', day: 'Mon/Wed', time: '4:00 PM', pricePKR: 20000, description: 'Elite two-session per week coaching focusing on technique and match play.' },
+  { id: 'e2', type: 'Tournament', facility: 'padel-tennis', title: 'Padel Doubles Clash', instructor: 'Event Team', day: 'Sat', time: '10:00 AM', pricePKR: 5000, description: 'Monthly open doubles tournament for all Gold/Founding members.' },
   { id: 'e3', type: 'Class', facility: 'squash', title: 'Squash Conditioning Drills', instructor: 'Coach Adil', day: 'Tue', time: '7:00 PM', pricePKR: 1500, description: 'High-intensity drills focused on footwork and stamina for intermediate players.' },
   { id: 'e4', type: 'Social', facility: 'squash', title: 'Squash Mixer Night', instructor: 'Social Host', day: 'Fri', time: '8:00 PM', pricePKR: 500, description: 'Casual, rotating partner sessions. Great for meeting new opponents.' },
-  { id: 'e5', type: 'Academy', facility: 'air_rifle', title: 'Marksman Certification', instructor: 'Sgt. Retired', day: 'Mon/Thurs', time: '5:00 PM', pricePKR: 2000, description: 'Mandatory 30-minute safety and proficiency certification class.' },
-  { id: 'e6', type: 'Tournament', facility: 'air_rifle', title: 'Precision Challenge', instructor: 'Range Master', day: 'Sun', time: '2:00 PM', pricePKR: 3000, description: 'Monthly competition for the highest grouping score. Prizes for the top 3.' },
-  { id: 'e7', type: 'Class', facility: 'bridge', title: 'Beginner Bridge Workshop', instructor: 'Ms. Saadia', day: 'Wed', time: '11:00 AM', pricePKR: 500, description: 'Learn the basics of bidding and conventions in a friendly group setting.' },
-  { id: 'e8', type: 'Social', facility: 'bridge', title: 'Contract Bridge Social', instructor: 'Social Host', day: 'Sat', time: '3:00 PM', pricePKR: 0, description: 'Open table social for Founders and Referrals. Free to attend.' },
-  { id: 'e9', type: 'Class', facility: 'hall', title: 'Morning Aerobics', instructor: 'Ms. Sara', day: 'Mon/Wed/Fri', time: '10:00 AM', pricePKR: 1500, description: 'High-energy fitness class suitable for all levels.' },
-  { id: 'e10', type: 'Academy', facility: 'hall', title: 'PR/Corporate Event Booking', instructor: 'Management', day: 'Any', time: 'Any', pricePKR: 150000, description: 'Book the entire hall for private corporate functions, product launches, or large group training.' },
+  { id: 'e5', type: 'Academy', facility: 'air-rifle-range', title: 'Marksman Certification', instructor: 'Sgt. Retired', day: 'Mon/Thurs', time: '5:00 PM', pricePKR: 2000, description: 'Mandatory 30-minute safety and proficiency certification class.' },
+  { id: 'e6', type: 'Tournament', facility: 'air-rifle-range', title: 'Precision Challenge', instructor: 'Range Master', day: 'Sun', time: '2:00 PM', pricePKR: 3000, description: 'Monthly competition for the highest grouping score. Prizes for the top 3.' },
+  { id: 'e7', type: 'Class', facility: 'bridge-room', title: 'Beginner Bridge Workshop', instructor: 'Ms. Saadia', day: 'Wed', time: '11:00 AM', pricePKR: 500, description: 'Learn the basics of bidding and conventions in a friendly group setting.' },
+  { id: 'e8', type: 'Social', facility: 'bridge-room', title: 'Contract Bridge Social', instructor: 'Social Host', day: 'Sat', time: '3:00 PM', pricePKR: 0, description: 'Open table social for Founders and Referrals. Free to attend.' },
+  { id: 'e9', type: 'Class', facility: 'multipurpose-hall', title: 'Morning Aerobics', instructor: 'Ms. Sara', day: 'Mon/Wed/Fri', time: '10:00 AM', pricePKR: 1500, description: 'High-energy fitness class suitable for all levels.' },
+  { id: 'e10', type: 'Academy', facility: 'multipurpose-hall', title: 'PR/Corporate Event Booking', instructor: 'Management', day: 'Any', time: 'Any', pricePKR: 150000, description: 'Book the entire hall for private corporate functions, product launches, or large group training.' },
 ];
 
 const LEADERBOARD_DATA: Record<string, Array<{ name: string; points: number; tier: string; facility?: string }>> = {
@@ -89,21 +90,21 @@ const LEADERBOARD_DATA: Record<string, Array<{ name: string; points: number; tie
     { name: 'TechSol Team', points: 720, tier: 'Corporate' },
     { name: 'Asif Nadeem', points: 610, tier: 'Silver' },
   ],
-  padel: [
-    { name: 'Sarah Khan', points: 450, tier: 'Gold', facility: 'padel' },
-    { name: 'Ali Raza', points: 310, tier: 'Silver', facility: 'padel' },
-    { name: 'Major Hamza', points: 290, tier: 'Founding', facility: 'padel' },
-    { name: 'Waseem Akram', points: 200, tier: 'Silver', facility: 'padel' },
+  'padel-tennis': [
+    { name: 'Sarah Khan', points: 450, tier: 'Gold', facility: 'padel-tennis' },
+    { name: 'Ali Raza', points: 310, tier: 'Silver', facility: 'padel-tennis' },
+    { name: 'Major Hamza', points: 290, tier: 'Founding', facility: 'padel-tennis' },
+    { name: 'Waseem Akram', points: 200, tier: 'Silver', facility: 'padel-tennis' },
   ],
-  squash: [
+  'squash': [
     { name: 'Asif Nadeem', points: 300, tier: 'Silver', facility: 'squash' },
     { name: 'Major Hamza', points: 150, tier: 'Founding', facility: 'squash' },
     { name: 'Kamran Ali', points: 110, tier: 'Corporate', facility: 'squash' },
   ],
-  air_rifle: [
-    { name: 'Major Hamza', points: 500, tier: 'Founding', facility: 'air_rifle' },
-    { name: 'TechSol Team', points: 300, tier: 'Corporate', facility: 'air_rifle' },
-    { name: 'Sarah Khan', points: 280, tier: 'Gold', facility: 'air_rifle' },
+  'air-rifle-range': [
+    { name: 'Major Hamza', points: 500, tier: 'Founding', facility: 'air-rifle-range' },
+    { name: 'TechSol Team', points: 300, tier: 'Corporate', facility: 'air-rifle-range' },
+    { name: 'Sarah Khan', points: 280, tier: 'Gold', facility: 'air-rifle-range' },
   ],
 };
 
@@ -250,7 +251,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
 
   const confirmBooking = () => {
     if (!bookingSummary || !selectedStartTime) return;
-    if (selectedFacility.id === 'hall' && !selectedHallActivity) {
+    if (selectedFacility.id === 'multipurpose-hall' && !selectedHallActivity) {
       toast({
         title: "Activity Required",
         description: "Please select a purpose for the Multipurpose Hall booking.",
@@ -301,7 +302,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     }
   };
 
-  const leaderboardFacilities = FACILITIES.filter((f) => f.id !== 'bridge' && f.id !== 'hall');
+  const leaderboardFacilities = FACILITIES.filter((f) => f.id !== 'bridge-room' && f.id !== 'multipurpose-hall');
   const currentLeaderboard = LEADERBOARD_DATA[currentLeaderboardType] || [];
 
   const handleBackToHome = () => {
@@ -513,7 +514,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   </div>
                   
                   {/* Hall Activity Type - RESTORED */}
-                  {selectedFacility.id === 'hall' && (
+                  {selectedFacility.id === 'multipurpose-hall' && (
                     <div>
                       <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">
                         Purpose of Multipurpose Event
@@ -852,10 +853,10 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                 <section
                   key={fac.id}
                   className={`mb-8 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-md border-t-4 ${
-                    fac.id === 'padel' ? 'border-sky-500' :
-                    fac.id === 'air_rifle' ? 'border-red-400' :
+                    fac.id === 'padel-tennis' ? 'border-sky-500' :
+                    fac.id === 'air-rifle-range' ? 'border-red-400' :
                     fac.id === 'squash' ? 'border-slate-400' :
-                    fac.id === 'bridge' ? 'border-blue-500' : 'border-purple-400'
+                    fac.id === 'bridge-room' ? 'border-blue-500' : 'border-purple-400'
                   }`}
                   data-testid={`section-events-${fac.id}`}
                 >
