@@ -209,6 +209,19 @@ export async function registerRoutes(
     }
   });
 
+  // ========== PUBLIC PRICING TIERS ROUTE ==========
+  app.get('/api/pricing-tiers', async (req, res) => {
+    try {
+      const tiers = await storage.getPricingTiers();
+      // Only return active tiers for public access
+      const activeTiers = tiers.filter(t => t.isActive);
+      res.json(activeTiers);
+    } catch (error) {
+      console.error("Error fetching public pricing tiers:", error);
+      res.status(500).json({ message: "Failed to fetch pricing tiers" });
+    }
+  });
+
   // ========== PUBLIC VENUES ROUTE ==========
   app.get('/api/venues', async (req, res) => {
     try {

@@ -1,24 +1,40 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Check, Crown, Star, Sparkles, Users, ChevronDown, ChevronUp } from "lucide-react";
 import membershipBg from "@assets/stock_images/modern_indoor_sports_8b182ff8.jpg";
+import type { PricingTier } from "@shared/schema";
 
-const membershipTiers = [
+const tierIcons: Record<string, any> = {
+  FOUNDING: Crown,
+  GOLD: Star,
+  SILVER: Sparkles,
+  GUEST: Users,
+};
+
+const tierColors: Record<string, { bg: string; text: string }> = {
+  FOUNDING: { bg: 'bg-amber-500/10', text: 'text-amber-500' },
+  GOLD: { bg: 'bg-yellow-500/10', text: 'text-yellow-600' },
+  SILVER: { bg: 'bg-gray-500/10', text: 'text-gray-500' },
+  GUEST: { bg: 'bg-blue-500/10', text: 'text-blue-500' },
+};
+
+const defaultMembershipTiers = [
   {
     id: "founding",
     name: "Founding Member",
+    tier: "FOUNDING",
     tagline: "Limited & Exclusive",
     description: "For early supporters and investors who believe in our vision.",
-    price: "PKR 35,000",
-    period: "/month",
-    tier: "founding",
-    icon: Crown,
+    price: 35000,
+    billingPeriod: "monthly",
     featured: true,
     closed: true,
     benefits: [
       "Lifetime priority booking (14-day window)",
-      "25% discount on all court bookings",
+      "25% discount on off-peak bookings (10 AM - 5 PM)",
       "10 guest passes per month",
       "Access to exclusive Bridge Room",
       "Permanent credit bonus (10%)",
@@ -26,57 +42,60 @@ const membershipTiers = [
       "Invitation to all exclusive events",
       "Founding member recognition wall",
     ],
+    isActive: true,
+    sortOrder: 1,
   },
   {
     id: "gold",
     name: "Gold Membership",
+    tier: "GOLD",
     tagline: "Premium Access",
     description: "For serious athletes and frequent players who want the best experience.",
-    price: "PKR 15,000",
-    period: "/month",
-    tier: "gold",
-    icon: Star,
+    price: 15000,
+    billingPeriod: "monthly",
     featured: false,
     closed: false,
     benefits: [
       "7-day advance booking window",
-      "20% discount on all court bookings",
+      "20% discount on off-peak bookings (10 AM - 5 PM)",
       "4 guest passes per month",
       "Priority event registration",
       "15% off coaching & clinics",
       "Free equipment rental (2x/month)",
       "Access to member lounge",
     ],
+    isActive: true,
+    sortOrder: 2,
   },
   {
     id: "silver",
     name: "Silver Membership",
+    tier: "SILVER",
     tagline: "Standard Access",
     description: "Perfect for recreational players who want regular access at great value.",
-    price: "PKR 5,000",
-    period: "/month",
-    tier: "silver",
-    icon: Sparkles,
+    price: 5000,
+    billingPeriod: "monthly",
     featured: false,
     closed: false,
     benefits: [
       "5-day advance booking window",
-      "10% discount on off-peak bookings",
+      "10% discount on off-peak bookings (10 AM - 5 PM)",
       "2 guest passes per month",
       "10% off coaching & clinics",
       "Member newsletter & updates",
       "Discounted event entry",
     ],
+    isActive: true,
+    sortOrder: 3,
   },
   {
     id: "guest",
     name: "Pay-to-Play",
+    tier: "GUEST",
     tagline: "Non-Member Access",
     description: "Try our facilities without commitment. Subject to availability.",
-    price: "Standard",
-    period: " rates",
-    tier: "guest",
-    icon: Users,
+    price: 0,
+    billingPeriod: "per visit",
     featured: false,
     closed: false,
     benefits: [
@@ -86,12 +105,14 @@ const membershipTiers = [
       "Guest registration required",
       "Can be upgraded to membership",
     ],
+    isActive: true,
+    sortOrder: 4,
   },
 ];
 
 const comparisonFeatures = [
   { feature: "Advance Booking Window", founding: "14 days", gold: "7 days", silver: "5 days", guest: "2 days" },
-  { feature: "Court Booking Discount", founding: "25%", gold: "20%", silver: "10% off-peak", guest: "None" },
+  { feature: "Off-Peak Discount (10 AM - 5 PM)", founding: "25%", gold: "20%", silver: "10%", guest: "None" },
   { feature: "Monthly Guest Passes", founding: "10", gold: "4", silver: "2", guest: "N/A" },
   { feature: "Coaching Discount", founding: "20%", gold: "15%", silver: "10%", guest: "None" },
   { feature: "Event Priority", founding: "VIP", gold: "Priority", silver: "Standard", guest: "Last" },
@@ -99,6 +120,37 @@ const comparisonFeatures = [
 
 export function MembershipSection() {
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
+
+  const { data: apiTiers, isLoading } = useQuery<PricingTier[]>({
+    queryKey: ['/api/pricing-tiers'],
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const membershipTiers = useMemo(() => {
+    if (!apiTiers || apiTiers.length === 0) {
+      return defaultMembershipTiers;
+    }
+
+    return apiTiers
+      .filter(t => t.isActive)
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      .map(tier => ({
+        id: tier.id,
+        name: tier.name,
+        tier: tier.tier,
+        tagline: tier.tier === 'FOUNDING' ? 'Limited & Exclusive' : 
+                 tier.tier === 'GOLD' ? 'Premium Access' :
+                 tier.tier === 'SILVER' ? 'Standard Access' : 'Non-Member Access',
+        description: defaultMembershipTiers.find(d => d.tier === tier.tier)?.description || '',
+        price: tier.price,
+        billingPeriod: tier.billingPeriod || 'monthly',
+        featured: tier.isPopular || tier.tier === 'FOUNDING',
+        closed: tier.tier === 'FOUNDING',
+        benefits: tier.benefits || [],
+        isActive: tier.isActive,
+        sortOrder: tier.sortOrder || 0,
+      }));
+  }, [apiTiers]);
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -112,6 +164,40 @@ export function MembershipSection() {
     setExpandedTier(expandedTier === tierId ? null : tierId);
   };
 
+  const formatPrice = (price: number, period: string) => {
+    if (price === 0 || !price) {
+      return { amount: "Standard", suffix: " rates" };
+    }
+    return { 
+      amount: `PKR ${price.toLocaleString()}`, 
+      suffix: period === 'yearly' ? '/year' : '/month' 
+    };
+  };
+
+  if (isLoading) {
+    return (
+      <section id="membership" className="qd-section bg-gray-50 dark:bg-slate-900 relative overflow-hidden">
+        <div className="qd-container relative z-10">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="rounded-xl border p-6 bg-white dark:bg-slate-800">
+                <Skeleton className="h-12 w-12 rounded-full mx-auto mb-3" />
+                <Skeleton className="h-6 w-32 mx-auto mb-2" />
+                <Skeleton className="h-4 w-24 mx-auto mb-4" />
+                <Skeleton className="h-8 w-28 mx-auto mb-4" />
+                <div className="space-y-2">
+                  {[1, 2, 3, 4, 5].map((j) => (
+                    <Skeleton key={j} className="h-4 w-full" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section id="membership" className="qd-section bg-gray-50 dark:bg-slate-900 relative overflow-hidden">
       <div 
@@ -124,7 +210,7 @@ export function MembershipSection() {
             <h2 className="qd-section-title" data-testid="text-membership-title">Membership & Pricing</h2>
             <p className="text-muted-foreground max-w-2xl mt-2">
               Choose the membership tier that fits your lifestyle. All members enjoy priority booking, 
-              exclusive discounts, and access to our world-class facilities.
+              exclusive discounts during off-peak hours (10 AM - 5 PM), and access to our world-class facilities.
             </p>
           </div>
           <Button
@@ -138,9 +224,11 @@ export function MembershipSection() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {membershipTiers.map((tier) => {
-            const Icon = tier.icon;
+            const Icon = tierIcons[tier.tier] || Users;
+            const colors = tierColors[tier.tier] || tierColors.GUEST;
             const isExpanded = expandedTier === tier.id;
             const hasMoreBenefits = tier.benefits.length > 5;
+            const { amount, suffix } = formatPrice(tier.price, tier.billingPeriod);
             
             return (
               <div
@@ -151,7 +239,7 @@ export function MembershipSection() {
                     : 'border-gray-200 dark:border-slate-700'
                 } ${hasMoreBenefits ? 'cursor-pointer hover-elevate' : ''}`}
                 onClick={() => hasMoreBenefits && toggleTier(tier.id)}
-                data-testid={`membership-tier-${tier.id}`}
+                data-testid={`membership-tier-${tier.tier.toLowerCase()}`}
               >
                 {tier.closed && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
@@ -165,24 +253,16 @@ export function MembershipSection() {
                 )}
                 
                 <div className="text-center mb-4">
-                  <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center ${
-                    tier.id === 'founding' ? 'bg-amber-500/10' :
-                    tier.id === 'gold' ? 'bg-yellow-500/10' :
-                    tier.id === 'silver' ? 'bg-gray-500/10' : 'bg-blue-500/10'
-                  }`}>
-                    <Icon className={`w-6 h-6 ${
-                      tier.id === 'founding' ? 'text-amber-500' :
-                      tier.id === 'gold' ? 'text-yellow-600' :
-                      tier.id === 'silver' ? 'text-gray-500' : 'text-blue-500'
-                    }`} />
+                  <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center ${colors.bg}`}>
+                    <Icon className={`w-6 h-6 ${colors.text}`} />
                   </div>
                   <h3 className="font-bold text-lg">{tier.name}</h3>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider">{tier.tagline}</p>
                 </div>
 
                 <div className="text-center mb-4">
-                  <span className="text-3xl font-bold">{tier.price}</span>
-                  <span className="text-muted-foreground text-sm">{tier.period}</span>
+                  <span className="text-3xl font-bold">{amount}</span>
+                  <span className="text-muted-foreground text-sm">{suffix}</span>
                 </div>
 
                 <p className="text-sm text-muted-foreground text-center mb-4">{tier.description}</p>
@@ -203,7 +283,7 @@ export function MembershipSection() {
                       toggleTier(tier.id);
                     }}
                     className="flex items-center justify-center gap-1 w-full text-sm text-muted-foreground mb-4 py-2 rounded-lg transition-colors"
-                    data-testid={`button-expand-${tier.id}`}
+                    data-testid={`button-expand-${tier.tier.toLowerCase()}`}
                   >
                     {isExpanded ? (
                       <>
@@ -227,7 +307,7 @@ export function MembershipSection() {
                     e.stopPropagation();
                     if (!tier.closed) scrollToSection("contact");
                   }}
-                  data-testid={`button-select-${tier.id}`}
+                  data-testid={`button-select-${tier.tier.toLowerCase()}`}
                 >
                   {tier.closed ? "Not Available" : "Inquire Now"}
                 </Button>
