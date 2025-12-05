@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import heroBackground from "@assets/stock_images/modern_indoor_sports_8b182ff8.jpg";
+import heroBackground from "@assets/stock_images/padel_tennis_court_i_37ae0ba3.jpg";
 
 export function HeroSection() {
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });

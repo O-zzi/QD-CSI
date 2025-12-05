@@ -43,11 +43,6 @@ export function Footer() {
                 Careers
               </span>
             </Link>
-            <Link href="/#contact">
-              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-contact">
-                Contact
-              </span>
-            </Link>
           </div>
 
           <div className="flex gap-4">

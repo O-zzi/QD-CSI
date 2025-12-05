@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatPKR, calculateEndTime, isOffPeak } from "@/lib/authUtils";
@@ -12,11 +13,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { 
   Target, Dumbbell, Crosshair, Users, Building, 
   Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight,
-  MapPin, AlertCircle, Check
+  MapPin, AlertCircle, Check, Wallet, Timer, Ticket,
+  Trophy, User, CalendarDays, Minus, Plus,
+  Headphones, Glasses, Droplets, Coffee, Speaker, CircleDot,
+  ShieldCheck, FileCheck
 } from "lucide-react";
 import type { Facility, Booking } from "@shared/schema";
 
-// Configuration
 const FACILITIES = [
   { id: 'padel', label: 'Padel Tennis', count: 4, basePrice: 6000, minPlayers: 4, icon: Target, requiresCert: false },
   { id: 'squash', label: 'Squash', count: 2, basePrice: 4000, minPlayers: 2, icon: Dumbbell, requiresCert: false },
@@ -25,40 +28,93 @@ const FACILITIES = [
   { id: 'hall', label: 'Multipurpose Hall', count: 1, basePrice: 6000, minPlayers: 10, icon: Building, requiresCert: false },
 ];
 
-const FACILITY_ADD_ONS: Record<string, Array<{ id: string; label: string; price: number; icon: string }>> = {
+const FACILITY_ADD_ONS: Record<string, Array<{ id: string; label: string; price: number; icon: typeof Target }>> = {
   padel: [
-    { id: 'racket', label: 'Rent Racket', price: 500, icon: 'racket' },
-    { id: 'balls', label: 'Sleeve of Balls', price: 1500, icon: 'ball' },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: 'water' },
-    { id: 'towel', label: 'Fresh Towel', price: 300, icon: 'towel' },
+    { id: 'racket', label: 'Rent Racket', price: 500, icon: Target },
+    { id: 'balls', label: 'Sleeve of Balls', price: 1500, icon: CircleDot },
+    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
+    { id: 'towel', label: 'Fresh Towel', price: 300, icon: ShieldCheck },
   ],
   squash: [
-    { id: 'sq_racket', label: 'Squash Racket Rental', price: 500, icon: 'racket' },
-    { id: 'sq_balls', label: 'Squash Balls (Tube)', price: 1200, icon: 'ball' },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: 'water' },
-    { id: 'towel', label: 'Fresh Towel', price: 300, icon: 'towel' },
+    { id: 'sq_racket', label: 'Squash Racket Rental', price: 500, icon: Target },
+    { id: 'sq_balls', label: 'Squash Balls (Tube)', price: 1200, icon: CircleDot },
+    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
+    { id: 'towel', label: 'Fresh Towel', price: 300, icon: ShieldCheck },
   ],
   air_rifle: [
-    { id: 'ear_protection', label: 'Ear Protection', price: 300, icon: 'headphones' },
-    { id: 'safety_glasses', label: 'Safety Glasses', price: 400, icon: 'glasses' },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: 'water' },
+    { id: 'ear_protection', label: 'Ear Protection', price: 300, icon: Headphones },
+    { id: 'safety_glasses', label: 'Safety Glasses', price: 400, icon: Glasses },
+    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
   ],
   bridge: [
-    { id: 'tea_coffee', label: 'Tea / Coffee Service', price: 300, icon: 'coffee' },
-    { id: 'snacks', label: 'Snacks Platter', price: 800, icon: 'food' },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: 'water' },
+    { id: 'tea_coffee', label: 'Tea / Coffee Service', price: 300, icon: Coffee },
+    { id: 'snacks', label: 'Snacks Platter', price: 800, icon: ShieldCheck },
+    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
   ],
   hall: [
-    { id: 'mats', label: 'Floor Mats', price: 500, icon: 'mat' },
-    { id: 'speaker', label: 'Speaker & Mic Setup', price: 1500, icon: 'speaker' },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: 'water' },
+    { id: 'mats', label: 'Floor Mats', price: 500, icon: ShieldCheck },
+    { id: 'speaker', label: 'Speaker & Mic Setup', price: 1500, icon: Speaker },
+    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
   ],
 };
 
 const VENUES = ['Islamabad', 'Karachi', 'Lahore', 'Rawalpindi'];
 const TIME_SLOTS = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
-
 const MOCK_MEMBERSHIP_NUMBERS = ['QD-0001', 'QD-0002', 'QD-0003', 'QD-0004', 'QD-0005'];
+
+const HALL_ACTIVITIES = [
+  { value: 'Training', label: 'Team Training' },
+  { value: 'Event', label: 'Private Event/Party' },
+  { value: 'General', label: 'General Practice' },
+];
+
+const MOCK_EVENTS = [
+  { id: 'e1', type: 'Academy', facility: 'padel', title: 'Junior Padel Academy (U-18)', instructor: 'Coach Faraz', day: 'Mon/Wed', time: '4:00 PM', pricePKR: 20000, description: 'Elite two-session per week coaching focusing on technique and match play.' },
+  { id: 'e2', type: 'Tournament', facility: 'padel', title: 'Padel Doubles Clash', instructor: 'Event Team', day: 'Sat', time: '10:00 AM', pricePKR: 5000, description: 'Monthly open doubles tournament for all Gold/Founding members.' },
+  { id: 'e3', type: 'Class', facility: 'squash', title: 'Squash Conditioning Drills', instructor: 'Coach Adil', day: 'Tue', time: '7:00 PM', pricePKR: 1500, description: 'High-intensity drills focused on footwork and stamina for intermediate players.' },
+  { id: 'e4', type: 'Social', facility: 'squash', title: 'Squash Mixer Night', instructor: 'Social Host', day: 'Fri', time: '8:00 PM', pricePKR: 500, description: 'Casual, rotating partner sessions. Great for meeting new opponents.' },
+  { id: 'e5', type: 'Academy', facility: 'air_rifle', title: 'Marksman Certification', instructor: 'Sgt. Retired', day: 'Mon/Thurs', time: '5:00 PM', pricePKR: 2000, description: 'Mandatory 30-minute safety and proficiency certification class.' },
+  { id: 'e6', type: 'Tournament', facility: 'air_rifle', title: 'Precision Challenge', instructor: 'Range Master', day: 'Sun', time: '2:00 PM', pricePKR: 3000, description: 'Monthly competition for the highest grouping score. Prizes for the top 3.' },
+  { id: 'e7', type: 'Class', facility: 'bridge', title: 'Beginner Bridge Workshop', instructor: 'Ms. Saadia', day: 'Wed', time: '11:00 AM', pricePKR: 500, description: 'Learn the basics of bidding and conventions in a friendly group setting.' },
+  { id: 'e8', type: 'Social', facility: 'bridge', title: 'Contract Bridge Social', instructor: 'Social Host', day: 'Sat', time: '3:00 PM', pricePKR: 0, description: 'Open table social for Founders and Referrals. Free to attend.' },
+  { id: 'e9', type: 'Class', facility: 'hall', title: 'Morning Aerobics', instructor: 'Ms. Sara', day: 'Mon/Wed/Fri', time: '10:00 AM', pricePKR: 1500, description: 'High-energy fitness class suitable for all levels.' },
+  { id: 'e10', type: 'Academy', facility: 'hall', title: 'PR/Corporate Event Booking', instructor: 'Management', day: 'Any', time: 'Any', pricePKR: 150000, description: 'Book the entire hall for private corporate functions, product launches, or large group training.' },
+];
+
+const LEADERBOARD_DATA: Record<string, Array<{ name: string; points: number; tier: string; facility?: string }>> = {
+  cumulative: [
+    { name: 'Major Hamza', points: 1240, tier: 'Founding' },
+    { name: 'Sarah Khan', points: 980, tier: 'Gold' },
+    { name: 'Ali Raza', points: 850, tier: 'Silver' },
+    { name: 'TechSol Team', points: 720, tier: 'Corporate' },
+    { name: 'Asif Nadeem', points: 610, tier: 'Silver' },
+  ],
+  padel: [
+    { name: 'Sarah Khan', points: 450, tier: 'Gold', facility: 'padel' },
+    { name: 'Ali Raza', points: 310, tier: 'Silver', facility: 'padel' },
+    { name: 'Major Hamza', points: 290, tier: 'Founding', facility: 'padel' },
+    { name: 'Waseem Akram', points: 200, tier: 'Silver', facility: 'padel' },
+  ],
+  squash: [
+    { name: 'Asif Nadeem', points: 300, tier: 'Silver', facility: 'squash' },
+    { name: 'Major Hamza', points: 150, tier: 'Founding', facility: 'squash' },
+    { name: 'Kamran Ali', points: 110, tier: 'Corporate', facility: 'squash' },
+  ],
+  air_rifle: [
+    { name: 'Major Hamza', points: 500, tier: 'Founding', facility: 'air_rifle' },
+    { name: 'TechSol Team', points: 300, tier: 'Corporate', facility: 'air_rifle' },
+    { name: 'Sarah Khan', points: 280, tier: 'Gold', facility: 'air_rifle' },
+  ],
+};
+
+const MOCK_USER_PROFILE = {
+  creditBalance: 150000,
+  totalHoursPlayed: 45,
+  guestPasses: 5,
+  membershipTier: 'Founding',
+  isSafetyCertified: true,
+  hasSignedWaiver: true,
+};
 
 interface BookingConsoleProps {
   initialView?: 'booking' | 'events' | 'leaderboard' | 'profile';
@@ -84,13 +140,19 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   const [coachBooked, setCoachBooked] = useState(false);
   const [isMatchmaking, setIsMatchmaking] = useState(false);
   const [currentGroupSize, setCurrentGroupSize] = useState(1);
+  const [selectedHallActivity, setSelectedHallActivity] = useState<string | null>(null);
+  const [currentLeaderboardType, setCurrentLeaderboardType] = useState('cumulative');
 
-  // Fetch existing bookings for the selected date
+  const userProfile = isAuthenticated && user ? {
+    ...MOCK_USER_PROFILE,
+    name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Member',
+    email: user.email || '',
+  } : MOCK_USER_PROFILE;
+
   const { data: existingBookings = [] } = useQuery<Booking[]>({
     queryKey: ['/api/bookings', selectedFacility.id, selectedDate],
   });
 
-  // Create booking mutation
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData: any) => {
       return await apiRequest('POST', '/api/bookings', bookingData);
@@ -102,6 +164,10 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       });
       queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
       setSelectedStartTime(null);
+      setSelectedAddOns(new Set());
+      setCoachBooked(false);
+      setIsMatchmaking(false);
+      setCurrentGroupSize(1);
     },
     onError: (error: Error) => {
       toast({
@@ -112,7 +178,6 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     },
   });
 
-  // Check if slot is taken
   const isSlotTaken = (time: string) => {
     return existingBookings.some(
       (b) =>
@@ -123,7 +188,6 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     );
   };
 
-  // Handle membership number validation
   const handleMembershipNumberChange = (value: string) => {
     const trimmed = value.trim().toUpperCase();
     setPayerMembershipNumber(trimmed);
@@ -134,7 +198,6 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     }
   };
 
-  // Calculate booking summary
   const bookingSummary = useMemo(() => {
     if (!selectedStartTime) return null;
     const fac = selectedFacility;
@@ -163,7 +226,6 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     };
   }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate]);
 
-  // Toggle add-on
   const toggleAddOn = (item: { id: string }) => {
     const newSet = new Set(selectedAddOns);
     if (newSet.has(item.id)) {
@@ -178,7 +240,6 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     setSelectedAddOns(newSet);
   };
 
-  // Change add-on quantity
   const changeAddOnQuantity = (id: string, delta: number) => {
     setAddOnQuantities((prev) => {
       const current = prev[id] ?? 1;
@@ -187,9 +248,16 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     });
   };
 
-  // Confirm booking
   const confirmBooking = () => {
     if (!bookingSummary || !selectedStartTime) return;
+    if (selectedFacility.id === 'hall' && !selectedHallActivity) {
+      toast({
+        title: "Activity Required",
+        description: "Please select a purpose for the Multipurpose Hall booking.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     createBookingMutation.mutate({
       facilitySlug: selectedFacility.id,
@@ -210,6 +278,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       isMatchmaking,
       currentPlayers: currentGroupSize,
       maxPlayers: selectedFacility.minPlayers,
+      hallActivity: selectedHallActivity,
       addOns: Array.from(selectedAddOns).map((id) => ({
         id,
         quantity: addOnQuantities[id] ?? 1,
@@ -217,220 +286,323 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     });
   };
 
-  const FacilityIcon = selectedFacility.icon;
+  const getEventTypeClass = (type: string) => {
+    switch (type) {
+      case 'Academy':
+        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300';
+      case 'Tournament':
+        return 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300';
+      case 'Social':
+        return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300';
+      case 'Class':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300';
+      default:
+        return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300';
+    }
+  };
+
+  const leaderboardFacilities = FACILITIES.filter((f) => f.id !== 'bridge' && f.id !== 'hall');
+  const currentLeaderboard = LEADERBOARD_DATA[currentLeaderboardType] || [];
+
+  const handleBackToHome = () => {
+    window.location.href = '/';
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
-        <div className="qd-container py-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="ghost" size="icon" data-testid="button-back-home">
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold" data-testid="text-console-title">Booking Console</h1>
-                <p className="text-xs text-muted-foreground">
-                  Interactive console to check availability and book facilities
-                </p>
-              </div>
+    <div className="flex flex-col md:flex-row border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden min-h-[700px] bg-white dark:bg-slate-800">
+      {/* Sidebar */}
+      <aside className="bg-white/95 dark:bg-slate-800/95 backdrop-blur border-b md:border-b-0 md:border-r border-gray-200 dark:border-slate-700 w-full md:w-72 flex-shrink-0 p-6 flex flex-col justify-between shadow-sm">
+        <div>
+          <Link href="/">
+            <div className="cursor-pointer" data-testid="link-sidebar-logo">
+              <h1 className="text-2xl font-extrabold text-[#2a4060] dark:text-sky-400 mb-1 tracking-tight">
+                THE QUARTERDECK
+              </h1>
+              <p className="text-[11px] text-muted-foreground mb-6 uppercase tracking-[0.18em]">
+                Central Booking Console
+              </p>
             </div>
-            
-            <div className="flex items-center gap-4">
-              {/* View Toggle */}
-              <div className="hidden md:flex bg-gray-100 dark:bg-slate-700 rounded-full p-1">
-                {['booking', 'events', 'leaderboard'].map((view) => (
-                  <button
-                    key={view}
-                    onClick={() => setCurrentView(view as any)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
-                      currentView === view
-                        ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                    data-testid={`button-view-${view}`}
-                  >
-                    {view.charAt(0).toUpperCase() + view.slice(1)}
-                  </button>
-                ))}
-              </div>
-              
-              {isAuthenticated && (
-                <Link href="/profile">
-                  <Button variant="outline" size="sm" className="rounded-full" data-testid="button-my-profile">
-                    {user?.firstName || 'Profile'}
-                  </Button>
-                </Link>
-              )}
+          </Link>
+          <nav className="space-y-2">
+            <button
+              onClick={() => setCurrentView('booking')}
+              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                currentView === 'booking'
+                  ? 'bg-[#2a4060] text-white shadow-md'
+                  : 'text-muted-foreground hover:bg-sky-50 dark:hover:bg-slate-700'
+              }`}
+              data-testid="button-nav-booking"
+            >
+              <CalendarDays className="w-4 h-4" /> Book Facility
+            </button>
+            <button
+              onClick={() => setCurrentView('events')}
+              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                currentView === 'events'
+                  ? 'bg-[#2a4060] text-white shadow-md'
+                  : 'text-muted-foreground hover:bg-sky-50 dark:hover:bg-slate-700'
+              }`}
+              data-testid="button-nav-events"
+            >
+              <Trophy className="w-4 h-4" /> Events & Academies
+            </button>
+            <button
+              onClick={() => setCurrentView('leaderboard')}
+              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                currentView === 'leaderboard'
+                  ? 'bg-[#2a4060] text-white shadow-md'
+                  : 'text-muted-foreground hover:bg-sky-50 dark:hover:bg-slate-700'
+              }`}
+              data-testid="button-nav-leaderboard"
+            >
+              <Trophy className="w-4 h-4" /> Leaderboard
+            </button>
+            <button
+              onClick={() => setCurrentView('profile')}
+              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                currentView === 'profile'
+                  ? 'bg-[#2a4060] text-white shadow-md'
+                  : 'text-muted-foreground hover:bg-sky-50 dark:hover:bg-slate-700'
+              }`}
+              data-testid="button-nav-profile"
+            >
+              <User className="w-4 h-4" /> My Profile
+            </button>
+          </nav>
+        </div>
+        
+        {/* User Stats */}
+        <div className="border-t border-gray-200 dark:border-slate-700 pt-4 mt-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Wallet className="w-5 h-5 text-amber-500" />
+            <div>
+              <p className="text-xs text-muted-foreground uppercase font-semibold">Credit Balance</p>
+              <p className="text-lg font-bold">{formatPKR(userProfile.creditBalance)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mb-3">
+            <Timer className="w-5 h-5 text-sky-500" />
+            <div>
+              <p className="text-xs text-muted-foreground uppercase font-semibold">Hours Played</p>
+              <p className="text-lg font-bold">{userProfile.totalHoursPlayed} hrs</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Ticket className="w-5 h-5 text-emerald-500" />
+            <div>
+              <p className="text-xs text-muted-foreground uppercase font-semibold">Guest Passes</p>
+              <p className="text-lg font-bold">{userProfile.guestPasses}</p>
             </div>
           </div>
         </div>
-      </div>
+      </aside>
 
-      {/* Mobile View Toggle */}
-      <div className="md:hidden bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
-        <div className="qd-container py-2 flex gap-2 overflow-x-auto">
-          {['booking', 'events', 'leaderboard'].map((view) => (
-            <button
-              key={view}
-              onClick={() => setCurrentView(view as any)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
-                currentView === view
-                  ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                  : 'bg-gray-100 dark:bg-slate-700 text-muted-foreground'
-              }`}
-              data-testid={`button-mobile-view-${view}`}
-            >
-              {view.charAt(0).toUpperCase() + view.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="qd-container py-8">
+      {/* Main Content */}
+      <div className="flex-grow p-4 md:p-8 relative overflow-auto bg-gray-50 dark:bg-slate-900">
         {/* BOOKING VIEW */}
         {currentView === 'booking' && (
-          <div className="animate-qd-fade-in">
+          <div className="max-w-6xl mx-auto space-y-8 animate-qd-fade-in">
+            <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBackToHome}
+                  className="rounded-full"
+                  data-testid="button-back-home"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Back
+                </Button>
+                <div>
+                  <h2 className="text-2xl font-extrabold" data-testid="text-booking-title">Central Booking</h2>
+                  <p className="text-sm text-muted-foreground">Choose your venue, facility, time and extras.</p>
+                </div>
+              </div>
+              <div className="mt-3 sm:mt-0">
+                <div className="max-w-xs sm:text-right">
+                  <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Venue</label>
+                  <select
+                    value={selectedVenue}
+                    onChange={(e) => setSelectedVenue(e.target.value)}
+                    className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    data-testid="select-venue"
+                  >
+                    {VENUES.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-muted-foreground mt-1">Booking preview for: {selectedVenue}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Facility Selector */}
+            <section>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">1. Select Facility</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {FACILITIES.map((fac) => {
+                  const FacIcon = fac.icon;
+                  const isSelected = selectedFacility.id === fac.id;
+                  const restricted = fac.restricted && userProfile.membershipTier !== 'Founding';
+                  return (
+                    <button
+                      key={fac.id}
+                      onClick={() => {
+                        if (!restricted) {
+                          setSelectedFacility(fac);
+                          setSelectedResourceId(1);
+                          setSelectedStartTime(null);
+                          setIsMatchmaking(false);
+                          setSelectedHallActivity(null);
+                        } else {
+                          toast({
+                            title: "Restricted Area",
+                            description: "Exclusive to Founding Members and Armed Forces.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      className={`p-4 rounded-xl shadow-sm border flex flex-col items-center justify-center transition-all relative overflow-hidden cursor-pointer ${
+                        restricted
+                          ? 'opacity-60 bg-gray-100 dark:bg-slate-700 border-gray-200 dark:border-slate-600'
+                          : isSelected
+                          ? 'ring-4 ring-amber-300 bg-white dark:bg-slate-800 border-amber-500'
+                          : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 hover:border-sky-500'
+                      }`}
+                      data-testid={`button-facility-${fac.id}`}
+                    >
+                      <FacIcon className="w-8 h-8 mb-1 text-[#2a4060] dark:text-sky-400" />
+                      <p className="font-semibold text-sm">{fac.label}</p>
+                      <p className="text-[10px] text-muted-foreground">{fac.count} available</p>
+                      {restricted && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xs font-bold">
+                          RESTRICTED
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Booking Console Grid */}
             <div className="grid md:grid-cols-3 gap-6">
-              {/* Left Column - Facility & Options */}
+              {/* Time & Resources Column */}
               <div className="md:col-span-2 space-y-6">
-                {/* Facility Selection */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
-                  <div className="flex justify-between items-center mb-4 border-b pb-2 border-gray-100 dark:border-slate-700">
-                    <h3 className="font-bold text-sm text-muted-foreground">1. Select Facility & Venue</h3>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-muted-foreground" />
-                      <select
-                        value={selectedVenue}
-                        onChange={(e) => setSelectedVenue(e.target.value)}
-                        className="text-xs border border-gray-200 dark:border-slate-600 rounded-lg px-2 py-1 bg-transparent"
-                        data-testid="select-venue"
+                {/* Resource Selector */}
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 space-y-4">
+                  <h4 className="font-bold text-muted-foreground border-b pb-2 text-sm border-gray-100 dark:border-slate-700">
+                    2. Select Resource ({selectedFacility.label})
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from({ length: selectedFacility.count }).map((_, i) => (
+                      <button
+                        key={i + 1}
+                        onClick={() => setSelectedResourceId(i + 1)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                          selectedResourceId === i + 1
+                            ? 'bg-sky-600 text-white shadow-md'
+                            : 'bg-gray-100 dark:bg-slate-700 text-muted-foreground hover:bg-gray-200 dark:hover:bg-slate-600'
+                        }`}
+                        data-testid={`button-resource-${i + 1}`}
                       >
-                        {VENUES.map((venue) => (
-                          <option key={venue} value={venue}>{venue}</option>
+                        Court {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Hall Activity Type - RESTORED */}
+                  {selectedFacility.id === 'hall' && (
+                    <div>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">
+                        Purpose of Multipurpose Event
+                      </label>
+                      <select
+                        value={selectedHallActivity || ''}
+                        onChange={(e) => setSelectedHallActivity(e.target.value)}
+                        className="w-full p-2 border rounded-lg text-sm bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600"
+                        data-testid="select-hall-activity"
+                      >
+                        <option value="">-- Select Activity --</option>
+                        {HALL_ACTIVITIES.map((activity) => (
+                          <option key={activity.value} value={activity.value}>
+                            {activity.label}
+                          </option>
                         ))}
                       </select>
                     </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {FACILITIES.map((fac) => {
-                      const Icon = fac.icon;
-                      const isSelected = selectedFacility.id === fac.id;
-                      return (
-                        <button
-                          key={fac.id}
-                          onClick={() => {
-                            setSelectedFacility(fac);
-                            setSelectedResourceId(1);
-                            setSelectedStartTime(null);
-                          }}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition ${
-                            isSelected
-                              ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100'
-                              : 'bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:border-gray-400'
-                          }`}
-                          data-testid={`button-facility-${fac.id}`}
-                        >
-                          <Icon className="w-4 h-4" />
-                          {fac.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  )}
 
-                  {/* Court Selection */}
-                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold text-muted-foreground uppercase">Court / Lane</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {Array.from({ length: selectedFacility.count }, (_, i) => (
-                        <button
-                          key={i + 1}
-                          onClick={() => {
-                            setSelectedResourceId(i + 1);
-                            setSelectedStartTime(null);
-                          }}
-                          className={`w-12 h-12 rounded-xl border text-sm font-bold transition ${
-                            selectedResourceId === i + 1
-                              ? 'bg-sky-600 text-white border-sky-600'
-                              : 'bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:border-gray-400'
-                          }`}
-                          data-testid={`button-resource-${i + 1}`}
-                        >
-                          {i + 1}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Options */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
-                  <h3 className="font-bold text-sm text-muted-foreground mb-4 border-b pb-2 border-gray-100 dark:border-slate-700">
-                    2. Booking Options
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <Label className="text-sm">Open Matchmaking?</Label>
-                      <Switch
-                        checked={isMatchmaking}
-                        onCheckedChange={setIsMatchmaking}
-                        data-testid="switch-matchmaking"
-                      />
-                    </div>
-                    {isMatchmaking && (
-                      <select
-                        value={currentGroupSize}
-                        onChange={(e) => setCurrentGroupSize(parseInt(e.target.value))}
-                        className="w-full p-2 border rounded-lg text-sm bg-sky-50 dark:bg-sky-900/30 border-amber-200 dark:border-amber-700"
-                        data-testid="select-group-size"
-                      >
-                        <option value={1}>Just Me (1)</option>
-                        <option value={2}>Pair (2)</option>
-                        <option value={3}>Three (3)</option>
-                      </select>
-                    )}
+                  {/* Matchmaking Toggle */}
+                  {selectedFacility.id !== 'hall' && !selectedFacility.restricted && (
                     <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-slate-700">
-                      <Label className="text-sm">Book a coach?</Label>
-                      <Switch
-                        checked={coachBooked}
-                        onCheckedChange={setCoachBooked}
-                        data-testid="switch-coach"
-                      />
+                      <label className="text-sm font-medium">Enable Matchmaking (Join a game)</label>
+                      <button
+                        onClick={() => setIsMatchmaking(!isMatchmaking)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                          isMatchmaking ? 'bg-sky-600' : 'bg-gray-300 dark:bg-slate-600'
+                        }`}
+                        data-testid="switch-matchmaking"
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                          isMatchmaking ? 'translate-x-6' : 'translate-x-1'
+                        }`} />
+                      </button>
                     </div>
-                    {coachBooked && (
-                      <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold text-right">
-                        +4,000 PKR
-                      </p>
-                    )}
+                  )}
+                  
+                  {isMatchmaking && (
+                    <select
+                      value={currentGroupSize}
+                      onChange={(e) => setCurrentGroupSize(parseInt(e.target.value))}
+                      className="w-full p-2 border rounded-lg text-sm bg-sky-50 dark:bg-sky-900/30 border-amber-200 dark:border-amber-700"
+                      data-testid="select-group-size"
+                    >
+                      <option value={1}>Just Me (1)</option>
+                      <option value={2}>Pair (2)</option>
+                      <option value={3}>Three (3)</option>
+                    </select>
+                  )}
+
+                  {/* Coach Toggle */}
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-slate-700">
+                    <label className="text-sm font-medium">Book a coach?</label>
+                    <button
+                      onClick={() => setCoachBooked(!coachBooked)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                        coachBooked ? 'bg-sky-600' : 'bg-gray-300 dark:bg-slate-600'
+                      }`}
+                      data-testid="switch-coach"
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                        coachBooked ? 'translate-x-6' : 'translate-x-1'
+                      }`} />
+                    </button>
                   </div>
+                  {coachBooked && (
+                    <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold text-right">+4,000 PKR</p>
+                  )}
                 </div>
 
                 {/* Time Slot Picker */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
                   <div className="flex justify-between items-center mb-4 border-b pb-2 border-gray-100 dark:border-slate-700">
-                    <h3 className="font-bold text-sm text-muted-foreground">3. Select Time Slot</h3>
+                    <h4 className="font-bold text-muted-foreground text-sm">3. Select Time Slot</h4>
                     <div>
                       <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Date</label>
-                      <Input
+                      <input
                         type="date"
                         value={selectedDate}
                         onChange={(e) => {
                           setSelectedDate(e.target.value);
                           setSelectedStartTime(null);
                         }}
-                        className="text-xs"
+                        className="p-1 border rounded-lg text-xs bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600"
                         data-testid="input-date"
                       />
                     </div>
                   </div>
-                  
-                  {/* Duration Selection */}
                   <div className="flex flex-wrap gap-2 mb-4">
                     {[60, 90, 120].map((duration) => (
                       <button
@@ -442,7 +614,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                         className={`px-3 py-1 rounded-full text-xs font-medium transition ${
                           selectedDuration === duration
                             ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
-                            : 'bg-gray-100 dark:bg-slate-700 text-muted-foreground hover:bg-gray-200'
+                            : 'bg-gray-100 dark:bg-slate-700 text-muted-foreground hover:bg-gray-200 dark:hover:bg-slate-600'
                         }`}
                         data-testid={`button-duration-${duration}`}
                       >
@@ -450,31 +622,29 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                       </button>
                     ))}
                   </div>
-
-                  {/* Time Grid */}
-                  <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-5 gap-3">
                     {TIME_SLOTS.map((time) => {
                       const taken = isSlotTaken(time);
                       const isSelected = selectedStartTime === time;
                       const offPeak = isOffPeak(time);
-                      
+
                       return (
                         <button
                           key={time}
                           onClick={() => !taken && setSelectedStartTime(time)}
                           disabled={taken}
-                          className={`relative py-3 rounded-lg border text-sm font-medium transition ${
+                          className={`py-2 px-1 rounded border text-sm font-medium transition relative overflow-hidden ${
                             taken
                               ? 'bg-gray-200 dark:bg-slate-600 text-muted-foreground cursor-not-allowed opacity-70'
                               : isSelected
                               ? 'bg-green-500 text-white shadow-lg border-green-500'
-                              : 'bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:border-sky-400'
+                              : 'bg-white dark:bg-slate-700 text-foreground hover:bg-sky-50 dark:hover:bg-slate-600 border-gray-200 dark:border-slate-600'
                           }`}
                           data-testid={`button-time-${time.replace(':', '')}`}
                         >
                           {time}
                           {offPeak && !taken && !isSelected && (
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-400 rounded-full" />
+                            <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-400 rounded-bl-md" />
                           )}
                         </button>
                       );
@@ -487,8 +657,8 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                 </div>
               </div>
 
-              {/* Right Column - Summary & Payment */}
-              <div className="space-y-6">
+              {/* Summary & Payment Column */}
+              <div className="md:col-span-1 space-y-6">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg border-t-4 border-sky-500">
                   <h3 className="font-bold text-lg mb-4">4. Extras & Payment</h3>
                   
@@ -497,46 +667,45 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                       {/* Add-ons */}
                       <div className="mb-6">
                         <h4 className="text-xs font-bold text-muted-foreground uppercase mb-2">Add-ons</h4>
-                        <div className="flex gap-2 overflow-x-auto pb-2">
+                        <div className="space-y-2">
                           {(FACILITY_ADD_ONS[selectedFacility.id] || []).map((item) => {
+                            const Icon = item.icon;
                             const selected = selectedAddOns.has(item.id);
                             const qty = addOnQuantities[item.id] ?? 1;
                             return (
-                              <button
+                              <div
                                 key={item.id}
-                                type="button"
                                 onClick={() => toggleAddOn(item)}
-                                className={`flex-shrink-0 border rounded-xl px-4 py-3 flex items-center gap-2 text-sm transition hover:shadow-sm ${
-                                  selected 
-                                    ? 'bg-sky-50 dark:bg-sky-900/30 border-amber-500 text-amber-800 dark:text-amber-300' 
+                                className={`border rounded-xl px-4 py-3 flex items-center gap-2 text-sm transition cursor-pointer hover:shadow-sm ${
+                                  selected
+                                    ? 'bg-sky-50 dark:bg-sky-900/30 border-amber-500 text-amber-800 dark:text-amber-300'
                                     : 'bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600'
                                 }`}
-                                data-testid={`button-addon-${item.id}`}
+                                data-testid={`addon-${item.id}`}
                               >
-                                <div className="text-left">
-                                  <p className="font-semibold text-xs">{item.label}</p>
-                                  <p className="text-[10px] text-muted-foreground">Rs {item.price}</p>
+                                <Icon className="w-5 h-5" />
+                                <div className="flex-1 text-left">
+                                  <p className="font-semibold">{item.label}</p>
+                                  <p className="text-[10px] text-muted-foreground">{formatPKR(item.price)} per unit</p>
                                 </div>
                                 {selected && (
-                                  <div className="flex items-center gap-1">
+                                  <div className="flex items-center gap-1 text-xs" onClick={(e) => e.stopPropagation()}>
                                     <button
-                                      type="button"
-                                      onClick={(e) => { e.stopPropagation(); changeAddOnQuantity(item.id, -1); }}
-                                      className="w-5 h-5 rounded-full border flex items-center justify-center text-xs"
+                                      onClick={() => changeAddOnQuantity(item.id, -1)}
+                                      className="h-6 w-6 rounded-full border border-gray-300 dark:border-slate-600 flex items-center justify-center"
                                     >
-                                      -
+                                      <Minus className="w-3 h-3" />
                                     </button>
-                                    <span className="text-xs font-semibold w-4 text-center">{qty}</span>
+                                    <span className="min-w-[1.5rem] text-center font-semibold">{qty}</span>
                                     <button
-                                      type="button"
-                                      onClick={(e) => { e.stopPropagation(); changeAddOnQuantity(item.id, 1); }}
-                                      className="w-5 h-5 rounded-full border flex items-center justify-center text-xs"
+                                      onClick={() => changeAddOnQuantity(item.id, 1)}
+                                      className="h-6 w-6 rounded-full border border-gray-300 dark:border-slate-600 flex items-center justify-center"
                                     >
-                                      +
+                                      <Plus className="w-3 h-3" />
                                     </button>
                                   </div>
                                 )}
-                              </button>
+                              </div>
                             );
                           })}
                         </div>
@@ -547,29 +716,30 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                         <h4 className="text-xs font-bold text-muted-foreground uppercase mb-2">Payer Details</h4>
                         <div className="flex flex-col gap-2">
                           <div className="flex gap-4 text-xs">
-                            <label className="inline-flex items-center gap-1">
+                            <label className="inline-flex items-center gap-1 cursor-pointer">
                               <input
                                 type="radio"
                                 name="payer-type"
-                                value="self"
                                 checked={payerType === 'self'}
                                 onChange={() => setPayerType('self')}
+                                className="accent-sky-600"
                               />
-                              <span>Self</span>
+                              <span>Self (use my account)</span>
                             </label>
-                            <label className="inline-flex items-center gap-1">
+                            <label className="inline-flex items-center gap-1 cursor-pointer">
                               <input
                                 type="radio"
                                 name="payer-type"
-                                value="member"
                                 checked={payerType === 'member'}
                                 onChange={() => setPayerType('member')}
+                                className="accent-sky-600"
                               />
-                              <span>Another member</span>
+                              <span>Another member will pay</span>
                             </label>
                           </div>
                           {payerType === 'member' && (
                             <div className="space-y-1">
+                              <label className="block text-xs font-semibold">Membership number of the payer</label>
                               <Input
                                 type="text"
                                 value={payerMembershipNumber}
@@ -580,12 +750,12 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                               />
                               {payerMembershipValid === true && (
                                 <p className="text-[10px] text-emerald-600 flex items-center gap-1">
-                                  <Check className="w-3 h-3" /> Membership found
+                                  <Check className="w-3 h-3" /> Membership found.
                                 </p>
                               )}
                               {payerMembershipValid === false && (
                                 <p className="text-[10px] text-rose-500 flex items-center gap-1">
-                                  <AlertCircle className="w-3 h-3" /> Membership not found
+                                  <AlertCircle className="w-3 h-3" /> Membership not found.
                                 </p>
                               )}
                             </div>
@@ -594,22 +764,24 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                       </div>
 
                       {/* Summary */}
-                      <h4 className="text-xs font-bold text-muted-foreground uppercase mb-2 border-t pt-4">Summary</h4>
+                      <h4 className="text-xs font-bold text-muted-foreground uppercase mb-2 border-t pt-4 border-gray-100 dark:border-slate-700">Summary</h4>
                       <div className="space-y-1 text-sm mb-4">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Base Rate ({selectedDuration} min)</span>
                           <span>{formatPKR(bookingSummary.basePrice)}</span>
                         </div>
-                        <div className="flex justify-between text-red-500">
-                          <span className="text-muted-foreground">Off-Peak Discount (30%)</span>
-                          <span>- {formatPKR(bookingSummary.discount)}</span>
-                        </div>
+                        {bookingSummary.discount > 0 && (
+                          <div className="flex justify-between text-emerald-600">
+                            <span>Off-Peak Discount (30%)</span>
+                            <span>- {formatPKR(bookingSummary.discount)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Add-Ons & Coach</span>
                           <span>+ {formatPKR(bookingSummary.addOnTotal)}</span>
                         </div>
                       </div>
-                      <div className="flex justify-between border-t border-dashed pt-3">
+                      <div className="flex justify-between border-t border-dashed pt-3 border-gray-200 dark:border-slate-600">
                         <span className="font-bold text-lg">TOTAL DUE</span>
                         <span className="font-extrabold text-2xl text-sky-700 dark:text-sky-400">
                           {formatPKR(bookingSummary.totalPrice)}
@@ -618,16 +790,14 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
 
                       {/* Payment Method */}
                       <div className="mt-6">
-                        <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">
-                          Payment Method
-                        </label>
+                        <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">Payment Method</label>
                         <div className="flex gap-3">
                           <button
                             onClick={() => setPaymentMethod('cash')}
                             className={`flex-grow px-3 py-2 rounded-lg text-sm font-medium transition border ${
                               paymentMethod === 'cash'
                                 ? 'bg-green-500 text-white border-green-500'
-                                : 'bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:bg-gray-50'
+                                : 'bg-white dark:bg-slate-700 text-foreground border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600'
                             }`}
                             data-testid="button-payment-cash"
                           >
@@ -637,8 +807,8 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                             onClick={() => setPaymentMethod('credits')}
                             className={`flex-grow px-3 py-2 rounded-lg text-sm font-medium transition border ${
                               paymentMethod === 'credits'
-                                ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900'
-                                : 'bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 hover:bg-gray-50'
+                                ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100'
+                                : 'bg-white dark:bg-slate-700 text-foreground border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600'
                             }`}
                             data-testid="button-payment-credits"
                           >
@@ -650,14 +820,14 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                       <Button
                         onClick={confirmBooking}
                         disabled={createBookingMutation.isPending}
-                        className="w-full mt-6 py-3 rounded-xl font-bold"
+                        className="w-full mt-6 py-3 rounded-xl font-bold bg-sky-600 hover:bg-sky-500 shadow-lg"
                         data-testid="button-confirm-booking"
                       >
                         {createBookingMutation.isPending ? 'Processing...' : 'Confirm Booking'}
                       </Button>
                     </>
                   ) : (
-                    <p className="text-center text-muted-foreground italic text-sm py-8">
+                    <p className="text-center text-muted-foreground italic text-sm">
                       Please select a time slot to calculate price.
                     </p>
                   )}
@@ -668,166 +838,219 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         )}
 
         {/* EVENTS VIEW */}
-        {currentView === 'events' && <EventsView />}
+        {currentView === 'events' && (
+          <div className="max-w-6xl mx-auto space-y-10 animate-qd-fade-in">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-extrabold" data-testid="text-events-title">Events & Academy</h2>
+              <p className="text-muted-foreground mt-2 text-sm">Classes, tournaments and social events.</p>
+            </div>
+            {FACILITIES.map((fac) => {
+              const FacIcon = fac.icon;
+              const facEvents = MOCK_EVENTS.filter((e) => e.facility === fac.id);
+              if (facEvents.length === 0) return null;
+              return (
+                <section
+                  key={fac.id}
+                  className={`mb-8 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-md border-t-4 ${
+                    fac.id === 'padel' ? 'border-sky-500' :
+                    fac.id === 'air_rifle' ? 'border-red-400' :
+                    fac.id === 'squash' ? 'border-slate-400' :
+                    fac.id === 'bridge' ? 'border-blue-500' : 'border-purple-400'
+                  }`}
+                  data-testid={`section-events-${fac.id}`}
+                >
+                  <div className="flex items-center gap-3 mb-5 border-b border-gray-100 dark:border-slate-700 pb-3">
+                    <FacIcon className="w-8 h-8 text-[#2a4060] dark:text-sky-400" />
+                    <h3 className="text-xl font-extrabold">{fac.label} Programs</h3>
+                  </div>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {facEvents.map((event) => (
+                      <div
+                        key={event.id}
+                        className="bg-gray-50 dark:bg-slate-700 p-5 rounded-xl border border-gray-100 dark:border-slate-600 flex flex-col justify-between"
+                        data-testid={`card-event-${event.id}`}
+                      >
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className={`${getEventTypeClass(event.type)} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase`}>
+                              {event.type}
+                            </span>
+                            <span className="text-sm font-semibold text-sky-700 dark:text-sky-400">{formatPKR(event.pricePKR)}</span>
+                          </div>
+                          <h4 className="font-bold text-lg mb-1">{event.title}</h4>
+                          <p className="text-xs text-muted-foreground mb-3">{event.day} at {event.time}</p>
+                          <p className="text-sm text-muted-foreground">{event.description}</p>
+                        </div>
+                        <Button variant="outline" size="sm" className="mt-4" data-testid={`button-register-${event.id}`}>
+                          Register
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        )}
 
         {/* LEADERBOARD VIEW */}
-        {currentView === 'leaderboard' && <LeaderboardView />}
-      </div>
-    </div>
-  );
-}
-
-// Events View Component
-function EventsView() {
-  const MOCK_EVENTS = [
-    { id: 'e1', type: 'Academy', facility: 'padel', title: 'Junior Padel Academy (U-18)', instructor: 'Coach Faraz', day: 'Mon/Wed', time: '4:00 PM', pricePKR: 20000, description: 'Elite two-session per week coaching.' },
-    { id: 'e2', type: 'Tournament', facility: 'padel', title: 'Padel Doubles Clash', instructor: 'Event Team', day: 'Sat', time: '10:00 AM', pricePKR: 5000, description: 'Monthly open doubles tournament.' },
-    { id: 'e3', type: 'Class', facility: 'squash', title: 'Squash Conditioning Drills', instructor: 'Coach Adil', day: 'Tue', time: '7:00 PM', pricePKR: 1500, description: 'High-intensity drills for intermediates.' },
-    { id: 'e4', type: 'Social', facility: 'squash', title: 'Squash Mixer Night', instructor: 'Social Host', day: 'Fri', time: '8:00 PM', pricePKR: 500, description: 'Casual rotating partner sessions.' },
-    { id: 'e5', type: 'Academy', facility: 'air_rifle', title: 'Marksman Certification', instructor: 'Sgt. Retired', day: 'Mon/Thurs', time: '5:00 PM', pricePKR: 2000, description: 'Safety and proficiency certification.' },
-  ];
-
-  const { toast } = useToast();
-  
-  const getEventTypeClass = (type: string) => {
-    switch (type) {
-      case 'Academy': return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
-      case 'Tournament': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-      case 'Class': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-      case 'Social': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      default: return 'bg-gray-100 dark:bg-gray-700 text-gray-700';
-    }
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto space-y-10 animate-qd-fade-in">
-      <div className="text-center mb-6">
-        <h2 className="text-3xl font-extrabold" data-testid="text-events-title">Events & Academy</h2>
-        <p className="text-muted-foreground mt-2 text-sm">Classes, tournaments and social events – preview only.</p>
-      </div>
-      
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {MOCK_EVENTS.map((event) => (
-          <div 
-            key={event.id} 
-            className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-gray-200 dark:border-slate-700 flex flex-col justify-between"
-            data-testid={`card-event-${event.id}`}
-          >
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className={`${getEventTypeClass(event.type)} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase`}>
-                  {event.type}
-                </span>
-                <span className="text-sm font-semibold text-sky-700 dark:text-sky-400">{formatPKR(event.pricePKR)}</span>
-              </div>
-              <h4 className="font-bold text-lg mb-1">{event.title}</h4>
-              <p className="text-xs text-muted-foreground mb-3">
-                {event.day} at {event.time}
-              </p>
-              <p className="text-sm text-muted-foreground">{event.description}</p>
+        {currentView === 'leaderboard' && (
+          <div className="max-w-4xl mx-auto space-y-8 animate-qd-fade-in">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-extrabold" data-testid="text-leaderboard-title">
+                {currentLeaderboardType === 'cumulative' ? 'Global Arena Leaderboard' : `${FACILITIES.find(f => f.id === currentLeaderboardType)?.label || ''} Top Scorers`}
+              </h2>
+              <p className="text-muted-foreground mt-2 text-sm">Top performers across all facilities.</p>
             </div>
-            <div className="flex justify-between items-center mt-4 border-t pt-3 border-gray-100 dark:border-slate-700">
-              <span className="text-xs text-muted-foreground">Instructor: {event.instructor}</span>
-              <Button
-                size="sm"
-                onClick={() => toast({ title: 'Event Registration', description: `Simulating registration for: ${event.title}` })}
-                data-testid={`button-register-${event.id}`}
+
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap justify-center gap-2 mb-8">
+              <button
+                onClick={() => setCurrentLeaderboardType('cumulative')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  currentLeaderboardType === 'cumulative'
+                    ? 'bg-[#2a4060] text-white shadow-md'
+                    : 'bg-gray-100 dark:bg-slate-700 text-muted-foreground hover:bg-gray-200 dark:hover:bg-slate-600'
+                }`}
+                data-testid="button-leaderboard-cumulative"
               >
-                Register
-              </Button>
+                All Facilities
+              </button>
+              {leaderboardFacilities.map((fac) => {
+                const FacIcon = fac.icon;
+                return (
+                  <button
+                    key={fac.id}
+                    onClick={() => setCurrentLeaderboardType(fac.id)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2 ${
+                      currentLeaderboardType === fac.id
+                        ? 'bg-[#2a4060] text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-slate-700 text-muted-foreground hover:bg-gray-200 dark:hover:bg-slate-600'
+                    }`}
+                    data-testid={`button-leaderboard-${fac.id}`}
+                  >
+                    <FacIcon className="w-4 h-4" />
+                    {fac.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Leaderboard List */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden">
+              {currentLeaderboard.length > 0 ? (
+                currentLeaderboard.map((entry, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center justify-between p-4 border-b border-gray-100 dark:border-slate-700 ${
+                      idx === 0 ? 'bg-amber-50 dark:bg-amber-900/20' :
+                      idx === 1 ? 'bg-gray-50 dark:bg-slate-700/50' :
+                      idx === 2 ? 'bg-orange-50 dark:bg-orange-900/10' : ''
+                    }`}
+                    data-testid={`leaderboard-entry-${idx}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
+                        idx === 0 ? 'bg-amber-400 text-white' :
+                        idx === 1 ? 'bg-gray-400 text-white' :
+                        idx === 2 ? 'bg-orange-400 text-white' :
+                        'bg-gray-200 dark:bg-slate-600 text-muted-foreground'
+                      }`}>
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <p className="font-bold">{entry.name}</p>
+                        <Badge variant="outline" className="text-xs">{entry.tier}</Badge>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-extrabold text-xl text-sky-700 dark:text-sky-400">{entry.points}</p>
+                      <p className="text-xs text-muted-foreground">points</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>No leaderboard data available for this facility.</p>
+                </div>
+              )}
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+        )}
 
-// Leaderboard View Component
-function LeaderboardView() {
-  const [currentType, setCurrentType] = useState('cumulative');
-  
-  const LEADERBOARD_DATA: Record<string, Array<{ name: string; points: number; tier: string }>> = {
-    cumulative: [
-      { name: 'Major Hamza', points: 1240, tier: 'Founding' },
-      { name: 'Sarah Khan', points: 980, tier: 'Gold' },
-      { name: 'Ali Raza', points: 850, tier: 'Silver' },
-      { name: 'TechSol Team', points: 720, tier: 'Corporate' },
-      { name: 'Asif Nadeem', points: 610, tier: 'Silver' },
-    ],
-    padel: [
-      { name: 'Sarah Khan', points: 450, tier: 'Gold' },
-      { name: 'Ali Raza', points: 310, tier: 'Silver' },
-      { name: 'Major Hamza', points: 290, tier: 'Founding' },
-    ],
-    squash: [
-      { name: 'Asif Nadeem', points: 300, tier: 'Silver' },
-      { name: 'Major Hamza', points: 150, tier: 'Founding' },
-    ],
-    air_rifle: [
-      { name: 'Major Hamza', points: 500, tier: 'Founding' },
-      { name: 'TechSol Team', points: 300, tier: 'Corporate' },
-    ],
-  };
-
-  const currentLeaderboard = LEADERBOARD_DATA[currentType] || [];
-
-  return (
-    <div className="max-w-4xl mx-auto animate-qd-fade-in">
-      <div className="text-center mb-6">
-        <h2 className="text-3xl font-extrabold" data-testid="text-leaderboard-title">Quarterdeck Leaderboards</h2>
-        <p className="text-muted-foreground mt-2 text-sm">Top players across all facilities.</p>
-      </div>
-      
-      <div className="flex flex-wrap gap-2 justify-center mb-6">
-        {['cumulative', 'padel', 'squash', 'air_rifle'].map((type) => (
-          <button
-            key={type}
-            onClick={() => setCurrentType(type)}
-            className={`px-4 py-2 rounded-full text-sm font-bold transition ${
-              currentType === type
-                ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-lg'
-                : 'bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 hover:bg-gray-100'
-            }`}
-            data-testid={`button-leaderboard-${type}`}
-          >
-            {type === 'cumulative' ? 'All Sports' : type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ')}
-          </button>
-        ))}
-      </div>
-
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-6 bg-gray-50 dark:bg-slate-700 border-b border-gray-200 dark:border-slate-600">
-          <h3 className="font-extrabold text-lg">
-            {currentType === 'cumulative' ? 'Global Arena Leaderboard' : `${currentType.charAt(0).toUpperCase() + currentType.slice(1).replace('_', ' ')} Top Scorers`}
-          </h3>
-        </div>
-        {currentLeaderboard.length > 0 ? (
-          currentLeaderboard.map((player, i) => (
-            <div 
-              key={player.name} 
-              className="flex items-center p-4 border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition"
-              data-testid={`leaderboard-entry-${i}`}
-            >
-              <div className={`w-10 text-center font-extrabold text-xl ${i === 0 ? 'text-sky-600 dark:text-sky-400' : 'text-muted-foreground'}`}>
-                #{i + 1}
-              </div>
-              <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-600 flex items-center justify-center text-xl shadow-inner">
-                {player.name.charAt(0)}
-              </div>
-              <div className="flex-grow ml-4">
-                <h4 className="font-bold">{player.name}</h4>
-                <span className="text-[10px] bg-gray-200 dark:bg-slate-600 px-2 py-0.5 rounded">{player.tier}</span>
-              </div>
-              <div className="text-right">
-                <p className="font-extrabold text-sky-700 dark:text-sky-400 text-xl">{player.points}</p>
-                <p className="text-[10px] text-muted-foreground uppercase">Score</p>
-              </div>
+        {/* PROFILE VIEW */}
+        {currentView === 'profile' && (
+          <div className="max-w-2xl mx-auto space-y-8 animate-qd-fade-in">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-extrabold" data-testid="text-profile-title">My Profile</h2>
+              <p className="text-muted-foreground mt-2 text-sm">Your membership details and stats.</p>
             </div>
-          ))
-        ) : (
-          <div className="p-8 text-center text-muted-foreground italic">
-            No ranking data for this category yet.
+
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg">
+              <div className="flex items-center gap-6 mb-8 pb-6 border-b border-gray-100 dark:border-slate-700">
+                <div className="w-20 h-20 rounded-full bg-[#2a4060] flex items-center justify-center text-white text-3xl font-bold">
+                  {isAuthenticated && user ? (user.firstName?.charAt(0) || 'M') : 'M'}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">{isAuthenticated && user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Member' : 'Guest User'}</h3>
+                  <p className="text-muted-foreground">{isAuthenticated && user ? user.email : 'Not logged in'}</p>
+                  <Badge className="mt-2 bg-amber-500 text-white">{userProfile.membershipTier} Member</Badge>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-700">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Wallet className="w-6 h-6 text-amber-500" />
+                    <span className="text-sm font-semibold text-muted-foreground">Credit Balance</span>
+                  </div>
+                  <p className="text-2xl font-bold">{formatPKR(userProfile.creditBalance)}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-700">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Timer className="w-6 h-6 text-sky-500" />
+                    <span className="text-sm font-semibold text-muted-foreground">Hours Played</span>
+                  </div>
+                  <p className="text-2xl font-bold">{userProfile.totalHoursPlayed} hours</p>
+                </div>
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-700">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Ticket className="w-6 h-6 text-emerald-500" />
+                    <span className="text-sm font-semibold text-muted-foreground">Guest Passes</span>
+                  </div>
+                  <p className="text-2xl font-bold">{userProfile.guestPasses} remaining</p>
+                </div>
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-700">
+                  <div className="flex items-center gap-3 mb-2">
+                    <ShieldCheck className="w-6 h-6 text-green-500" />
+                    <span className="text-sm font-semibold text-muted-foreground">Certifications</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {userProfile.isSafetyCertified && (
+                      <Badge variant="outline" className="text-xs border-green-500 text-green-700 dark:text-green-400">
+                        <Check className="w-3 h-3 mr-1" /> Air Rifle Certified
+                      </Badge>
+                    )}
+                    {userProfile.hasSignedWaiver && (
+                      <Badge variant="outline" className="text-xs border-blue-500 text-blue-700 dark:text-blue-400">
+                        <FileCheck className="w-3 h-3 mr-1" /> Waiver Signed
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {!isAuthenticated && (
+                <div className="mt-8 p-4 rounded-xl bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
+                  <p className="text-sm text-center mb-4">Sign in to access your full profile and booking history.</p>
+                  <div className="flex justify-center">
+                    <Link href="/api/login">
+                      <Button data-testid="button-sign-in">Sign In</Button>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

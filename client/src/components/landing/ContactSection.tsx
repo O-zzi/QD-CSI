@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -122,13 +123,14 @@ export function ContactSection() {
               The complex is currently under active construction. No public access or walk-ins are permitted for safety reasons. All updates will be digital.
             </p>
 
-            <button
-              onClick={() => scrollToSection("rules")}
-              className="text-sm font-semibold text-[#2a4060] dark:text-blue-400 cursor-pointer hover:underline"
-              data-testid="link-terms-privacy"
-            >
-              View Terms & Privacy Policy (Placeholder)
-            </button>
+            <div className="flex gap-4">
+              <Link href="/terms" className="text-sm font-semibold text-[#2a4060] dark:text-blue-400 hover:underline" data-testid="link-terms">
+                Terms & Conditions
+              </Link>
+              <Link href="/privacy" className="text-sm font-semibold text-[#2a4060] dark:text-blue-400 hover:underline" data-testid="link-privacy">
+                Privacy Policy
+              </Link>
+            </div>
           </div>
         </div>
       </div>

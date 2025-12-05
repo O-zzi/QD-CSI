@@ -1,0 +1,1191 @@
+</script>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // --- CONFIG ---
+    const FACILITIES = [
+      { id: 'padel', label: 'Padel Tennis', count: 4, basePrice: 6000, minPlayers: 4, icon: '🎾', requiresCert: false },
+      { id: 'squash', label: 'Squash', count: 2, basePrice: 4000, minPlayers: 2, icon: '🧱', requiresCert: false },
+      { id: 'air_rifle', label: 'Air Rifle Range', count: 6, basePrice: 6000, minPlayers: 1, icon: '🎯', requiresCert: true },
+      { id: 'bridge', label: 'Bridge Room', count: 5, basePrice: 0, minPlayers: 4, icon: '♠️', restricted: true, requiresCert: false },
+      { id: 'hall', label: 'Multipurpose Hall', count: 1, basePrice: 6000, minPlayers: 10, icon: '🏛️', requiresCert: false },
+    ];
+
+    const ADD_ONS = [
+      { id: 'racket', label: 'Rent Racket', price: 500, icon: '🏸' },
+      { id: 'balls', label: 'Sleeve of Balls', price: 1500, icon: '🎾' },
+      { id: 'water', label: 'Mineral Water', price: 100, icon: '💧' },
+      { id: 'towel', label: 'Fresh Towel', price: 300, icon: '🧖' },
+    ];
+
+    const VENUES = ['Islamabad', 'Karachi', 'Lahore', 'Rawalpindi'];
+
+    const FACILITY_ADD_ONS = {
+      padel: ADD_ONS,
+      squash: [
+        { id: 'sq_racket', label: 'Squash Racket Rental', price: 500, icon: '🏸' },
+        { id: 'sq_balls', label: 'Squash Balls (Tube)', price: 1200, icon: '🎾' },
+        { id: 'water', label: 'Mineral Water', price: 100, icon: '💧' },
+        { id: 'towel', label: 'Fresh Towel', price: 300, icon: '🧖' },
+      ],
+      air_rifle: [
+        { id: 'ear_protection', label: 'Ear Protection', price: 300, icon: '🎧' },
+        { id: 'safety_glasses', label: 'Safety Glasses', price: 400, icon: '🕶️' },
+        { id: 'water', label: 'Mineral Water', price: 100, icon: '💧' },
+      ],
+      bridge: [
+        { id: 'tea_coffee', label: 'Tea / Coffee Service', price: 300, icon: '☕' },
+        { id: 'snacks', label: 'Snacks Platter', price: 800, icon: '🥨' },
+        { id: 'water', label: 'Mineral Water', price: 100, icon: '💧' },
+      ],
+      hall: [
+        { id: 'mats', label: 'Floor Mats', price: 500, icon: '🧘' },
+        { id: 'speaker', label: 'Speaker & Mic Setup', price: 1500, icon: '🔊' },
+        { id: 'water', label: 'Mineral Water', price: 100, icon: '💧' },
+      ],
+    };
+    const MOCK_MEMBERSHIP_NUMBERS = ['QD-0001', 'QD-0002', 'QD-0003', 'QD-0004'];
+
+
+
+    const MOCK_USER_PROFILE = {
+      id: 'demo-user',
+      name: 'Mr. Kamran',
+      email: 'kamran@example.com',
+      creditBalance: 150000,
+      totalHoursPlayed: 45,
+      membershipTier: 'Founding',
+      category: 'Individual',
+      referenceName: '',
+      companyName: '',
+      isSafetyCertified: true,
+      hasSignedWaiver: true,
+      guestPasses: 5,
+    };
+
+    const CUMULATIVE_LEADERBOARD = [
+      { name: 'Major Hamza', points: 1240, tier: 'Founding', avatar: '👨‍✈️' },
+      { name: 'Sarah Khan', points: 980, tier: 'Gold', avatar: '👩‍💼' },
+      { name: 'Ali Raza', points: 850, tier: 'Silver', avatar: '🏃' },
+      { name: 'TechSol Team', points: 720, tier: 'Corporate', avatar: '🏢' },
+      { name: 'Asif Nadeem', points: 610, tier: 'Silver', avatar: '🏋️' },
+    ];
+    const PADEL_LEADERBOARD = [
+      { name: 'Sarah Khan', points: 450, tier: 'Gold', avatar: '👩‍💼', facility: 'padel' },
+      { name: 'Ali Raza', points: 310, tier: 'Silver', avatar: '🏃', facility: 'padel' },
+      { name: 'Major Hamza', points: 290, tier: 'Founding', avatar: '👨‍✈️', facility: 'padel' },
+      { name: 'Waseem Akram', points: 200, tier: 'Silver', avatar: '🎾', facility: 'padel' },
+    ];
+    const SQUASH_LEADERBOARD = [
+      { name: 'Asif Nadeem', points: 300, tier: 'Silver', avatar: '🏋️', facility: 'squash' },
+      { name: 'Major Hamza', points: 150, tier: 'Founding', avatar: '👨‍✈️', facility: 'squash' },
+      { name: 'Kamran Ali', points: 110, tier: 'Corporate', avatar: '👤', facility: 'squash' },
+    ];
+    const AIR_RIFLE_LEADERBOARD = [
+      { name: 'Major Hamza', points: 500, tier: 'Founding', avatar: '👨‍✈️', facility: 'air_rifle' },
+      { name: 'TechSol Team', points: 300, tier: 'Corporate', avatar: '🏢', facility: 'air_rifle' },
+      { name: 'Sarah Khan', points: 280, tier: 'Gold', avatar: '👩‍💼', facility: 'air_rifle' },
+    ];
+    const LEADERBOARD_DATA = {
+      cumulative: CUMULATIVE_LEADERBOARD,
+      padel: PADEL_LEADERBOARD,
+      squash: SQUASH_LEADERBOARD,
+      air_rifle: AIR_RIFLE_LEADERBOARD,
+      bridge: [],
+      hall: [],
+    };
+
+    const MOCK_EVENTS = [
+      { id: 'e1', type: 'Academy', facility: 'padel', title: 'Junior Padel Academy (U-18)', instructor: 'Coach Faraz', day: 'Mon/Wed', time: '4:00 PM', pricePKR: 20000, description: 'Elite two-session per week coaching focusing on technique and match play.' },
+      { id: 'e2', type: 'Tournament', facility: 'padel', title: 'Padel Doubles Clash', instructor: 'Event Team', day: 'Sat', time: '10:00 AM', pricePKR: 5000, description: 'Monthly open doubles tournament for all Gold/Founding members.' },
+      { id: 'e3', type: 'Class', facility: 'squash', title: 'Squash Conditioning Drills', instructor: 'Coach Adil', day: 'Tue', time: '7:00 PM', pricePKR: 1500, description: 'High-intensity drills focused on footwork and stamina for intermediate players.' },
+      { id: 'e4', type: 'Social', facility: 'squash', title: 'Squash Mixer Night', instructor: 'Social Host', day: 'Fri', time: '8:00 PM', pricePKR: 500, description: 'Casual, rotating partner sessions. Great for meeting new opponents.' },
+      { id: 'e5', type: 'Academy', facility: 'air_rifle', title: 'Marksman Certification', instructor: 'Sgt. Retired', day: 'Mon/Thurs', time: '5:00 PM', pricePKR: 2000, description: 'Mandatory 30-minute safety and proficiency certification class.' },
+      { id: 'e6', type: 'Tournament', facility: 'air_rifle', title: 'Precision Challenge', instructor: 'Range Master', day: 'Sun', time: '2:00 PM', pricePKR: 3000, description: 'Monthly competition for the highest grouping score. Prizes for the top 3.' },
+      { id: 'e7', type: 'Class', facility: 'bridge', title: 'Beginner Bridge Workshop', instructor: 'Ms. Saadia', day: 'Wed', time: '11:00 AM', pricePKR: 500, description: 'Learn the basics of bidding and conventions in a friendly group setting.' },
+      { id: 'e8', type: 'Social', facility: 'bridge', title: 'Contract Bridge Social', instructor: 'Social Host', day: 'Sat', time: '3:00 PM', pricePKR: 0, description: 'Open table social for Founders and Referrals. Free to attend.' },
+      { id: 'e9', type: 'Class', facility: 'hall', title: 'Morning Aerobics', instructor: 'Ms. Sara', day: 'Mon/Wed/Fri', time: '10:00 AM', pricePKR: 1500, description: 'High-energy fitness class suitable for all levels.' },
+      { id: 'e10', type: 'Academy', facility: 'hall', title: 'PR/Corporate Event Booking', instructor: 'Management', day: 'Any', time: 'Any', pricePKR: 150000, description: 'Book the entire hall for private corporate functions, product launches, or large group training.' },
+    ];
+
+    // --- UTIL ---
+    function formatPKR(val) {
+      return val.toLocaleString('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 });
+    }
+    function calculateEndTime(start, duration) {
+      const [h, m] = start.split(':').map(Number);
+      const totalMins = h * 60 + m + duration;
+      const endH = Math.floor(totalMins / 60);
+      const endM = totalMins % 60;
+      return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+    }
+    function isOffPeak(time) {
+      const hour = parseInt(time.split(':')[0]);
+      return hour >= 10 && hour < 17;
+    }
+    function canAccessRestricted(profile) {
+      if (!profile) return false;
+      return profile.membershipTier === 'Founding' || profile.category === 'Forces';
+    }
+    function getLeaderboardTitle(type) {
+      if (type === 'cumulative') return 'Global Arena Leaderboard';
+      const fac = FACILITIES.find((f) => f.id === type);
+      return `${fac ? fac.label : 'Facility'} Top Scorers`;
+    }
+
+    // --- MAIN APP ---
+    function ArenaOneApp() {
+      const [currentView, setCurrentView] = useState('booking');
+      const [userProfile, setUserProfile] = useState({ ...MOCK_USER_PROFILE });
+      const [bookings, setBookings] = useState([]);
+      const [selectedFacility, setSelectedFacility] = useState(FACILITIES[0]);
+      const [selectedVenue, setSelectedVenue] = useState('Islamabad');
+      const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+      const [selectedDuration, setSelectedDuration] = useState(60);
+      const [selectedResourceId, setSelectedResourceId] = useState(1);
+      const [selectedStartTime, setSelectedStartTime] = useState(null);
+      const [paymentMethod, setPaymentMethod] = useState('cash');
+      const [payerType, setPayerType] = useState('self');
+      const [payerMembershipNumber, setPayerMembershipNumber] = useState('');
+      const [payerMembershipValid, setPayerMembershipValid] = useState(null);
+      const [selectedHallActivity, setSelectedHallActivity] = useState(null);
+      const [selectedAddOns, setSelectedAddOns] = useState(() => new Set());
+      const [addOnQuantities, setAddOnQuantities] = useState({});
+      const [coachBooked, setCoachBooked] = useState(false);
+      const [isMatchmaking, setIsMatchmaking] = useState(false);
+      const [currentGroupSize, setCurrentGroupSize] = useState(1);
+      const [joiningMatchId, setJoiningMatchId] = useState(null);
+      const [currentLeaderboardType, setCurrentLeaderboardType] = useState('cumulative');
+      const [showSafetyModal, setShowSafetyModal] = useState(false);
+      const [showWaiverModal, setShowWaiverModal] = useState(false);
+      const [message, setMessage] = useState(null);
+
+      const handleBookingBack = () => {
+        const heroSection = document.getElementById('hero') || document.getElementById('booking-placeholder');
+        if (heroSection) {
+          heroSection.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      };
+
+      const leaderboardFacilities = useMemo(
+        () => FACILITIES.filter((f) => f.id !== 'bridge' && f.id !== 'hall'),
+        []
+      );
+      const currentLeaderboard = useMemo(
+        () => LEADERBOARD_DATA[currentLeaderboardType] || [],
+        [currentLeaderboardType]
+      );
+
+
+      function handleMembershipNumberChange(value) {
+        const trimmed = value.trim().toUpperCase();
+        setPayerMembershipNumber(trimmed);
+        if (!trimmed) {
+          setPayerMembershipValid(null);
+        } else {
+          setPayerMembershipValid(MOCK_MEMBERSHIP_NUMBERS.includes(trimmed));
+        }
+      }
+      const bookingSummary = useMemo(() => {
+        if (!selectedStartTime) return null;
+        const fac = selectedFacility;
+        const perMinutePrice = fac.basePrice / 60;
+        let base = perMinutePrice * selectedDuration;
+        let discount = 0;
+        if (isOffPeak(selectedStartTime)) discount = base * 0.3;
+        const addOnList = FACILITY_ADD_ONS[fac.id] || [];
+        let addOnTotal = 0;
+        selectedAddOns.forEach((id) => {
+          const item = addOnList.find((a) => a.id === id);
+          if (item) {
+            const qty = addOnQuantities[id] ?? 1;
+            addOnTotal += item.price * qty;
+          }
+        });
+        if (coachBooked) addOnTotal += 4000;
+        return {
+          basePrice: Math.round(base),
+          discount: Math.round(discount),
+          addOnTotal,
+          totalPrice: Math.round(base - discount + addOnTotal),
+          date: selectedDate,
+          startTime: selectedStartTime,
+          endTime: calculateEndTime(selectedStartTime, selectedDuration),
+        };
+      }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate]);
+
+      function toggleAddOn(item) {
+        const newSet = new Set(selectedAddOns);
+        if (newSet.has(item.id)) {
+          newSet.delete(item.id);
+        } else {
+          newSet.add(item.id);
+          setAddOnQuantities((prev) => ({
+            ...prev,
+            [item.id]: prev[item.id] ?? 1,
+          }));
+        }
+        setSelectedAddOns(newSet);
+      }
+
+      function changeAddOnQuantity(id, delta) {
+        setAddOnQuantities((prev) => {
+          const current = prev[id] ?? 1;
+          const next = Math.min(10, Math.max(1, current + delta));
+          return { ...prev, [id]: next };
+        });
+      }
+
+      function getSlotMatchStatus(time) {
+        return bookings.find(
+          (b) =>
+            b.date === selectedDate &&
+            b.facilityType === selectedFacility.id &&
+            b.resourceId === selectedResourceId &&
+            b.startTime === time &&
+            b.isMatchmaking &&
+            b.currentPlayers < b.maxPlayers
+        );
+      }
+      function isSlotTaken(time) {
+        return bookings.some(
+          (b) =>
+            b.date === selectedDate &&
+            b.facilityType === selectedFacility.id &&
+            b.resourceId === selectedResourceId &&
+            b.startTime === time
+        );
+      }
+
+      function confirmBooking() {
+        if (!bookingSummary || !userProfile) return;
+        if (selectedFacility.requiresCert && !userProfile.isSafetyCertified) {
+          setShowSafetyModal(true);
+          return;
+        }
+        if (!userProfile.hasSignedWaiver) {
+          setShowWaiverModal(true);
+          return;
+        }
+        if (paymentMethod === 'credits' && userProfile.creditBalance < bookingSummary.totalPrice) {
+          setMessage({ title: 'Error', body: 'Insufficient Credit Balance.' });
+          return;
+        }
+        if (joiningMatchId) {
+          setBookings((prev) =>
+            prev.map((b) =>
+              b.id === joiningMatchId
+                ? { ...b, currentPlayers: b.currentPlayers + currentGroupSize }
+                : b
+            )
+          );
+        } else {
+          const newBooking = {
+            id: `b${Date.now()}`,
+            facilityType: selectedFacility.id,
+            resourceId: selectedResourceId,
+            date: bookingSummary.date,
+            startTime: bookingSummary.startTime,
+            endTime: bookingSummary.endTime,
+            durationMinutes: selectedDuration,
+            pricePKR: bookingSummary.totalPrice,
+            paymentMethod,
+            payer: {
+              type: payerType,
+              membershipNumber: payerMembershipNumber,
+              membershipValid: payerMembershipValid,
+            },
+            userId: userProfile.id,
+            bookedAt: new Date().toISOString(),
+            isMatchmaking,
+            currentPlayers: currentGroupSize,
+            maxPlayers: selectedFacility.minPlayers,
+            hallActivity: selectedHallActivity || 'General',
+            addOns: Array.from(selectedAddOns).map((id) => {
+              const list = FACILITY_ADD_ONS[selectedFacility.id] || [];
+              const item = list.find((a) => a.id === id);
+              if (!item) return id;
+              const qty = addOnQuantities[id] ?? 1;
+              return qty > 1 ? `${item.label} x${qty}` : item.label;
+            }),
+            coachBooked,
+          };
+          setBookings((prev) => [...prev, newBooking]);
+        }
+        setUserProfile((prev) => {
+          const newBalance =
+            paymentMethod === 'credits'
+              ? prev.creditBalance - bookingSummary.totalPrice
+              : prev.creditBalance;
+          const newHours = prev.totalHoursPlayed + selectedDuration / 60;
+          return { ...prev, creditBalance: newBalance, totalHoursPlayed: newHours };
+        });
+        setSelectedStartTime(null);
+        setSelectedAddOns(new Set());
+        setCoachBooked(false);
+        setIsMatchmaking(false);
+        setCurrentGroupSize(1);
+        setJoiningMatchId(null);
+        setMessage({
+          title: 'Booking Confirmed',
+          body: `Total: ${formatPKR(bookingSummary.totalPrice)}`,
+        });
+      }
+
+      function completeSafetyClass() {
+        setUserProfile((prev) => ({
+          ...prev,
+          isSafetyCertified: true,
+          creditBalance: prev.creditBalance - 2000,
+        }));
+        setShowSafetyModal(false);
+        setMessage({
+          title: 'Certification Complete',
+          body: 'You are now certified for Air Rifle! You can proceed to book the range.',
+        });
+      }
+
+      function signWaiver() {
+        setUserProfile((prev) => ({ ...prev, hasSignedWaiver: true }));
+        setShowWaiverModal(false);
+        confirmBooking();
+      }
+
+      function toggleSafety() {
+        setUserProfile((prev) => ({ ...prev, isSafetyCertified: !prev.isSafetyCertified }));
+      }
+
+      function getFacilityLabel(id) {
+        const f = FACILITIES.find((fac) => fac.id === id);
+        return f ? f.label : id;
+      }
+
+      function getEventTypeClass(type) {
+        switch (type) {
+          case 'Academy':
+            return 'bg-indigo-100 text-indigo-800';
+          case 'Tournament':
+            return 'bg-sky-100 text-amber-800';
+          case 'Social':
+            return 'bg-emerald-100 text-emerald-800';
+          case 'Class':
+            return 'bg-purple-100 text-purple-800';
+          default:
+            return 'bg-slate-100 text-slate-800';
+        }
+      }
+
+      return (
+        // MODIFIED: Removed min-h-screen to prevent layout break, added min-h to contain sidebar
+        <div className="flex flex-col md:flex-row border border-slate-200 rounded-2xl shadow-2xl overflow-hidden min-h-[700px]">
+          {/* Sidebar */}
+          <aside className="bg-white/95 backdrop-blur border-b md:border-b-0 md:border-r border-slate-200 w-full md:w-72 flex-shrink-0 p-6 flex flex-col justify-between shadow-sm">
+            <div>
+              <h1 className="text-2xl font-extrabold text-sky-600 mb-1 tracking-tight">
+                THE QUARTERDECK
+              </h1>
+              <p className="text-[11px] text-slate-500 mb-6 uppercase tracking-[0.18em]">
+                Central Booking Console – The Quarterdeck
+              </p>
+              <nav className="space-y-2">
+                <button
+                  onClick={() => setCurrentView('booking')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'booking'
+                      ? 'bg-sky-600 text-white shadow-md'
+                      : 'text-slate-700 hover:bg-sky-50'
+                  }`}
+                >
+                  <span>📅</span> Book Facility
+                </button>
+                <button
+                  onClick={() => setCurrentView('events')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'events'
+                      ? 'bg-sky-600 text-white shadow-md'
+                      : 'text-slate-700 hover:bg-sky-50'
+                  }`}
+                >
+                  <span>🏆</span> Events & Academies
+                </button>
+                <button
+                  onClick={() => setCurrentView('leaderboard')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'leaderboard'
+                      ? 'bg-sky-600 text-white shadow-md'
+                      : 'text-slate-700 hover:bg-sky-50'
+                  }`}
+                >
+                  <span>🥇</span> Leaderboard
+                </button>
+                <button
+                  onClick={() => setCurrentView('profile')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'profile'
+                      ? 'bg-sky-600 text-white shadow-md'
+                      : 'text-slate-700 hover:bg-sky-50'
+                  }`}
+                >
+                  <span>👤</span> My Profile
+                </button>
+              </nav>
+            </div>
+            {userProfile && (
+              <div className="border-t border-slate-200 pt-4 mt-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">💰</span>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-semibold">Credit Balance</p>
+                    <p className="text-lg font-bold text-slate-800">
+                      {formatPKR(userProfile.creditBalance)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">⏱️</span>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-semibold">Hours Played</p>
+                    <p className="text-lg font-bold text-slate-800">
+                      {userProfile.totalHoursPlayed} hrs
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🎫</span>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-semibold">Guest Passes</p>
+                    <p className="text-lg font-bold text-slate-800">{userProfile.guestPasses}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </aside>
+          {/* Main Content - MODIFIED: Removed h-screen and overflow classes */}
+          <div className="flex-grow p-4 md:p-8 relative overflow-auto">
+            {/* BOOKING VIEW */}
+            {currentView === 'booking' && (
+              <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
+                <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleBookingBack}
+                      className="inline-flex items-center px-3 py-1.5 rounded-full border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                    >
+                      <span className="mr-1">←</span>
+                      Back
+                    </button>
+                    <div>
+                      <h2 className="text-2xl font-extrabold text-slate-900"> Central Booking – The Quarterdeck </h2>
+                      <p className="text-sm text-slate-500"> Choose your venue, facility, time and extras. This is a front-end preview; no real backend yet. </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 sm:mt-0">
+                    <div className="max-w-xs sm:text-right">
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                        Venue
+                      </label>
+                      <select
+                        value={selectedVenue}
+                        onChange={(e) => setSelectedVenue(e.target.value)}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      >
+                        {VENUES.map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        Booking preview for: {selectedVenue}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+                {/* Facility Selector */}
+                <section>
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3"> 1. Select Facility </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {FACILITIES.map((fac) => {
+                      const restricted = fac.restricted && !canAccessRestricted(userProfile);
+                      const disabled = restricted || (fac.requiresCert && !userProfile?.isSafetyCertified);
+                      const isSelected = selectedFacility.id === fac.id;
+                      return (
+                        <button key={fac.id} onClick={() => { if (disabled) { setMessage({ title: 'Restricted Area', body: 'Exclusive to Founding Members and Armed Forces.', }); } else { setSelectedFacility(fac); setSelectedResourceId(1); setSelectedStartTime(null); setIsMatchmaking(false); setSelectedHallActivity(null); } }} className={`p-4 rounded-xl shadow-sm border flex flex-col items-center justify-center transition-all relative overflow-hidden cursor-pointer ${ disabled ? 'opacity-60 bg-slate-100 border-slate-200' : isSelected ? 'ring-4 ring-amber-300 bg-white border-amber-500' : 'bg-white border-slate-200 hover:border-sky-500' }`} >
+                          <span className="text-3xl mb-1">{fac.icon}</span>
+                          <p className="font-semibold text-sm text-slate-700">{fac.label}</p>
+                          <p className="text-[10px] text-slate-400">{fac.count} available</p>
+                          {restricted && ( <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xs font-bold">RESTRICTED</div> )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                {/* Booking Console */}
+                <div className="grid md:grid-cols-3 gap-6">
+                  {/* Time & Resources Column */}
+                  <div className="md:col-span-2 space-y-6">
+                    {/* Resource Selector (Courts 1-4, etc) */}
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                      <h4 className="font-bold text-slate-700 border-b pb-2 text-sm">
+                        2. Select Resource ({selectedFacility.label})
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {Array.from({ length: selectedFacility.count }).map((_, i) => (
+                          <button
+                            key={i + 1}
+                            onClick={() => setSelectedResourceId(i + 1)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                              selectedResourceId === i + 1
+                                ? 'bg-sky-600 text-white shadow-md'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            }`}
+                          >
+                            Court {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                      {selectedFacility.id === 'hall' && (
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                            Activity Type
+                          </label>
+                          <select
+                            value={selectedHallActivity || ''}
+                            onChange={(e) => setSelectedHallActivity(e.target.value)}
+                            className="w-full p-2 border rounded-lg text-sm bg-slate-50"
+                          >
+                            <option value="">-- Select Activity --</option>
+                            <option value="Training">Team Training</option>
+                            <option value="Event">Private Event/Party</option>
+                            <option value="General">General Practice</option>
+                          </select>
+                        </div>
+                      )}
+                      {selectedFacility.id !== 'hall' && !selectedFacility.restricted && (
+                        <div className="flex justify-between items-center pt-2 border-t">
+                          <label className="text-sm font-medium text-slate-600">
+                            Enable Matchmaking (Join a game)
+                          </label>
+                          <button
+                            onClick={() => setIsMatchmaking(!isMatchmaking)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                              isMatchmaking ? 'bg-sky-600' : 'bg-slate-300'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                                isMatchmaking ? 'translate-x-6' : 'translate-x-1'
+                              }`}
+                            ></span>
+                          </button>
+                        </div>
+                      )}
+                      {isMatchmaking && (
+                        <select
+                          value={currentGroupSize}
+                          onChange={(e) => setCurrentGroupSize(parseInt(e.target.value))}
+                          className="w-full p-2 border rounded-lg text-sm bg-sky-50 border-amber-200"
+                        >
+                          <option value={1}>Just Me (1)</option>
+                          <option value={2}>Pair (2)</option>
+                          <option value={3}>Three (3)</option>
+                        </select>
+                      )}
+                      <div className="flex justify-between items-center pt-2 border-t">
+                        <label className="text-sm font-medium text-slate-600">
+                          Book a coach?
+                        </label>
+                        <button
+                          onClick={() => setCoachBooked(!coachBooked)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                            coachBooked ? 'bg-sky-600' : 'bg-slate-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                              coachBooked ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          ></span>
+                        </button>
+                      </div>
+                      {coachBooked && (
+                        <p className="text-[10px] text-amber-700 font-semibold text-right">
+                          +4,000 PKR
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Time Slot Picker */}
+                    <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                      <div className="flex justify-between items-center mb-4 border-b pb-2">
+                        <h4 className="font-bold text-slate-700 text-sm">3. Select Time Slot</h4>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                            Date
+                          </label>
+                          <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => {
+                              setSelectedDate(e.target.value);
+                              setSelectedStartTime(null); // Reset selection on date change
+                            }}
+                            className="p-1 border rounded-lg text-xs bg-slate-50"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {[60, 90, 120].map((duration) => (
+                          <button
+                            key={duration}
+                            onClick={() => {
+                              setSelectedDuration(duration);
+                              setSelectedStartTime(null);
+                            }}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                              selectedDuration === duration
+                                ? 'bg-slate-900 text-white'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            }`}
+                          >
+                            {duration} min
+                          </button>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-5 gap-3">
+                        {['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'].map((time) => {
+                          const taken = isSlotTaken(time);
+                          const match = getSlotMatchStatus(time);
+                          const isSelected = selectedStartTime === time && !joiningMatchId;
+                          const isJoining = joiningMatchId && getSlotMatchStatus(time)?.id === joiningMatchId;
+                          
+                          let btnClass = 'bg-white text-slate-700 hover:bg-sky-50 border-slate-200';
+                          if (taken) {
+                            btnClass = 'bg-slate-200 text-slate-500 cursor-not-allowed opacity-70';
+                          } else if (match) {
+                            btnClass = 'bg-sky-600 text-white shadow-lg border-amber-500';
+                          } else if (isSelected || isJoining) {
+                            btnClass = 'bg-green-500 text-white shadow-lg border-green-500';
+                          }
+
+                          return (
+                            <button
+                              key={time}
+                              onClick={() => {
+                                if (taken) return;
+                                if (match) {
+                                  setJoiningMatchId(match.id);
+                                  setSelectedStartTime(time);
+                                } else {
+                                  setJoiningMatchId(null);
+                                  setSelectedStartTime(time);
+                                }
+                              }}
+                              className={`py-2 px-1 rounded border text-sm font-medium transition relative overflow-hidden ${btnClass}`}
+                            >
+                              {time}
+                              {isOffPeak(time) && !match && !taken && (
+                                <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-400 rounded-bl-md" />
+                              )}
+                              {match && (
+                                <div className="absolute inset-0 bg-sky-600/95 text-white flex flex-col items-center justify-center text-[10px]">
+                                  <span className="font-bold">JOIN</span>
+                                  <span> {match.currentPlayers}/{match.maxPlayers} </span>
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Summary & Payment Column */}
+                  <div className="md:col-span-1 space-y-6">
+                    <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-sky-500">
+                      <h3 className="font-bold text-lg text-slate-800 mb-4"> 4. Extras &amp; Payment </h3>
+                      {bookingSummary ? (
+                        <>
+                          <div className="mb-6">
+  <h4 className="text-xs font-bold text-slate-500 uppercase mb-2"> Add-ons </h4>
+  <div className="flex gap-2 overflow-x-auto pb-2">
+    {(FACILITY_ADD_ONS[selectedFacility.id] || []).map((item) => {
+      const selected = selectedAddOns.has(item.id);
+      const qty = addOnQuantities[item.id] ?? 1;
+      return (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => toggleAddOn(item)}
+          className={`flex-shrink-0 border rounded-xl px-4 py-3 flex items-center gap-2 text-sm transition hover:shadow-sm ${
+            selected ? 'bg-sky-50 border-amber-500 text-amber-800' : 'bg-white border-slate-200 text-slate-600'
+          }`}
+        >
+          <span className="text-xl">{item.icon}</span>
+          <div className="text-left">
+            <p className="font-semibold">{item.label}</p>
+            <p className="text-[10px] text-slate-400">
+              Rs {formatPKR(item.price)} per unit
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-1 text-xs">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                changeAddOnQuantity(item.id, -1);
+              }}
+              className="h-6 w-6 rounded-full border border-slate-300 flex items-center justify-center text-slate-600"
+            >
+              -
+            </button>
+            <span className="min-w-[1.5rem] text-center font-semibold text-slate-700">
+              {qty}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                changeAddOnQuantity(item.id, 1);
+              }}
+              className="h-6 w-6 rounded-full border border-slate-300 flex items-center justify-center text-slate-600"
+            >
+              +
+            </button>
+          </div>
+        </button>
+      );
+    })}
+  </div>
+</div>
+
+<div className="mb-6">
+  <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Payer Details</h4>
+  <div className="flex flex-col gap-2">
+    <div className="flex gap-4 text-xs">
+      <label className="inline-flex items-center gap-1">
+        <input
+          type="radio"
+          name="payer-type"
+          value="self"
+          checked={payerType === 'self'}
+          onChange={() => setPayerType('self')}
+        />
+        <span>Self (use my account)</span>
+      </label>
+      <label className="inline-flex items-center gap-1">
+        <input
+          type="radio"
+          name="payer-type"
+          value="member"
+          checked={payerType === 'member'}
+          onChange={() => setPayerType('member')}
+        />
+        <span>Another member will pay</span>
+      </label>
+    </div>
+    {payerType === 'member' && (
+      <div className="space-y-1">
+        <label className="block text-xs font-semibold text-slate-600">
+          Membership number of the payer
+        </label>
+        <input
+          type="text"
+          value={payerMembershipNumber}
+          onChange={(e) => handleMembershipNumberChange(e.target.value)}
+          placeholder="e.g. QD-0001"
+          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+        />
+        {payerMembershipValid === true && (
+          <p className="text-[10px] text-emerald-600">
+            ✅ Membership found in preview list.
+          </p>
+        )}
+        {payerMembershipValid === false && (
+          <p className="text-[10px] text-rose-500">
+            ⚠️ Membership number not found in this preview. Please double-check.
+          </p>
+        )}
+        {payerMembershipValid === null && payerMembershipNumber === '' && (
+          <p className="text-[10px] text-slate-400">
+            Enter a membership number to preview validation.
+          </p>
+        )}
+      </div>
+    )}
+  </div>
+</div>
+<h4 className="text-xs font-bold text-slate-500 uppercase mb-2 border-t pt-4"> Summary </h4>
+                          <div className="space-y-1 text-sm mb-4">
+                            <div className="flex justify-between">
+                              <span className="text-slate-600">Base Rate ({selectedDuration} min)</span>
+                              <span>{formatPKR(bookingSummary.basePrice)}</span>
+                            </div>
+                            <div className="flex justify-between text-red-500">
+                              <span className="text-slate-600">Off-Peak Discount (30%)</span>
+                              <span>- {formatPKR(bookingSummary.discount)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-600">Add-Ons & Coach</span>
+                              <span>+ {formatPKR(bookingSummary.addOnTotal)}</span>
+                            </div>
+                          </div>
+                          <div className="flex justify-between border-t border-dashed pt-3">
+                            <span className="font-bold text-lg">TOTAL DUE</span>
+                            <span className="font-extrabold text-2xl text-sky-700">
+                              {formatPKR(bookingSummary.totalPrice)}
+                            </span>
+                          </div>
+
+                          <div className="mt-6">
+                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                              Payment Method
+                            </label>
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => setPaymentMethod('cash')}
+                                className={`flex-grow px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                                  paymentMethod === 'cash'
+                                    ? 'bg-green-500 text-white border-green-500'
+                                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                }`}
+                              >
+                                💵 Cash/Card (On-Site)
+                              </button>
+                              <button
+                                onClick={() => setPaymentMethod('credits')}
+                                className={`flex-grow px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                                  paymentMethod === 'credits'
+                                    ? 'bg-slate-900 text-white border-slate-900'
+                                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                }`}
+                              >
+                                💳 Credits
+                              </button>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={confirmBooking}
+                            className="w-full mt-6 py-3 rounded-xl font-bold text-white transition-all bg-sky-600 hover:bg-sky-500 shadow-lg"
+                          >
+                            Confirm Booking
+                          </button>
+                        </>
+                      ) : (
+                        <p className="text-center text-slate-400 italic text-sm">
+                          Please select a time slot to calculate price.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* EVENTS VIEW */}
+            {currentView === 'events' && (
+              <div className="max-w-6xl mx-auto space-y-10 animate-fade-in">
+                <div className="text-center mb-6">
+                  <h2 className="text-3xl font-extrabold text-slate-900"> Events &amp; Academy </h2>
+                  <p className="text-slate-500 mt-2 text-sm"> Classes, tournaments and social events – preview only. </p>
+                </div>
+                {FACILITIES.map((fac) => (
+                  <section key={fac.id} className={`mb-8 p-6 bg-white rounded-2xl shadow-md border-t-4 ${ fac.id === 'padel' ? 'border-sky-500' : fac.id === 'air_rifle' ? 'border-red-400' : fac.id === 'squash' ? 'border-slate-400' : fac.id === 'bridge' ? 'border-sky-500' : 'border-purple-400' }`} >
+                    <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
+                      <span className="text-3xl">{fac.icon}</span>
+                      <h3 className="text-xl font-extrabold text-slate-900"> {fac.label} Programs </h3>
+                    </div>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {MOCK_EVENTS.filter((e) => e.facility === fac.id).length > 0 ? (
+                        MOCK_EVENTS.filter((e) => e.facility === fac.id).map((event) => (
+                          <div key={event.id} className="bg-slate-50 p-5 rounded-xl border border-slate-100 flex flex-col justify-between" >
+                            <div>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className={`${getEventTypeClass(event.type)} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase`}>
+                                  {event.type}
+                                </span>
+                                <span className="text-sm font-semibold text-sky-700">{formatPKR(event.pricePKR)}</span>
+                              </div>
+                              <h4 className="font-bold text-lg text-slate-900 mb-1">{event.title}</h4>
+                              <p className="text-xs text-slate-500 mb-3">
+                                {event.day} at {event.time}
+                              </p>
+                              <p className="text-sm text-slate-700">{event.description}</p>
+                            </div>
+                            <div className="flex justify-between items-center mt-4 border-t pt-3">
+                              <span className="text-xs text-slate-500">
+                                Instructor: {event.instructor}
+                              </span>
+                              <button
+                                onClick={() => setMessage({ title: 'Event Registration', body: `Simulating registration for: ${event.title}` })}
+                                className="bg-sky-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-sky-500"
+                              >
+                                Register
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="col-span-3 p-8 text-center bg-slate-50 rounded-xl text-slate-400 italic">
+                          No programs scheduled for this facility yet.
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
+
+            {/* LEADERBOARD VIEW */}
+            {currentView === 'leaderboard' && (
+              <div className="max-w-4xl mx-auto animate-fade-in">
+                <div className="text-center mb-6">
+                  <h2 className="text-3xl font-extrabold text-slate-900"> Quarterdeck Leaderboards </h2>
+                  <p className="text-slate-500 mt-2 text-sm"> Top players across all facilities and total points. </p>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center mb-6">
+                  <button
+                    onClick={() => setCurrentLeaderboardType('cumulative')}
+                    className={`px-4 py-2 rounded-full text-sm font-bold transition ${
+                      currentLeaderboardType === 'cumulative'
+                        ? 'bg-slate-900 text-white shadow-lg'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    All Sports
+                  </button>
+                  {leaderboardFacilities.map((fac) => (
+                    <button
+                      key={fac.id}
+                      onClick={() => setCurrentLeaderboardType(fac.id)}
+                      className={`px-4 py-2 rounded-full text-sm font-bold transition ${
+                        currentLeaderboardType === fac.id
+                          ? 'bg-slate-900 text-white shadow-lg'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {fac.icon} {fac.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                  <div className="p-6 bg-slate-50 border-b border-slate-200">
+                    <h3 className="font-extrabold text-lg text-slate-800"> {getLeaderboardTitle(currentLeaderboardType)} </h3>
+                  </div>
+                  {currentLeaderboard.length > 0 ? (
+                    currentLeaderboard.map((player, i) => (
+                      <div key={player.name} className="flex items-center p-4 border-b border-slate-100 hover:bg-slate-50 transition" >
+                        <div className={`w-10 text-center font-extrabold text-xl ${ i === 0 ? 'text-sky-600' : 'text-slate-400' }`} > #{i + 1} </div>
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xl shadow-inner">
+                          {player.avatar}
+                        </div>
+                        <div className="flex-grow ml-4">
+                          <h4 className="font-bold text-slate-800">{player.name}</h4>
+                          <span className="text-[10px] bg-slate-200 px-2 py-0.5 rounded text-slate-600">
+                            {player.tier}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-extrabold text-sky-700 text-xl"> {player.points} </p>
+                          <p className="text-[10px] text-slate-400 uppercase">Score</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-slate-400 italic">
+                      No ranking data for this category yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* PROFILE VIEW */}
+            {currentView === 'profile' && userProfile && (
+              <div className="max-w-4xl mx-auto animate-fade-in">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-3xl font-bold text-slate-900">Member Profile</h2>
+                  <div className="flex gap-2">
+                    <span className="px-3 py-1 bg-sky-100 text-amber-800 rounded-full text-xs font-bold">
+                      {userProfile.membershipTier} Tier
+                    </span>
+                    <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold">
+                      {userProfile.category}
+                    </span>
+                  </div>
+                </div>
+                <div className="bg-white p-6 rounded-2xl shadow-xl border-t-4 border-slate-900">
+                  <h3 className="font-bold text-xl text-slate-800 mb-4">Account Summary</h3>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-slate-500 uppercase font-semibold">Name</p>
+                      <p className="font-medium text-slate-800">{userProfile.name}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-slate-500 uppercase font-semibold">Email</p>
+                      <p className="font-medium text-slate-800">{userProfile.email}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-slate-500 uppercase font-semibold">Total Bookings</p>
+                      <p className="font-medium text-slate-800">{bookings.length}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <p className="text-xs text-slate-500 uppercase font-semibold">Safety Certified?</p>
+                      <p className="font-medium text-slate-800">
+                        {userProfile.isSafetyCertified ? '✅ Yes' : '❌ No'}
+                      </p>
+                    </div>
+                    {userProfile.category === 'Company' && (
+                      <div className="p-3 bg-slate-50 rounded-lg col-span-2">
+                        <p className="text-xs text-slate-500 uppercase font-semibold">Company Name</p>
+                        <p className="font-medium text-slate-800">{userProfile.companyName}</p>
+                      </div>
+                    )}
+                    {userProfile.category === 'Reference' && (
+                      <div className="p-3 bg-slate-50 rounded-lg col-span-2">
+                        <p className="text-xs text-slate-500 uppercase font-semibold">Reference</p>
+                        <p className="font-medium text-slate-800">{userProfile.referenceName}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-xl mt-6 border-t-4 border-amber-500">
+                  <h3 className="font-bold text-xl text-slate-800 mb-4">Booking History (Last 5)</h3>
+                  {bookings.length > 0 ? (
+                    <div className="space-y-3">
+                      {bookings
+                        .slice(-5)
+                        .reverse()
+                        .map((b) => (
+                          <div key={b.id} className="p-3 bg-slate-50 rounded-lg flex justify-between items-center text-sm">
+                            <div>
+                              <p className="font-bold text-slate-800">{getFacilityLabel(b.facilityType)} ({b.durationMinutes} min)</p>
+                              <p className="text-xs text-slate-500">
+                                {b.date} from {b.startTime} to {b.endTime}
+                              </p>
+                            </div>
+                            <span className="font-extrabold text-sky-700">{formatPKR(b.pricePKR)}</span>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="text-center text-slate-400 italic text-sm">
+                      No bookings yet. Start your first session!
+                    </p>
+                  )}
+                </div>
+
+                {/* DEV SIMULATOR - RETAIN FOR PREVIEW PURPOSES */}
+                <div className="bg-slate-100 p-4 rounded-xl mt-6">
+                  <h4 className="text-[10px] text-slate-600 uppercase tracking-wide"> Admin Simulator (Preview) </h4>
+                  <button onClick={toggleSafety} className="text-[10px] bg-white border border-amber-200 px-2 py-1 rounded shadow-sm hover:bg-sky-50" > Toggle Safety Cert </button>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <button onClick={() => setUserProfile((prev) => ({ ...prev, category: 'Individual', membershipTier: 'Founding', })) } className="px-3 py-1 bg-white border border-yellow-300 rounded text-xs font-bold text-yellow-700 hover:bg-sky-50 shadow-sm" > 👑 Founding Member </button>
+                    <button onClick={() => setUserProfile((prev) => ({ ...prev, category: 'Forces', membershipTier: 'Gold', })) } className="px-3 py-1 bg-white border border-slate-200 rounded text-xs hover:bg-slate-50" > 🛡️ Forces </button>
+                    <button onClick={() => setUserProfile((prev) => ({ ...prev, category: 'Company', membershipTier: 'Corporate', companyName: 'TechSol Pvt Ltd', })) } className="px-3 py-1 bg-white border border-slate-200 rounded text-xs hover:bg-slate-50" > 🏢 Corporate </button>
+                    <button onClick={() => setUserProfile((prev) => ({ ...prev, category: 'Reference', membershipTier: 'Silver', companyName: '', referenceName: 'Ref: Mr. Ahmed', })) } className="px-3 py-1 bg-white border border-slate-200 rounded text-xs hover:bg-slate-50" > 🤝 Silver (Referral) </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* MODALS (Fixed Position) */}
+            {showSafetyModal && (
+              <div
+                className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                onClick={() => setShowSafetyModal(false)}
+              >
+                <div
+                  className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="font-bold text-2xl mb-2">Air Rifle Safety Class</h3>
+                  <p className="text-slate-600 mb-6 text-sm">
+                    To use the Air Rifle range, you must complete a one-time safety certification.
+                  </p>
+                  <div className="bg-slate-50 p-4 rounded-lg text-left mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-bold text-slate-800"> Intro to Range Safety </span>
+                      <span className="font-bold text-sky-700"> {formatPKR(2000)} </span>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      30-minute online course. Fee is charged to your credit balance.
+                    </p>
+                  </div>
+                  <button
+                    onClick={completeSafetyClass}
+                    className="w-full bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-500"
+                  >
+                    Complete Certification & Pay Now
+                  </button>
+                </div>
+              </div>
+            )}
+            {showWaiverModal && (
+              <div
+                className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                onClick={() => setShowWaiverModal(false)}
+              >
+                <div
+                  className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="font-bold text-2xl mb-2">Facility Waiver</h3>
+                  <p className="text-slate-600 mb-4 text-sm">
+                    Please digitally sign the liability waiver before your first booking.
+                  </p>
+                  <div className="bg-red-50 border border-red-300 rounded-xl p-4 mb-6">
+                    <h4 className="text-lg font-semibold text-red-700 mb-2">Liability Waiver Summary</h4>
+                    <div className="text-xs text-red-600 h-24 overflow-y-scroll p-2 border border-red-200 rounded-lg bg-white/70">
+                      <p className="font-bold">Key Terms:</p>
+                      <ul className="list-disc list-inside space-y-1 mt-1">
+                        <li>**Assumption of Risk:** The User acknowledges and assumes all risks associated with physical activity.</li>
+                        <li>**Waiver of Liability:** The User agrees to waive all claims against The Quarterdeck management and staff.</li>
+                        <li>**Facility Rules:** The User agrees to abide by all posted rules.</li>
+                      </ul>
+                      <p className="mt-2 text-right text-red-500 italic">...Scroll for full Legal Text...</p>
+                    </div>
+                    <button
+                      onClick={signWaiver}
+                      className="w-full bg-sky-600 hover:bg-sky-500 text-white py-3 rounded-xl font-bold shadow-lg mt-4"
+                    >
+                      I Agree & Sign Digitally
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {message && (
+              <div
+                className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                onClick={() => setMessage(null)}
+              >
+                <div
+                  className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="font-bold text-lg mb-2">{message.title}</h3>
+                  <p className="text-slate-600 mb-6 text-sm">{message.body}</p>
+                  <button
+                    onClick={() => setMessage(null)}
+                    className="w-full bg-slate-900 text-white py-2.5 rounded-lg font-bold hover:bg-slate-800"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('booking-root'));
+    root.render(<ArenaOneApp />);
+  </script>
