@@ -7,6 +7,7 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import { sendWelcomeEmail } from "./email";
 
 const getOidcConfig = memoize(
   async () => {
@@ -53,8 +54,12 @@ function updateUserSession(
 async function upsertUser(claims: any) {
   const userId = claims["sub"];
   
+  // Check if this is a new user
+  const existingUser = await storage.getUser(userId);
+  const isNewUser = !existingUser;
+  
   // Upsert user record
-  await storage.upsertUser({
+  const user = await storage.upsertUser({
     id: userId,
     email: claims["email"],
     firstName: claims["first_name"],
@@ -87,6 +92,17 @@ async function upsertUser(claims: any) {
     } catch (error) {
       console.error(`Failed to create guest membership for user ${userId}:`, error);
     }
+  }
+  
+  // Send welcome email for new users
+  if (isNewUser && user.email) {
+    sendWelcomeEmail({ 
+      firstName: user.firstName, 
+      email: user.email 
+    }).catch(err => {
+      console.error('[email] Failed to send welcome email:', err);
+    });
+    console.log(`Sent welcome email to new user ${userId}`);
   }
 }
 

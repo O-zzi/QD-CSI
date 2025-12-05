@@ -386,10 +386,22 @@ export async function registerRoutes(
   app.patch('/api/bookings/:id/cancel', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
+      const userId = req.user.claims.sub;
       const booking = await storage.updateBookingStatus(id, 'CANCELLED');
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
+      
+      const user = await storage.getUser(userId);
+      const facility = await storage.getFacility(booking.facilityId);
+      const facilityName = facility?.name || 'Facility';
+      
+      if (user) {
+        sendBookingCancelledEmail(booking, user, facilityName, 'Cancelled by user').catch(err => {
+          console.error('[email] Failed to send cancellation email:', err);
+        });
+      }
+      
       res.json(booking);
     } catch (error) {
       console.error("Error cancelling booking:", error);
@@ -1425,6 +1437,15 @@ export async function registerRoutes(
       }
       
       const application = await storage.submitCareerApplication(result.data);
+      
+      sendCareerApplicationEmail({ 
+        name: fullName, 
+        email, 
+        position: 'General Application' 
+      }).catch(err => {
+        console.error('[email] Failed to send general application confirmation:', err);
+      });
+      
       res.status(201).json(application);
     } catch (error) {
       console.error("Error submitting general CV application:", error);
