@@ -1457,6 +1457,17 @@ export async function registerRoutes(
       }
       
       const application = await storage.submitCareerApplication(result.data);
+      
+      if (validCareer) {
+        sendCareerApplicationEmail({ 
+          name: fullName, 
+          email, 
+          position: validCareer.title 
+        }).catch(err => {
+          console.error('[email] Failed to send career application confirmation:', err);
+        });
+      }
+      
       res.status(201).json(application);
     } catch (error) {
       console.error("Error submitting career application:", error);
@@ -1514,6 +1525,11 @@ export async function registerRoutes(
       }
       
       const submission = await storage.submitContactForm(result.data);
+      
+      sendContactFormEmail({ name, email, phone, message }).catch(err => {
+        console.error('[email] Failed to send contact form notification:', err);
+      });
+      
       res.status(201).json(submission);
     } catch (error) {
       console.error("Error submitting contact form:", error);
