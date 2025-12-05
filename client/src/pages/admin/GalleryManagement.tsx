@@ -93,8 +93,15 @@ export default function GalleryManagement() {
       });
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Upload failed');
+        let errorMessage = 'Upload failed';
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch {
+          // Response wasn't JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
       
       const result = await response.json();
@@ -489,16 +496,25 @@ export default function GalleryManagement() {
                   <Label htmlFor="isActive">Active (visible on website)</Label>
                 </div>
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isUploading}>
                     Cancel
                   </Button>
                   <Button 
                     onClick={handleSubmit}
-                    disabled={createMutation.isPending || updateMutation.isPending}
+                    disabled={isUploading || createMutation.isPending || updateMutation.isPending}
                     data-testid="button-save-gallery-image"
                   >
-                    <Save className="w-4 h-4 mr-2" />
-                    {editingImage ? "Update" : "Add"}
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        {editingImage ? "Update" : "Add"}
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>

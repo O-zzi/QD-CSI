@@ -723,28 +723,41 @@ export async function registerRoutes(
     }
   });
 
-  // File upload route for gallery images
-  app.post('/api/admin/upload', isAuthenticated, isAdmin, upload.single('image'), async (req: any, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+  // File upload route for gallery images with multer error handling
+  app.post('/api/admin/upload', isAuthenticated, isAdmin, (req: any, res, next) => {
+    upload.single('image')(req, res, (err: any) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+        }
+        if (err.message && err.message.includes('Only')) {
+          return res.status(400).json({ message: err.message });
+        }
+        console.error("Multer error:", err);
+        return res.status(400).json({ message: err.message || "File upload failed" });
       }
       
-      // Generate URL for the uploaded file
-      const imageUrl = `/uploads/${req.file.filename}`;
-      
-      res.json({ 
-        success: true,
-        imageUrl,
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        size: req.file.size,
-        mimeType: req.file.mimetype,
-      });
-    } catch (error: any) {
-      console.error("Error uploading file:", error);
-      res.status(500).json({ message: error.message || "Failed to upload file" });
-    }
+      try {
+        if (!req.file) {
+          return res.status(400).json({ message: "No file uploaded" });
+        }
+        
+        // Generate URL for the uploaded file
+        const imageUrl = `/uploads/${req.file.filename}`;
+        
+        res.json({ 
+          success: true,
+          imageUrl,
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          size: req.file.size,
+          mimeType: req.file.mimetype,
+        });
+      } catch (error: any) {
+        console.error("Error uploading file:", error);
+        res.status(500).json({ message: error.message || "Failed to upload file" });
+      }
+    });
   });
 
   // Admin Events routes
