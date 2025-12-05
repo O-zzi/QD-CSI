@@ -17,6 +17,7 @@ import Rules from "@/pages/Rules";
 import Careers from "@/pages/Careers";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
+import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/not-found";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import HomepageManagement from "@/pages/admin/HomepageManagement";
@@ -44,6 +45,7 @@ function Router() {
       <Route path="/careers" component={Careers} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
+      <Route path="/coming-soon" component={ComingSoon} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/homepage" component={HomepageManagement} />
       <Route path="/admin/facilities" component={FacilitiesManagement} />

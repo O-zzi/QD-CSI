@@ -147,7 +147,7 @@ export const CMS_DEFAULTS: Record<string, string> = {
   contact_socials_title: 'Socials & Location',
   contact_socials_subtitle: 'Follow our official channels for the most recent updates and progress photos:',
   contact_site_status_title: 'Site Status',
-  contact_site_status_content: 'The complex is currently under active construction. No public access or walk-ins are permitted for safety reasons. All updates will be digital.',
+  contact_site_status: 'The complex is currently under active construction. No public access or walk-ins are permitted for safety reasons. All updates will be digital.',
   
   // Updates Section
   updates_title: 'Construction Updates',
@@ -190,11 +190,13 @@ export const CMS_DEFAULTS: Record<string, string> = {
   social_linkedin: 'https://linkedin.com/company/thequarterdeck',
   
   // Coming Soon Page
-  coming_soon_title: 'Coming Soon',
-  coming_soon_subtitle: 'Pakistan\'s Premier Sports & Recreation Complex is under construction.',
+  coming_soon_title: 'Something Amazing Is Coming',
+  coming_soon_subtitle: 'Pakistan\'s Premier Sports & Recreation Complex is under construction. Get ready for world-class Padel Tennis, Squash, Air Rifle Range, and more.',
   coming_soon_description: 'The Quarterdeck will feature world-class Padel Tennis courts, Squash facilities, an Air Rifle Range, Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience.',
   coming_soon_cta: 'Join the Waitlist',
   coming_soon_progress_label: 'Construction Progress',
+  coming_soon_launch_date: '2026-10-01',
+  coming_soon_location: 'Sector F-7, Islamabad',
   
   // Site-wide Settings
   site_name: 'The Quarterdeck',
