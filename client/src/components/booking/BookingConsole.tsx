@@ -333,23 +333,26 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     const perMinutePrice = fac.basePrice / 60;
     let base = perMinutePrice * selectedDuration;
     
-    // Apply membership-based discounts
-    // Founding: 25% off all bookings
-    // Gold: 20% off all bookings  
+    // Apply membership-based discounts (OFF-PEAK HOURS ONLY)
+    // Founding: 25% off-peak only
+    // Gold: 20% off-peak only  
     // Silver: 10% off-peak only
-    // Guest: 0%
+    // Guest: 0% (no discount)
     let discount = 0;
     const tier = userProfile.membershipTier;
     const offPeak = isOffPeak(selectedStartTime);
     
-    if (tier === 'Founding') {
-      discount = base * 0.25;
-    } else if (tier === 'Gold') {
-      discount = base * 0.20;
-    } else if (tier === 'Silver' && offPeak) {
-      discount = base * 0.10;
+    // All discounts only apply during off-peak hours (10 AM - 5 PM)
+    if (offPeak) {
+      if (tier === 'Founding') {
+        discount = base * 0.25;
+      } else if (tier === 'Gold') {
+        discount = base * 0.20;
+      } else if (tier === 'Silver') {
+        discount = base * 0.10;
+      }
     }
-    // Guest tier gets no discount
+    // Guest tier and peak hours get no discount
     
     const addOnList = FACILITY_ADD_ONS[fac.id] || [];
     let addOnTotal = 0;
@@ -364,7 +367,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     return {
       basePrice: Math.round(base),
       discount: Math.round(discount),
-      discountLabel: tier === 'Founding' ? '25% Founding' : tier === 'Gold' ? '20% Gold' : tier === 'Silver' && offPeak ? '10% Silver Off-Peak' : null,
+      discountLabel: offPeak ? (tier === 'Founding' ? '25% Founding (Off-Peak)' : tier === 'Gold' ? '20% Gold (Off-Peak)' : tier === 'Silver' ? '10% Silver (Off-Peak)' : null) : null,
       addOnTotal,
       totalPrice: Math.round(base - discount + addOnTotal),
       date: selectedDate,
@@ -874,7 +877,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   </div>
                   <p className="text-xs text-muted-foreground mt-3">
                     <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full mr-1" />
-                    Green dot = Off-peak hours (6 AM - 5 PM) - Silver members get 10% off
+                    Green dot = Off-peak hours (10 AM - 5 PM) - All member tiers get discounts
                   </p>
                 </div>
               </div>

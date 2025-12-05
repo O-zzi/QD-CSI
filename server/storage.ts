@@ -83,6 +83,7 @@ export interface IStorage {
 
   // Facility operations
   getFacilities(): Promise<Facility[]>;
+  getFacility(id: string): Promise<Facility | undefined>;
   getFacilityBySlug(slug: string): Promise<Facility | undefined>;
   getFacilityAddOns(facilityId: string): Promise<FacilityAddOn[]>;
 
@@ -94,7 +95,7 @@ export interface IStorage {
   getBookingByStripeSessionId(sessionId: string): Promise<Booking | undefined>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   createBookingAddOn(data: { bookingId: string; addOnId: string; quantity: number; priceAtBooking: number }): Promise<any>;
-  updateBookingStatus(bookingId: string, status: string): Promise<Booking | undefined>;
+  updateBookingStatus(bookingId: string, status: string, cancelReason?: string): Promise<Booking | undefined>;
   updateBookingPayment(bookingId: string, data: { paymentStatus?: string; paymentProofUrl?: string; paymentVerifiedBy?: string; paymentVerifiedAt?: Date; paymentNotes?: string; status?: string }): Promise<Booking | undefined>;
   checkDoubleBooking(facilitySlug: string, resourceId: number, date: string, startTime: string, endTime: string): Promise<boolean>;
   
@@ -103,6 +104,7 @@ export interface IStorage {
 
   // Event operations
   getEvents(): Promise<Event[]>;
+  getEvent(id: string): Promise<Event | undefined>;
   getEventsByFacility(facilityId: string): Promise<Event[]>;
   createEvent(data: InsertEvent): Promise<Event>;
   updateEvent(id: string, data: Partial<InsertEvent>): Promise<Event | undefined>;
@@ -270,6 +272,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(facilities).orderBy(asc(facilities.name));
   }
 
+  async getFacility(id: string): Promise<Facility | undefined> {
+    const [facility] = await db
+      .select()
+      .from(facilities)
+      .where(eq(facilities.id, id));
+    return facility;
+  }
+
   async getFacilityBySlug(slug: string): Promise<Facility | undefined> {
     const [facility] = await db
       .select()
@@ -321,10 +331,14 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateBookingStatus(bookingId: string, status: string): Promise<Booking | undefined> {
+  async updateBookingStatus(bookingId: string, status: string, cancelReason?: string): Promise<Booking | undefined> {
+    const updateData: any = { status: status as any, updatedAt: new Date() };
+    if (cancelReason !== undefined) {
+      updateData.cancellationReason = cancelReason;
+    }
     const [updated] = await db
       .update(bookings)
-      .set({ status: status as any, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(bookings.id, bookingId))
       .returning();
     return updated;
@@ -395,6 +409,14 @@ export class DatabaseStorage implements IStorage {
   // Event operations
   async getEvents(): Promise<Event[]> {
     return await db.select().from(events).where(eq(events.isActive, true));
+  }
+
+  async getEvent(id: string): Promise<Event | undefined> {
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, id));
+    return event;
   }
 
   async getEventsByFacility(facilityId: string): Promise<Event[]> {

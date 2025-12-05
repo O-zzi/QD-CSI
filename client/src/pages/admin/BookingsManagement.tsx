@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Check, X, Clock, AlertCircle, Eye, Search, Filter } from "lucide-react";
+import { Check, X, Clock, AlertCircle, Eye, Search, Filter, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -41,7 +41,10 @@ export default function BookingsManagement() {
   const { toast } = useToast();
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [paymentNotes, setPaymentNotes] = useState("");
+  const [paymentProofUrl, setPaymentProofUrl] = useState("");
+  const [cancelReason, setCancelReason] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -77,17 +80,28 @@ export default function BookingsManagement() {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: BookingStatus }) => {
-      return await apiRequest("PATCH", `/api/admin/bookings/${id}/status`, { status });
+    mutationFn: async ({ id, status, cancelReason }: { id: string; status: BookingStatus; cancelReason?: string }) => {
+      return await apiRequest("PATCH", `/api/admin/bookings/${id}/status`, { status, cancelReason });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/bookings"] });
       toast({ title: "Status updated successfully" });
+      setIsCancelDialogOpen(false);
+      setCancelReason("");
     },
     onError: () => {
       toast({ title: "Failed to update status", variant: "destructive" });
     },
   });
+
+  const handleCancelBooking = () => {
+    if (!selectedBooking) return;
+    updateStatusMutation.mutate({
+      id: selectedBooking.id,
+      status: "CANCELLED",
+      cancelReason,
+    });
+  };
 
   const handleVerifyPayment = () => {
     if (!selectedBooking) return;
@@ -96,6 +110,7 @@ export default function BookingsManagement() {
       data: {
         paymentStatus: "VERIFIED",
         paymentNotes,
+        ...(paymentProofUrl && { paymentProofUrl }),
       },
     });
   };
@@ -107,6 +122,7 @@ export default function BookingsManagement() {
       data: {
         paymentStatus: "REJECTED",
         paymentNotes,
+        ...(paymentProofUrl && { paymentProofUrl }),
       },
     });
   };
@@ -286,6 +302,7 @@ export default function BookingsManagement() {
                             onClick={() => {
                               setSelectedBooking(booking);
                               setPaymentNotes(booking.paymentNotes || "");
+                              setPaymentProofUrl(booking.paymentProofUrl || "");
                               setIsDetailDialogOpen(true);
                             }}
                             data-testid={`button-view-${booking.id}`}
@@ -332,7 +349,7 @@ export default function BookingsManagement() {
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Facility</Label>
-                    <p className="font-medium">{selectedBooking.facilityId}</p>
+                    <p className="font-medium">{getFacilityName(selectedBooking.facilityId)}</p>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Resource</Label>
@@ -360,19 +377,34 @@ export default function BookingsManagement() {
                     </div>
                   </div>
 
-                  {selectedBooking.paymentProofUrl && (
-                    <div className="mb-4">
-                      <Label className="text-xs text-muted-foreground">Payment Proof</Label>
-                      <a 
-                        href={selectedBooking.paymentProofUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline text-sm block mt-1"
-                      >
-                        View Proof Document
-                      </a>
+                  <div className="mb-4 space-y-2">
+                    <Label htmlFor="paymentProofUrl">Payment Proof URL</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="paymentProofUrl"
+                        value={paymentProofUrl}
+                        onChange={(e) => setPaymentProofUrl(e.target.value)}
+                        placeholder="Enter proof URL (receipt/transfer screenshot)"
+                        data-testid="input-payment-proof-url"
+                      />
+                      {(selectedBooking.paymentProofUrl || paymentProofUrl) && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => window.open(paymentProofUrl || selectedBooking.paymentProofUrl, '_blank')}
+                          title="View proof document"
+                          data-testid="button-view-proof"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
-                  )}
+                    {selectedBooking.paymentProofUrl && !paymentProofUrl && (
+                      <p className="text-xs text-muted-foreground">
+                        Current: <a href={selectedBooking.paymentProofUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">View existing proof</a>
+                      </p>
+                    )}
+                  </div>
 
                   {selectedBooking.paymentVerifiedBy && (
                     <div className="mb-4 text-sm text-muted-foreground">
@@ -420,23 +452,68 @@ export default function BookingsManagement() {
                   </div>
                 )}
 
-                {selectedBooking.paymentStatus === "VERIFIED" && selectedBooking.status !== "CANCELLED" && (
+                {selectedBooking.status !== "CANCELLED" && (
                   <div className="flex gap-3 pt-4 border-t">
                     <Button
                       onClick={() => {
-                        updateStatusMutation.mutate({ id: selectedBooking.id, status: "CANCELLED" });
-                        setIsDetailDialogOpen(false);
+                        setIsCancelDialogOpen(true);
                       }}
                       disabled={updateStatusMutation.isPending}
                       variant="destructive"
                       data-testid="button-cancel-booking"
                     >
+                      <X className="h-4 w-4 mr-2" />
                       Cancel Booking
                     </Button>
                   </div>
                 )}
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cancel Booking</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to cancel this booking? This action cannot be undone.
+                The user will receive an email notification about the cancellation.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="cancelReason">Cancellation Reason (Optional)</Label>
+                <Textarea
+                  id="cancelReason"
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="Reason for cancellation..."
+                  rows={3}
+                  data-testid="textarea-cancel-reason"
+                />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsCancelDialogOpen(false);
+                    setCancelReason("");
+                  }}
+                  data-testid="button-cancel-dialog-close"
+                >
+                  Keep Booking
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleCancelBooking}
+                  disabled={updateStatusMutation.isPending}
+                  data-testid="button-confirm-cancel"
+                >
+                  {updateStatusMutation.isPending ? "Cancelling..." : "Confirm Cancellation"}
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

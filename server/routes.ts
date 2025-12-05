@@ -2,6 +2,16 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import {
+  sendBookingCreatedEmail,
+  sendPaymentVerifiedEmail,
+  sendPaymentRejectedEmail,
+  sendBookingCancelledEmail,
+  sendEventRegistrationEmail,
+  sendWelcomeEmail,
+  sendContactFormEmail,
+  sendCareerApplicationEmail,
+} from "./email";
 import { 
   insertBookingSchema,
   insertCmsContentSchema,
@@ -307,6 +317,14 @@ export async function registerRoutes(
         currentPlayers: data.currentPlayers,
         maxPlayers: data.maxPlayers,
       });
+
+      // Send booking confirmation email
+      const user = await storage.getUser(userId);
+      if (user) {
+        sendBookingCreatedEmail(booking, user, facility.name).catch(err => {
+          console.error('[email] Failed to send booking confirmation:', err);
+        });
+      }
 
       res.status(201).json(booking);
     } catch (error) {
@@ -1135,6 +1153,24 @@ export async function registerRoutes(
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
+
+      // Send email notification based on payment status
+      const user = await storage.getUser(booking.userId);
+      const facility = await storage.getFacility(booking.facilityId);
+      const facilityName = facility?.name || 'Facility';
+      
+      if (user) {
+        if (result.data.paymentStatus === 'VERIFIED') {
+          sendPaymentVerifiedEmail(booking, user, facilityName).catch(err => {
+            console.error('[email] Failed to send payment verified email:', err);
+          });
+        } else if (result.data.paymentStatus === 'REJECTED') {
+          sendPaymentRejectedEmail(booking, user, facilityName, result.data.paymentNotes).catch(err => {
+            console.error('[email] Failed to send payment rejected email:', err);
+          });
+        }
+      }
+
       res.json(booking);
     } catch (error) {
       console.error("Error updating booking payment:", error);
@@ -1144,14 +1180,28 @@ export async function registerRoutes(
 
   app.patch('/api/admin/bookings/:id/status', isAuthenticated, isAdmin, async (req, res) => {
     try {
-      const { status } = req.body;
+      const { status, cancelReason } = req.body;
       if (!['PENDING', 'CONFIRMED', 'CANCELLED'].includes(status)) {
         return res.status(400).json({ message: "Invalid status" });
       }
-      const booking = await storage.updateBookingStatus(req.params.id, status);
+      const booking = await storage.updateBookingStatus(req.params.id, status, cancelReason);
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
+
+      // Send cancellation email if booking is cancelled
+      if (status === 'CANCELLED') {
+        const user = await storage.getUser(booking.userId);
+        const facility = await storage.getFacility(booking.facilityId);
+        const facilityName = facility?.name || 'Facility';
+        
+        if (user) {
+          sendBookingCancelledEmail(booking, user, facilityName, cancelReason).catch(err => {
+            console.error('[email] Failed to send cancellation email:', err);
+          });
+        }
+      }
+
       res.json(booking);
     } catch (error) {
       console.error("Error updating booking status:", error);
@@ -1196,6 +1246,15 @@ export async function registerRoutes(
       }
       
       const registration = await storage.registerForEvent(result.data);
+
+      // Send event registration confirmation email
+      const event = await storage.getEvent(eventId);
+      if (event && email) {
+        sendEventRegistrationEmail(event, { firstName: fullName, email }, 'pending').catch(err => {
+          console.error('[email] Failed to send event registration email:', err);
+        });
+      }
+
       res.status(201).json(registration);
     } catch (error) {
       console.error("Error registering for event:", error);

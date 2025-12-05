@@ -84,7 +84,31 @@ The system incorporates double-booking prevention, membership number format vali
 - Payment verification workflow: PENDING_PAYMENT -> PENDING_VERIFICATION -> VERIFIED/REJECTED
 - Admin booking management at /admin/bookings for payment verification
 
+**Email Notifications:**
+- Resend API integration for transactional emails
+- Email templates for: Booking confirmation, Payment verified/rejected, Booking cancelled, Event registration, Welcome email, Contact form, Career applications
+
+**Email Configuration (for testing):**
+To enable email notifications:
+1. Create a free account at https://resend.com
+2. Get your API key from the Resend dashboard
+3. Add `RESEND_API_KEY` to your Replit Secrets
+4. Optionally set `EMAIL_FROM` (default: "The Quarterdeck <noreply@thequarterdeck.pk>")
+5. Optionally set `ADMIN_EMAIL` for contact form notifications
+
+Note: Without the API key, emails will be logged to console but not sent.
+
 **Utility Libraries:**
 - `nanoid`
 - `memoizee`
 - `ws` (for WebSocket infrastructure)
+
+## Discount Logic
+
+Membership discounts are applied **ONLY during off-peak hours (10 AM - 5 PM)**:
+- **Founding Members:** 25% discount (off-peak only)
+- **Gold Members:** 20% discount (off-peak only)
+- **Silver Members:** 10% discount (off-peak only)
+- **Guest/Non-members:** No discount
+
+Peak hours (before 10 AM or after 5 PM) do not receive any discount regardless of membership tier.

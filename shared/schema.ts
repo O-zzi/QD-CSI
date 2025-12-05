@@ -131,6 +131,7 @@ export const bookings = pgTable("bookings", {
   paymentVerifiedBy: varchar("payment_verified_by"),
   paymentVerifiedAt: timestamp("payment_verified_at"),
   paymentNotes: text("payment_notes"),
+  cancellationReason: text("cancellation_reason"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
