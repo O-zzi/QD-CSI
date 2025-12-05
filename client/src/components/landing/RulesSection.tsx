@@ -1,26 +1,9 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Loader2 } from "lucide-react";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
-
-const rules = [
-  {
-    title: "Padel/Squash Court Footwear",
-    description: "Only non-marking, appropriate indoor court shoes are permitted on playing surfaces. This preserves the court integrity and ensures maximum grip and safety for players.",
-  },
-  {
-    title: "Air Rifle Certification",
-    description: "Mandatory 30-minute safety course and proficiency test required before accessing the range. No exceptions for first-time users, regardless of previous experience.",
-  },
-  {
-    title: "Booking & Cancellation Policy",
-    description: "24-hour notice is required for all cancellations to avoid a penalty equal to the court fee. Late cancellations will forfeit the fee/credit to ensure fair slot availability for all members.",
-  },
-  {
-    title: "General Conduct & Dress",
-    description: "Respect for staff, facilities, and fellow players is mandatory. Appropriate sports attire must be worn. The use of courteous language is expected at all times.",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import type { Rule } from "@shared/schema";
 
 export function RulesSection() {
   const { getValue } = useCmsMultiple([
@@ -28,6 +11,12 @@ export function RulesSection() {
     'rules_subtitle',
     'rules_cta',
   ], CMS_DEFAULTS);
+
+  const { data: rules, isLoading } = useQuery<Rule[]>({
+    queryKey: ["/api/rules"],
+  });
+
+  const displayRules = rules?.slice(0, 4) || [];
 
   return (
     <section id="rules" className="qd-section">
@@ -48,16 +37,26 @@ export function RulesSection() {
           </Link>
         </div>
 
-        <div className="qd-rules-grid">
-          {rules.map((rule, index) => (
-            <Link key={index} href="/rules">
-              <div className="qd-rule-item hover-elevate cursor-pointer" data-testid={`rule-item-${index}`}>
-                <h4 className="font-bold text-foreground mb-2">{rule.title}</h4>
-                <p className="text-sm text-muted-foreground">{rule.description}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : displayRules.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            Rules coming soon...
+          </div>
+        ) : (
+          <div className="qd-rules-grid">
+            {displayRules.map((rule, index) => (
+              <Link key={rule.id} href="/rules">
+                <div className="qd-rule-item hover-elevate cursor-pointer" data-testid={`rule-item-${index}`}>
+                  <h4 className="font-bold text-foreground mb-2">{rule.title}</h4>
+                  <p className="text-sm text-muted-foreground">{rule.content}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
