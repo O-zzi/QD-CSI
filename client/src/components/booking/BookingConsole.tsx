@@ -206,6 +206,67 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     queryKey: ['/api/bookings', selectedFacility.id, selectedDate],
   });
 
+  // Fetch events from API
+  interface EventData {
+    id: string;
+    title: string;
+    description: string;
+    type: string;
+    scheduleDay: string;
+    scheduleTime: string;
+    instructor: string | null;
+    price: number;
+    capacity: number;
+    enrolledCount: number;
+    facilitySlug: string;
+  }
+  
+  const { data: apiEvents = [] } = useQuery<EventData[]>({
+    queryKey: ['/api/events'],
+  });
+
+  // Event registration mutation
+  const eventRegisterMutation = useMutation({
+    mutationFn: async (data: { eventId: string; fullName: string; email: string; phone?: string }) => {
+      return await apiRequest('POST', `/api/events/${data.eventId}/register`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Registration Submitted!",
+        description: "Your registration is pending approval. You'll receive a confirmation email once approved.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Unable to register for this event.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEventRegister = (event: { id: string; title: string }) => {
+    if (!isAuthenticated || !user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to register for events.",
+        variant: "destructive",
+      });
+      window.location.href = '/api/login';
+      return;
+    }
+
+    eventRegisterMutation.mutate({
+      eventId: event.id,
+      fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Member',
+      email: user.email || '',
+    });
+  };
+
+  // Check if venue is coming soon (not Islamabad)
+  const isVenueComingSoon = selectedVenue !== 'Islamabad';
+
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData: any) => {
       return await apiRequest('POST', '/api/bookings', bookingData);
@@ -568,7 +629,35 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
               </div>
             </section>
 
-            {/* Facility Selector */}
+            {/* Coming Soon Overlay for non-Islamabad venues */}
+            {isVenueComingSoon && (
+              <section className="relative bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-8 text-center shadow-lg border border-slate-300 dark:border-slate-700">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-sky-500/10 rounded-2xl" />
+                <div className="relative z-10">
+                  <MapPin className="w-16 h-16 mx-auto text-amber-500 mb-4" />
+                  <h3 className="text-2xl font-bold mb-2">Coming Soon to {selectedVenue}</h3>
+                  <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                    We're expanding! The Quarterdeck {selectedVenue} is currently under development. 
+                    Stay tuned for updates on our upcoming locations.
+                  </p>
+                  <Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30">
+                    Expected 2026-2027
+                  </Badge>
+                  <div className="mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={() => setSelectedVenue('Islamabad')}
+                      data-testid="button-switch-to-islamabad"
+                    >
+                      Switch to Islamabad (Available Now)
+                    </Button>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Facility Selector - Only show for Islamabad */}
+            {!isVenueComingSoon && (
             <section>
               <h3 className="text-sm font-semibold text-muted-foreground mb-3">1. Select Facility</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -616,8 +705,10 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                 })}
               </div>
             </section>
+            )}
 
-            {/* Booking Console Grid */}
+            {/* Booking Console Grid - Only show for Islamabad */}
+            {!isVenueComingSoon && (
             <div className="grid md:grid-cols-3 gap-6">
               {/* Time & Resources Column */}
               <div className="md:col-span-2 space-y-6">
@@ -783,7 +874,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   </div>
                   <p className="text-xs text-muted-foreground mt-3">
                     <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full mr-1" />
-                    Green dot = Off-peak (30% discount)
+                    Green dot = Off-peak hours (6 AM - 5 PM) - Silver members get 10% off
                   </p>
                 </div>
               </div>
@@ -997,6 +1088,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                 </div>
               </div>
             </div>
+            )}
           </div>
         )}
 
@@ -1020,52 +1112,74 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
               </div>
               <div className="w-16" /> {/* Spacer for balance */}
             </div>
-            {FACILITIES.map((fac) => {
-              const FacIcon = fac.icon;
-              const facEvents = MOCK_EVENTS.filter((e) => e.facility === fac.id);
-              if (facEvents.length === 0) return null;
-              return (
-                <section
-                  key={fac.id}
-                  className={`mb-8 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-md border-t-4 ${
-                    fac.id === 'padel-tennis' ? 'border-sky-500' :
-                    fac.id === 'air-rifle-range' ? 'border-red-400' :
-                    fac.id === 'squash' ? 'border-slate-400' :
-                    fac.id === 'bridge-room' ? 'border-blue-500' : 'border-purple-400'
-                  }`}
-                  data-testid={`section-events-${fac.id}`}
-                >
-                  <div className="flex items-center gap-3 mb-5 border-b border-gray-100 dark:border-slate-700 pb-3">
-                    <FacIcon className="w-8 h-8 text-[#2a4060] dark:text-sky-400" />
-                    <h3 className="text-xl font-extrabold">{fac.label} Programs</h3>
-                  </div>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {facEvents.map((event) => (
-                      <div
-                        key={event.id}
-                        className="bg-gray-50 dark:bg-slate-700 p-5 rounded-xl border border-gray-100 dark:border-slate-600 flex flex-col justify-between"
-                        data-testid={`card-event-${event.id}`}
-                      >
-                        <div>
-                          <div className="flex justify-between items-center mb-2">
-                            <span className={`${getEventTypeClass(event.type)} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase`}>
-                              {event.type}
-                            </span>
-                            <span className="text-sm font-semibold text-sky-700 dark:text-sky-400">{formatPKR(event.pricePKR)}</span>
+            {apiEvents.length > 0 ? (
+              FACILITIES.map((fac) => {
+                const FacIcon = fac.icon;
+                const facEvents = apiEvents.filter((e) => e.facilitySlug === fac.id);
+                if (facEvents.length === 0) return null;
+                return (
+                  <section
+                    key={fac.id}
+                    className={`mb-8 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-md border-t-4 ${
+                      fac.id === 'padel-tennis' ? 'border-sky-500' :
+                      fac.id === 'air-rifle-range' ? 'border-red-400' :
+                      fac.id === 'squash' ? 'border-slate-400' :
+                      fac.id === 'bridge-room' ? 'border-blue-500' : 'border-purple-400'
+                    }`}
+                    data-testid={`section-events-${fac.id}`}
+                  >
+                    <div className="flex items-center gap-3 mb-5 border-b border-gray-100 dark:border-slate-700 pb-3">
+                      <FacIcon className="w-8 h-8 text-[#2a4060] dark:text-sky-400" />
+                      <h3 className="text-xl font-extrabold">{fac.label} Programs</h3>
+                    </div>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {facEvents.map((event) => (
+                        <div
+                          key={event.id}
+                          className="bg-gray-50 dark:bg-slate-700 p-5 rounded-xl border border-gray-100 dark:border-slate-600 flex flex-col justify-between"
+                          data-testid={`card-event-${event.id}`}
+                        >
+                          <div>
+                            <div className="flex justify-between items-center mb-2">
+                              <span className={`${getEventTypeClass(event.type)} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase`}>
+                                {event.type}
+                              </span>
+                              <span className="text-sm font-semibold text-sky-700 dark:text-sky-400">{formatPKR(event.price)}</span>
+                            </div>
+                            <h4 className="font-bold text-lg mb-1">{event.title}</h4>
+                            <p className="text-xs text-muted-foreground mb-3">{event.scheduleDay} at {event.scheduleTime || 'TBA'}</p>
+                            <p className="text-sm text-muted-foreground">{event.description}</p>
+                            {event.instructor && (
+                              <p className="text-xs text-muted-foreground mt-2">Instructor: {event.instructor}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {event.enrolledCount || 0} / {event.capacity} enrolled
+                            </p>
                           </div>
-                          <h4 className="font-bold text-lg mb-1">{event.title}</h4>
-                          <p className="text-xs text-muted-foreground mb-3">{event.day} at {event.time}</p>
-                          <p className="text-sm text-muted-foreground">{event.description}</p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="mt-4" 
+                            onClick={() => handleEventRegister(event)}
+                            disabled={eventRegisterMutation.isPending || (event.enrolledCount || 0) >= event.capacity}
+                            data-testid={`button-register-${event.id}`}
+                          >
+                            {eventRegisterMutation.isPending ? 'Registering...' : 
+                             (event.enrolledCount || 0) >= event.capacity ? 'Full' : 'Register'}
+                          </Button>
                         </div>
-                        <Button variant="outline" size="sm" className="mt-4" data-testid={`button-register-${event.id}`}>
-                          Register
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
+                      ))}
+                    </div>
+                  </section>
+                );
+              })
+            ) : (
+              <div className="text-center py-12">
+                <Trophy className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Events Available</h3>
+                <p className="text-muted-foreground">Check back soon for upcoming events and academies.</p>
+              </div>
+            )}
           </div>
         )}
 

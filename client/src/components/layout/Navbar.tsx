@@ -50,8 +50,6 @@ export function Navbar({ onScrollTo }: NavbarProps) {
   const siteTagline = siteSettings?.site_tagline || "Sports & Recreation Complex";
 
   const navLinks: NavLink[] = [
-    { label: "Home", section: "hero" },
-    { label: "About", href: "/vision" },
     { label: "Facilities", href: "/facilities" },
     { label: "Events & Academies", href: "/events" },
     { label: "Updates", href: "/roadmap" },

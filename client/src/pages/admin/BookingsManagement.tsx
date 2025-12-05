@@ -115,16 +115,20 @@ export default function BookingsManagement() {
     }
   };
 
-  const getBookingStatusBadge = (status: string | null) => {
-    switch (status) {
-      case "CONFIRMED":
-        return <Badge variant="default" className="bg-green-600">Confirmed</Badge>;
-      case "CANCELLED":
-        return <Badge variant="destructive">Cancelled</Badge>;
-      case "PENDING":
-      default:
-        return <Badge variant="secondary">Pending</Badge>;
+  const getBookingStatusBadge = (status: string | null, paymentStatus: string | null) => {
+    if (status === "CONFIRMED" && paymentStatus === "VERIFIED") {
+      return <Badge variant="default" className="bg-green-600">Confirmed</Badge>;
     }
+    if (status === "CANCELLED") {
+      return <Badge variant="destructive">Cancelled</Badge>;
+    }
+    if (paymentStatus === "VERIFIED" && status !== "CONFIRMED") {
+      return <Badge variant="default" className="bg-blue-600">Payment Verified</Badge>;
+    }
+    if (paymentStatus === "PENDING_VERIFICATION") {
+      return <Badge variant="default" className="bg-amber-500">Tentative - Awaiting Verification</Badge>;
+    }
+    return <Badge variant="secondary">Tentative - Awaiting Payment</Badge>;
   };
 
   const filteredBookings = bookings?.filter((booking) => {
@@ -262,7 +266,7 @@ export default function BookingsManagement() {
                           {getPaymentStatusBadge(booking.paymentStatus)}
                         </TableCell>
                         <TableCell>
-                          {getBookingStatusBadge(booking.status)}
+                          {getBookingStatusBadge(booking.status, booking.paymentStatus)}
                         </TableCell>
                         <TableCell>
                           <Button
@@ -341,7 +345,7 @@ export default function BookingsManagement() {
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">Booking Status</Label>
-                      <div className="mt-1">{getBookingStatusBadge(selectedBooking.status)}</div>
+                      <div className="mt-1">{getBookingStatusBadge(selectedBooking.status, selectedBooking.paymentStatus)}</div>
                     </div>
                   </div>
 
