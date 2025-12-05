@@ -20,7 +20,17 @@ The backend is built with Express.js and Node.js (with WebSocket capability), ut
 
 ### Database Architecture
 
-The PostgreSQL database schema is managed with Drizzle ORM and Drizzle Kit, defined in TypeScript. Core tables include `users`, `sessions`, `memberships`, `facilities`, `bookings`, `events`, `leaderboard`, and `cms_content`, among others. Relationships are defined to support user-membership, user-booking, facility-addon, and event-registration flows. PostgreSQL enums and Drizzle-Zod integration ensure type safety and runtime validation. Multi-venue support, construction timelines, and site-wide CMS fields are also managed through dedicated tables.
+The PostgreSQL database schema is managed with Drizzle ORM and Drizzle Kit, defined in TypeScript. Core tables include `users`, `sessions`, `memberships`, `facilities`, `bookings`, `events`, `event_registrations`, `leaderboard`, `cms_content`, `career_applications`, `contact_submissions`, and `site_settings`, among others. Relationships are defined to support user-membership, user-booking, facility-addon, and event-registration flows. PostgreSQL enums and Drizzle-Zod integration ensure type safety and runtime validation. Multi-venue support, construction timelines, and site-wide CMS fields are also managed through dedicated tables.
+
+### Key User Interactions
+
+**Event Registration:** Authenticated users can register/cancel for events through the Events page. The system tracks enrollment counts and prevents duplicate registrations.
+
+**Career Applications:** Job seekers can apply for open positions through a modal form on the Careers page. Applications include name, email, phone, optional CV/LinkedIn URLs, and cover letter.
+
+**Contact Form:** Visitors can submit inquiries through the contact section on the landing page. Submissions are stored in the database for admin review.
+
+**Site Settings:** Admin-configurable settings for contact information and social media URLs, managed via the database.
 
 ### Admin Dashboard
 

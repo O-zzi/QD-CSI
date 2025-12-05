@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Instagram, Facebook, Linkedin } from "lucide-react";
+import { Instagram, Facebook, Linkedin, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export function ContactSection() {
   const { toast } = useToast();
@@ -13,30 +15,35 @@ export function ContactSection() {
     email: "",
     message: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const submitMutation = useMutation({
+    mutationFn: async (data: { name: string; email: string; message: string }) => {
+      return await apiRequest("POST", "/api/contact", {
+        name: data.name,
+        email: data.email,
+        subject: "Early Interest Form Submission",
+        message: data.message,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Message Sent",
+        description: "Thank you for your interest. We'll get back to you soon.",
+      });
+      setFormData({ name: "", email: "", message: "" });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to send message",
+        description: error.message || "Please try again later.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for your interest. We'll get back to you soon.",
-    });
-
-    setFormData({ name: "", email: "", message: "" });
-    setIsSubmitting(false);
-  };
-
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const yOffset = -80;
-    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top: y, behavior: "smooth" });
+    submitMutation.mutate(formData);
   };
 
   return (
@@ -55,7 +62,7 @@ export function ContactSection() {
               Early Interest Form
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              This is a simple placeholder form. In the live site, this can connect to your CRM, email list, or bespoke booking waitlist system.
+              Submit your interest below and we'll keep you updated on our progress and launch.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,10 +95,17 @@ export function ContactSection() {
               <Button
                 type="submit"
                 className="w-full rounded-full"
-                disabled={isSubmitting}
+                disabled={submitMutation.isPending}
                 data-testid="button-send-message"
               >
-                {isSubmitting ? "Sending..." : "Send Message"}
+                {submitMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Send Message"
+                )}
               </Button>
             </form>
           </div>

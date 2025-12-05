@@ -20,6 +20,9 @@ import {
   constructionPhases,
   cmsPages,
   cmsFields,
+  careerApplications,
+  contactSubmissions,
+  siteSettings,
   type User,
   type UpsertUser,
   type Membership,
@@ -31,6 +34,8 @@ import {
   type InsertBooking,
   type Event,
   type InsertEvent,
+  type EventRegistration,
+  type InsertEventRegistration,
   type LeaderboardEntry,
   type CmsContent,
   type InsertCmsContent,
@@ -52,6 +57,12 @@ import {
   type InsertConstructionPhase,
   type CmsField,
   type InsertCmsField,
+  type CareerApplication,
+  type InsertCareerApplication,
+  type ContactSubmission,
+  type InsertContactSubmission,
+  type SiteSetting,
+  type InsertSiteSetting,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
@@ -159,6 +170,29 @@ export interface IStorage {
   getAllCmsFields(): Promise<CmsField[]>;
   upsertCmsField(data: InsertCmsField): Promise<CmsField>;
   deleteCmsField(id: string): Promise<void>;
+  
+  // Event Registration operations
+  registerForEvent(data: InsertEventRegistration): Promise<EventRegistration>;
+  getEventRegistrations(eventId: string): Promise<EventRegistration[]>;
+  getUserEventRegistrations(userId: string): Promise<EventRegistration[]>;
+  isUserRegisteredForEvent(userId: string, eventId: string): Promise<boolean>;
+  cancelEventRegistration(id: string): Promise<void>;
+  
+  // Career Application operations
+  submitCareerApplication(data: InsertCareerApplication): Promise<CareerApplication>;
+  getCareerApplications(careerId?: string): Promise<CareerApplication[]>;
+  updateCareerApplicationStatus(id: string, status: string): Promise<CareerApplication | undefined>;
+  
+  // Contact Submission operations
+  submitContactForm(data: InsertContactSubmission): Promise<ContactSubmission>;
+  getContactSubmissions(): Promise<ContactSubmission[]>;
+  updateContactSubmissionStatus(id: string, status: string): Promise<ContactSubmission | undefined>;
+  
+  // Site Settings operations
+  getSiteSettings(): Promise<SiteSetting[]>;
+  getSiteSetting(key: string): Promise<SiteSetting | undefined>;
+  upsertSiteSetting(data: InsertSiteSetting): Promise<SiteSetting>;
+  deleteSiteSetting(key: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -649,6 +683,115 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCmsField(id: string): Promise<void> {
     await db.delete(cmsFields).where(eq(cmsFields.id, id));
+  }
+
+  // Event Registration operations
+  async registerForEvent(data: InsertEventRegistration): Promise<EventRegistration> {
+    const [registration] = await db.insert(eventRegistrations).values(data).returning();
+    await db.update(events)
+      .set({ enrolledCount: sql`COALESCE(enrolled_count, 0) + 1` })
+      .where(eq(events.id, data.eventId));
+    return registration;
+  }
+
+  async getEventRegistrations(eventId: string): Promise<EventRegistration[]> {
+    return await db.select().from(eventRegistrations).where(eq(eventRegistrations.eventId, eventId));
+  }
+
+  async getUserEventRegistrations(userId: string): Promise<EventRegistration[]> {
+    return await db.select().from(eventRegistrations).where(eq(eventRegistrations.userId, userId));
+  }
+
+  async isUserRegisteredForEvent(userId: string, eventId: string): Promise<boolean> {
+    const [existing] = await db.select().from(eventRegistrations)
+      .where(and(
+        eq(eventRegistrations.userId, userId),
+        eq(eventRegistrations.eventId, eventId)
+      ));
+    return !!existing;
+  }
+
+  async cancelEventRegistration(id: string): Promise<void> {
+    const [registration] = await db.select().from(eventRegistrations).where(eq(eventRegistrations.id, id));
+    if (registration) {
+      await db.delete(eventRegistrations).where(eq(eventRegistrations.id, id));
+      await db.update(events)
+        .set({ enrolledCount: sql`GREATEST(COALESCE(enrolled_count, 0) - 1, 0)` })
+        .where(eq(events.id, registration.eventId));
+    }
+  }
+
+  // Career Application operations
+  async submitCareerApplication(data: InsertCareerApplication): Promise<CareerApplication> {
+    const [application] = await db.insert(careerApplications).values(data).returning();
+    return application;
+  }
+
+  async getCareerApplications(careerId?: string): Promise<CareerApplication[]> {
+    if (careerId) {
+      return await db.select().from(careerApplications)
+        .where(eq(careerApplications.careerId, careerId))
+        .orderBy(desc(careerApplications.createdAt));
+    }
+    return await db.select().from(careerApplications).orderBy(desc(careerApplications.createdAt));
+  }
+
+  async updateCareerApplicationStatus(id: string, status: string): Promise<CareerApplication | undefined> {
+    const [updated] = await db
+      .update(careerApplications)
+      .set({ status })
+      .where(eq(careerApplications.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Contact Submission operations
+  async submitContactForm(data: InsertContactSubmission): Promise<ContactSubmission> {
+    const [submission] = await db.insert(contactSubmissions).values(data).returning();
+    return submission;
+  }
+
+  async getContactSubmissions(): Promise<ContactSubmission[]> {
+    return await db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.createdAt));
+  }
+
+  async updateContactSubmissionStatus(id: string, status: string): Promise<ContactSubmission | undefined> {
+    const [updated] = await db
+      .update(contactSubmissions)
+      .set({ status })
+      .where(eq(contactSubmissions.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Site Settings operations
+  async getSiteSettings(): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings).orderBy(asc(siteSettings.category));
+  }
+
+  async getSiteSetting(key: string): Promise<SiteSetting | undefined> {
+    const [setting] = await db.select().from(siteSettings).where(eq(siteSettings.key, key));
+    return setting;
+  }
+
+  async upsertSiteSetting(data: InsertSiteSetting): Promise<SiteSetting> {
+    const existing = await this.getSiteSetting(data.key);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(siteSettings)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(siteSettings.key, data.key))
+        .returning();
+      return updated;
+    }
+    
+    const [created] = await db.insert(siteSettings).values(data).returning();
+    return created;
+  }
+
+  async deleteSiteSetting(key: string): Promise<void> {
+    await db.delete(siteSettings).where(eq(siteSettings.key, key));
   }
 }
 

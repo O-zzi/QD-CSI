@@ -264,6 +264,45 @@ export const careers = pgTable("careers", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Career Applications table
+export const careerApplications = pgTable("career_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  careerId: varchar("career_id").references(() => careers.id, { onDelete: 'set null' }),
+  fullName: varchar("full_name").notNull(),
+  email: varchar("email").notNull(),
+  phone: varchar("phone"),
+  coverLetter: text("cover_letter"),
+  cvUrl: varchar("cv_url"),
+  cvFileName: varchar("cv_file_name"),
+  linkedinUrl: varchar("linkedin_url"),
+  status: varchar("status").default('NEW'),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Contact Form Submissions table
+export const contactSubmissions = pgTable("contact_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  email: varchar("email").notNull(),
+  phone: varchar("phone"),
+  subject: varchar("subject"),
+  message: text("message").notNull(),
+  status: varchar("status").default('UNREAD'),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Site Settings table (for editable contact emails, social URLs, etc)
+export const siteSettings = pgTable("site_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: varchar("key").unique().notNull(),
+  value: text("value"),
+  type: varchar("type").default('text'),
+  label: varchar("label"),
+  category: varchar("category").default('general'),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Rules/Policies table
 export const rules = pgTable("rules", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -528,6 +567,27 @@ export const insertCmsFieldSchema = createInsertSchema(cmsFields).omit({
   updatedAt: true,
 });
 
+export const insertEventRegistrationSchema = createInsertSchema(eventRegistrations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCareerApplicationSchema = createInsertSchema(careerApplications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -588,3 +648,14 @@ export type InsertCmsPage = z.infer<typeof insertCmsPageSchema>;
 
 export type CmsField = typeof cmsFields.$inferSelect;
 export type InsertCmsField = z.infer<typeof insertCmsFieldSchema>;
+
+export type InsertEventRegistration = z.infer<typeof insertEventRegistrationSchema>;
+
+export type CareerApplication = typeof careerApplications.$inferSelect;
+export type InsertCareerApplication = z.infer<typeof insertCareerApplicationSchema>;
+
+export type ContactSubmission = typeof contactSubmissions.$inferSelect;
+export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;
+
+export type SiteSetting = typeof siteSettings.$inferSelect;
+export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;

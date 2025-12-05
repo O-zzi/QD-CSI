@@ -62,7 +62,7 @@ const phases = [
       "Premium locker rooms and amenities",
       "State-of-the-art booking system",
       "Professional coaching staff onboarding",
-      "Exclusive founding member previews",
+      "Member preview events",
     ],
   },
   {
@@ -73,14 +73,14 @@ const phases = [
     description: "Official opening and full operations begin",
     milestones: [
       { text: "VIP launch event", done: false },
-      { text: "Founding member exclusive access", done: false },
+      { text: "Early member exclusive access", done: false },
       { text: "Public membership opens", done: false },
       { text: "First tournament announcements", done: false },
       { text: "Academy programs launch", done: false },
     ],
     highlights: [
       "Grand opening celebration",
-      "Founding members get first access",
+      "Early members get first access",
       "Launch tournaments and events",
       "Full facility operations",
     ],
@@ -208,14 +208,14 @@ export default function Roadmap() {
           </div>
 
           <div className="mt-12 text-center">
-            <h3 className="text-2xl font-bold text-[#2a4060] mb-4">Be Part of Our Journey</h3>
+            <h3 className="text-2xl font-bold text-[#2a4060] dark:text-sky-400 mb-4">Stay Updated</h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Join as a Founding Member and get exclusive access to preview events, 
-              special pricing, and priority booking when we launch.
+              Follow our progress and be the first to know about new developments, 
+              preview events, and exclusive opportunities.
             </p>
-            <Link href="/#membership">
-              <Button className="bg-[#2a4060] hover:bg-[#1e3048]" data-testid="button-become-founding-member">
-                Become a Founding Member
+            <Link href="/#contact">
+              <Button className="bg-[#2a4060] hover:bg-[#1e3048]" data-testid="button-register-interest">
+                Register Your Interest
               </Button>
             </Link>
           </div>

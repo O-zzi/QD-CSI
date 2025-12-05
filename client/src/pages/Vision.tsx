@@ -111,7 +111,7 @@ export default function Vision() {
             <h2 className="text-3xl font-bold text-[#2a4060] mb-6" data-testid="text-future-title">Looking Ahead</h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-6">
               With our Q4 2026 launch approaching, The Quarterdeck is set to transform the sports and 
-              recreation landscape in Islamabad. Our founding members will be the first to experience 
+              recreation landscape in Islamabad. Our early members will be the first to experience 
               our world-class facilities and exclusive benefits.
             </p>
             <div className="flex flex-wrap gap-4">
@@ -120,9 +120,9 @@ export default function Vision() {
                   <Building2 className="w-4 h-4 mr-2" /> View Our Roadmap
                 </Button>
               </Link>
-              <Link href="/#membership">
-                <Button variant="outline" data-testid="button-become-member">
-                  Become a Founding Member
+              <Link href="/facilities">
+                <Button variant="outline" data-testid="button-explore-facilities">
+                  Explore Facilities
                 </Button>
               </Link>
             </div>

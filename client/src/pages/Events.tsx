@@ -1,16 +1,73 @@
 import { Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, MapPin, Users, Clock, Trophy } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Clock, Trophy, Check, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Event } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Events() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  
   const { data: events = [], isLoading } = useQuery<Event[]>({
     queryKey: ['/api/events'],
   });
+
+  const { data: userRegistrations = [] } = useQuery<{ eventId: string }[]>({
+    queryKey: ['/api/user/event-registrations'],
+    enabled: !!user,
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async (eventId: string) => {
+      return await apiRequest("POST", `/api/events/${eventId}/register`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/event-registrations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      toast({
+        title: "Registration Successful",
+        description: "You have been registered for this event.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Registration Failed",
+        description: error.message || "Unable to register for this event.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: async (eventId: string) => {
+      return await apiRequest("DELETE", `/api/events/${eventId}/register`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/event-registrations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      toast({
+        title: "Registration Cancelled",
+        description: "Your registration has been cancelled.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Cancellation Failed",
+        description: error.message || "Unable to cancel registration.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const isRegistered = (eventId: string) => {
+    return userRegistrations.some(r => r.eventId === eventId);
+  };
 
   const formatDate = (dateStr: string | Date | null | undefined) => {
     if (!dateStr) return 'TBD';
@@ -27,6 +84,22 @@ export default function Events() {
     CLASS: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
     ACADEMY: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
     SOCIAL: 'bg-pink-100 dark:bg-pink-900/30 text-pink-800 dark:text-pink-300',
+  };
+
+  const handleRegister = (eventId: string) => {
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to register for events.",
+        variant: "destructive",
+      });
+      return;
+    }
+    registerMutation.mutate(eventId);
+  };
+
+  const handleCancel = (eventId: string) => {
+    cancelMutation.mutate(eventId);
   };
 
   return (
@@ -56,61 +129,98 @@ export default function Events() {
           </div>
         ) : events.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
-              <Card key={event.id} className="overflow-hidden hover-elevate" data-testid={`card-event-${event.id}`}>
-                <div className="h-40 bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
-                  <Trophy className="w-16 h-16 text-amber-400/50" />
-                </div>
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-lg">{event.title}</CardTitle>
-                    <Badge className={eventTypeColors[event.type] || eventTypeColors.SOCIAL}>
-                      {event.type}
-                    </Badge>
+            {events.map((event) => {
+              const registered = isRegistered(event.id);
+              const isFull = (event.enrolledCount || 0) >= (event.capacity || 0);
+              const isProcessing = registerMutation.isPending || cancelMutation.isPending;
+              
+              return (
+                <Card key={event.id} className="overflow-hidden hover-elevate" data-testid={`card-event-${event.id}`}>
+                  <div className="h-40 bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
+                    <Trophy className="w-16 h-16 text-amber-400/50" />
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {event.description}
-                  </p>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      <span>{event.scheduleDay} {event.scheduleTime || ''}</span>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-lg">{event.title}</CardTitle>
+                      <Badge className={eventTypeColors[event.type] || eventTypeColors.SOCIAL}>
+                        {event.type}
+                      </Badge>
                     </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {event.description}
+                    </p>
                     
-                    {event.instructor && (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="w-4 h-4" />
+                        <span>{event.scheduleDay} {event.scheduleTime || ''}</span>
+                      </div>
+                      
+                      {event.instructor && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Users className="w-4 h-4" />
+                          <span>Instructor: {event.instructor}</span>
+                        </div>
+                      )}
+                      
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Users className="w-4 h-4" />
-                        <span>Instructor: {event.instructor}</span>
+                        <span>{event.enrolledCount || 0} / {event.capacity} enrolled</span>
                       </div>
-                    )}
-                    
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Users className="w-4 h-4" />
-                      <span>{event.enrolledCount || 0} / {event.capacity} enrolled</span>
+                      
+                      {event.enrollmentDeadline && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="w-4 h-4" />
+                          <span>Register by {formatDate(event.enrollmentDeadline)}</span>
+                        </div>
+                      )}
                     </div>
-                    
-                    {event.enrollmentDeadline && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="w-4 h-4" />
-                        <span>Register by {formatDate(event.enrollmentDeadline)}</span>
-                      </div>
-                    )}
-                  </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <div className="font-semibold text-sky-600">
-                      PKR {event.price?.toLocaleString() || 'Free'}
+                    <div className="flex items-center justify-between pt-2 border-t gap-2">
+                      <div className="font-semibold text-sky-600">
+                        PKR {event.price?.toLocaleString() || 'Free'}
+                      </div>
+                      
+                      {registered ? (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleCancel(event.id)}
+                          disabled={isProcessing}
+                          data-testid={`button-cancel-event-${event.id}`}
+                        >
+                          {isProcessing ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <>
+                              <Check className="w-4 h-4 mr-1" />
+                              Registered
+                            </>
+                          )}
+                        </Button>
+                      ) : (
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleRegister(event.id)}
+                          disabled={isProcessing || isFull}
+                          data-testid={`button-register-event-${event.id}`}
+                        >
+                          {isProcessing ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : isFull ? (
+                            'Full'
+                          ) : (
+                            'Register'
+                          )}
+                        </Button>
+                      )}
                     </div>
-                    <Button size="sm" data-testid={`button-register-event-${event.id}`}>
-                      Register
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         ) : (
           <Card>

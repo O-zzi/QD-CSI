@@ -14,6 +14,10 @@ import {
   insertVenueSchema,
   insertConstructionPhaseSchema,
   insertCmsFieldSchema,
+  insertEventRegistrationSchema,
+  insertCareerApplicationSchema,
+  insertContactSubmissionSchema,
+  insertSiteSettingSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
@@ -1174,6 +1178,258 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Error fetching session:", error);
       res.status(500).json({ message: "Failed to fetch session", error: error.message });
+    }
+  });
+
+  // Event Registration Routes
+  app.post('/api/events/:eventId/register', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { eventId } = req.params;
+      
+      const isAlreadyRegistered = await storage.isUserRegisteredForEvent(userId, eventId);
+      if (isAlreadyRegistered) {
+        return res.status(400).json({ message: "You are already registered for this event" });
+      }
+      
+      const result = insertEventRegistrationSchema.safeParse({
+        userId,
+        eventId,
+        status: 'registered'
+      });
+      
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      
+      const registration = await storage.registerForEvent(result.data);
+      res.status(201).json(registration);
+    } catch (error) {
+      console.error("Error registering for event:", error);
+      res.status(500).json({ message: "Failed to register for event" });
+    }
+  });
+
+  app.get('/api/user/event-registrations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const registrations = await storage.getUserEventRegistrations(userId);
+      res.json(registrations);
+    } catch (error) {
+      console.error("Error fetching user event registrations:", error);
+      res.status(500).json({ message: "Failed to fetch registrations" });
+    }
+  });
+
+  app.get('/api/events/:eventId/registration-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { eventId } = req.params;
+      const isRegistered = await storage.isUserRegisteredForEvent(userId, eventId);
+      res.json({ isRegistered });
+    } catch (error) {
+      console.error("Error checking registration status:", error);
+      res.status(500).json({ message: "Failed to check registration status" });
+    }
+  });
+
+  app.delete('/api/events/:eventId/register', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { eventId } = req.params;
+      
+      const registrations = await storage.getUserEventRegistrations(userId);
+      const registration = registrations.find(r => r.eventId === eventId);
+      
+      if (!registration) {
+        return res.status(404).json({ message: "Registration not found" });
+      }
+      
+      await storage.cancelEventRegistration(registration.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error cancelling event registration:", error);
+      res.status(500).json({ message: "Failed to cancel registration" });
+    }
+  });
+
+  // Admin Event Registrations
+  app.get('/api/admin/events/:eventId/registrations', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const registrations = await storage.getEventRegistrations(req.params.eventId);
+      res.json(registrations);
+    } catch (error) {
+      console.error("Error fetching event registrations:", error);
+      res.status(500).json({ message: "Failed to fetch registrations" });
+    }
+  });
+
+  // Career Application Routes
+  app.post('/api/careers/:careerId/apply', async (req, res) => {
+    try {
+      const { careerId } = req.params;
+      const { fullName, email, phone, coverLetter, cvUrl, linkedinUrl } = req.body;
+      
+      // Check if careerId is a valid career in the database
+      const careers = await storage.getCareers();
+      const validCareer = careers.find(c => c.id === careerId);
+      
+      const result = insertCareerApplicationSchema.safeParse({
+        careerId: validCareer ? careerId : null,
+        fullName,
+        email,
+        phone,
+        coverLetter,
+        cvUrl,
+        linkedinUrl,
+        status: 'NEW'
+      });
+      
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      
+      const application = await storage.submitCareerApplication(result.data);
+      res.status(201).json(application);
+    } catch (error) {
+      console.error("Error submitting career application:", error);
+      res.status(500).json({ message: "Failed to submit application" });
+    }
+  });
+
+  app.get('/api/admin/career-applications', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const careerId = req.query.careerId as string | undefined;
+      const applications = await storage.getCareerApplications(careerId);
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching career applications:", error);
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  app.patch('/api/admin/career-applications/:id/status', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!['pending', 'reviewed', 'interviewing', 'accepted', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const updated = await storage.updateCareerApplicationStatus(id, status);
+      if (!updated) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating application status:", error);
+      res.status(500).json({ message: "Failed to update application status" });
+    }
+  });
+
+  // Contact Form Routes
+  app.post('/api/contact', async (req, res) => {
+    try {
+      const { name, email, subject, message, phone } = req.body;
+      
+      const result = insertContactSubmissionSchema.safeParse({
+        name,
+        email,
+        subject,
+        message,
+        phone,
+        status: 'new'
+      });
+      
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      
+      const submission = await storage.submitContactForm(result.data);
+      res.status(201).json(submission);
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      res.status(500).json({ message: "Failed to submit contact form" });
+    }
+  });
+
+  app.get('/api/admin/contact-submissions', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const submissions = await storage.getContactSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      console.error("Error fetching contact submissions:", error);
+      res.status(500).json({ message: "Failed to fetch submissions" });
+    }
+  });
+
+  app.patch('/api/admin/contact-submissions/:id/status', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!['new', 'read', 'responded', 'archived'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const updated = await storage.updateContactSubmissionStatus(id, status);
+      if (!updated) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating submission status:", error);
+      res.status(500).json({ message: "Failed to update submission status" });
+    }
+  });
+
+  // Site Settings Routes
+  app.get('/api/site-settings', async (req, res) => {
+    try {
+      const settings = await storage.getSiteSettings();
+      const settingsMap = settings.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {} as Record<string, string>);
+      res.json(settingsMap);
+    } catch (error) {
+      console.error("Error fetching site settings:", error);
+      res.status(500).json({ message: "Failed to fetch site settings" });
+    }
+  });
+
+  app.get('/api/admin/site-settings', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getSiteSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching site settings:", error);
+      res.status(500).json({ message: "Failed to fetch site settings" });
+    }
+  });
+
+  app.post('/api/admin/site-settings', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertSiteSettingSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const setting = await storage.upsertSiteSetting(result.data);
+      res.status(201).json(setting);
+    } catch (error) {
+      console.error("Error creating site setting:", error);
+      res.status(500).json({ message: "Failed to create site setting" });
+    }
+  });
+
+  app.delete('/api/admin/site-settings/:key', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteSiteSetting(req.params.key);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting site setting:", error);
+      res.status(500).json({ message: "Failed to delete site setting" });
     }
   });
 

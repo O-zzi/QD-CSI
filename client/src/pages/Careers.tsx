@@ -1,10 +1,31 @@
+import { useState } from "react";
 import { Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Clock, Briefcase, Mail, ChevronRight } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Briefcase, Mail, ChevronRight, Loader2, X, Send, Linkedin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Career } from "@shared/schema";
+
+const applicationSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email"),
+  phone: z.string().min(10, "Please enter a valid phone number"),
+  cvUrl: z.string().url("Please enter a valid URL to your CV/resume").optional().or(z.literal("")),
+  linkedinUrl: z.string().url("Please enter a valid LinkedIn URL").optional().or(z.literal("")),
+  coverLetter: z.string().min(50, "Cover letter should be at least 50 characters"),
+});
+
+type ApplicationFormData = z.infer<typeof applicationSchema>;
 
 const defaultJobs = [
   {
@@ -65,9 +86,64 @@ const defaultJobs = [
 ];
 
 export default function Careers() {
+  const { toast } = useToast();
+  const [selectedJob, setSelectedJob] = useState<typeof defaultJobs[0] | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const { data: careers } = useQuery<Career[]>({
     queryKey: ["/api/careers"],
   });
+
+  const form = useForm<ApplicationFormData>({
+    resolver: zodResolver(applicationSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      cvUrl: "",
+      linkedinUrl: "",
+      coverLetter: "",
+    },
+  });
+
+  const applyMutation = useMutation({
+    mutationFn: async (data: ApplicationFormData & { careerId: string }) => {
+      return await apiRequest("POST", `/api/careers/${data.careerId}/apply`, {
+        fullName: data.name,
+        email: data.email,
+        phone: data.phone,
+        cvUrl: data.cvUrl || null,
+        linkedinUrl: data.linkedinUrl || null,
+        coverLetter: data.coverLetter,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Application Submitted",
+        description: "Thank you for your application. We will review it and get back to you soon.",
+      });
+      setIsDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Unable to submit application. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: ApplicationFormData) => {
+    if (selectedJob) {
+      applyMutation.mutate({ ...data, careerId: selectedJob.id });
+    }
+  };
+
+  const handleApply = (job: { id: string; title: string }) => {
+    setSelectedJob(job as typeof defaultJobs[0]);
+    setIsDialogOpen(true);
+  };
 
   const jobListings = careers && careers.length > 0 ? careers : defaultJobs;
   const activeJobs = jobListings.filter(job => job.isActive);
@@ -95,12 +171,12 @@ export default function Careers() {
 
         <div className="max-w-4xl mx-auto">
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-[#2a4060] mb-4">Why Work at The Quarterdeck?</h2>
+            <h2 className="text-2xl font-bold text-[#2a4060] dark:text-sky-400 mb-4">Why Work at The Quarterdeck?</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <Card>
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 flex items-center justify-center mx-auto mb-4">
-                    <Briefcase className="w-6 h-6 text-[#2a4060]" />
+                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center mx-auto mb-4">
+                    <Briefcase className="w-6 h-6 text-[#2a4060] dark:text-sky-400" />
                   </div>
                   <h3 className="font-semibold mb-2">Career Growth</h3>
                   <p className="text-sm text-muted-foreground">
@@ -110,8 +186,8 @@ export default function Careers() {
               </Card>
               <Card>
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 flex items-center justify-center mx-auto mb-4">
-                    <MapPin className="w-6 h-6 text-[#2a4060]" />
+                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center mx-auto mb-4">
+                    <MapPin className="w-6 h-6 text-[#2a4060] dark:text-sky-400" />
                   </div>
                   <h3 className="font-semibold mb-2">Prime Location</h3>
                   <p className="text-sm text-muted-foreground">
@@ -121,8 +197,8 @@ export default function Careers() {
               </Card>
               <Card>
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 flex items-center justify-center mx-auto mb-4">
-                    <Clock className="w-6 h-6 text-[#2a4060]" />
+                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center mx-auto mb-4">
+                    <Clock className="w-6 h-6 text-[#2a4060] dark:text-sky-400" />
                   </div>
                   <h3 className="font-semibold mb-2">Flexible Hours</h3>
                   <p className="text-sm text-muted-foreground">
@@ -134,7 +210,7 @@ export default function Careers() {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-[#2a4060] mb-6">Open Positions</h2>
+            <h2 className="text-2xl font-bold text-[#2a4060] dark:text-sky-400 mb-6">Open Positions</h2>
             
             {activeJobs.length === 0 ? (
               <Card>
@@ -147,11 +223,11 @@ export default function Careers() {
             ) : (
               <div className="space-y-4">
                 {activeJobs.map((job) => (
-                  <Card key={job.id} className="hover-elevate cursor-pointer" data-testid={`card-job-${job.id}`}>
+                  <Card key={job.id} className="hover-elevate" data-testid={`card-job-${job.id}`}>
                     <CardContent className="p-6">
                       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 flex-wrap mb-2">
                             <h3 className="font-semibold text-lg">{job.title}</h3>
                             <Badge variant="secondary" className="text-xs">{job.type}</Badge>
                           </div>
@@ -163,7 +239,7 @@ export default function Careers() {
                               <MapPin className="w-4 h-4" /> {job.location}
                             </span>
                             {job.salary && (
-                              <span className="text-[#2a4060] font-medium">{job.salary}</span>
+                              <span className="text-[#2a4060] dark:text-sky-400 font-medium">{job.salary}</span>
                             )}
                           </div>
                           <p className="text-muted-foreground text-sm mb-3">{job.description}</p>
@@ -176,7 +252,7 @@ export default function Careers() {
                         </div>
                         <Button 
                           className="bg-[#2a4060] hover:bg-[#1e3048] flex-shrink-0"
-                          onClick={() => window.location.href = `mailto:careers@thequarterdeck.pk?subject=Application for ${job.title}`}
+                          onClick={() => handleApply(job)}
                           data-testid={`button-apply-${job.id}`}
                         >
                           Apply Now <ChevronRight className="w-4 h-4 ml-1" />
@@ -209,6 +285,140 @@ export default function Careers() {
           </Card>
         </div>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Apply for {selectedJob?.title}</DialogTitle>
+            <DialogDescription>
+              Fill out the form below to submit your application
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} data-testid="input-applicant-name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="john@example.com" {...field} data-testid="input-applicant-email" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+92 300 1234567" {...field} data-testid="input-applicant-phone" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="cvUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CV/Resume URL (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://drive.google.com/..." {...field} data-testid="input-applicant-cv" />
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                      Share a link to your CV on Google Drive, Dropbox, or similar service
+                    </p>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="linkedinUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Linkedin className="w-4 h-4" />
+                      LinkedIn Profile (Optional)
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://linkedin.com/in/..." {...field} data-testid="input-applicant-linkedin" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="coverLetter"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cover Letter</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Tell us why you're interested in this position and what makes you a great fit..."
+                        className="min-h-[120px]"
+                        {...field} 
+                        data-testid="input-applicant-cover-letter"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsDialogOpen(false)}
+                  data-testid="button-cancel-application"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={applyMutation.isPending}
+                  className="bg-[#2a4060] hover:bg-[#1e3048]"
+                  data-testid="button-submit-application"
+                >
+                  {applyMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  Submit Application
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
