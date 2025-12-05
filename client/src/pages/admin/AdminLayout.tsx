@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback } from "react";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import type { User, Booking, Facility } from "@shared/schema";
+import { useAdminSession } from "@/hooks/useAdminSession";
 
 const navItems = [
   { path: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -55,6 +56,8 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
   const [location, setLocation] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  
+  useAdminSession();
   
   const { data: user, isLoading: userLoading } = useQuery<User>({
     queryKey: ["/api/auth/user"],
