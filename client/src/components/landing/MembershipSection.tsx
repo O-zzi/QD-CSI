@@ -130,9 +130,9 @@ export function MembershipSection() {
           <Button
             className="rounded-full"
             onClick={() => scrollToSection("contact")}
-            data-testid="button-join-waitlist"
+            data-testid="button-inquire-membership"
           >
-            Join Waitlist
+            Inquire Now
           </Button>
         </div>
 
@@ -229,7 +229,7 @@ export function MembershipSection() {
                   }}
                   data-testid={`button-select-${tier.id}`}
                 >
-                  {tier.closed ? "Waitlist Closed" : "Join Waitlist"}
+                  {tier.closed ? "Not Available" : "Inquire Now"}
                 </Button>
               </div>
             );

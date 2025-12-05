@@ -45,7 +45,6 @@ export function Navbar({ onScrollTo }: NavbarProps) {
     { label: "Facilities", href: "/facilities" },
     { label: "Updates", href: "/roadmap" },
     { label: "Gallery", section: "gallery" },
-    { label: "Membership", section: "membership" },
     { label: "Contact", section: "contact" },
   ];
 

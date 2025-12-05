@@ -244,8 +244,8 @@ export default function Facilities() {
           <div className="mt-12 text-center">
             <h3 className="text-2xl font-bold text-[#2a4060] mb-4">Ready to Book?</h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Members can book facilities through our online booking system. Not a member yet? 
-              Join now and get access to all our premium facilities.
+              Members can book facilities through our online booking system. 
+              Log in to access all our premium facilities and exclusive member benefits.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/booking">
@@ -253,9 +253,9 @@ export default function Facilities() {
                   Book Now
                 </Button>
               </Link>
-              <Link href="/#membership">
-                <Button variant="outline" data-testid="button-become-member">
-                  Become a Member
+              <Link href="/#contact">
+                <Button variant="outline" data-testid="button-contact-us">
+                  Contact Us
                 </Button>
               </Link>
             </div>
