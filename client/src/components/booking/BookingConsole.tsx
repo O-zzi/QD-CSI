@@ -21,6 +21,18 @@ import {
 import { GiTennisRacket, GiSquare } from "react-icons/gi";
 import type { Facility, Booking } from "@shared/schema";
 
+import padelRacketImg from "@assets/stock_images/padel_tennis_racket__27bc6fce.jpg";
+import sportsBallsImg from "@assets/stock_images/sports_balls_tennis__26c570e1.jpg";
+import mineralWaterImg from "@assets/stock_images/bottled_mineral_wate_edb6abad.jpg";
+import freshTowelImg from "@assets/stock_images/white_sports_towel_f_fbcf5ab6.jpg";
+import earProtectionImg from "@assets/stock_images/ear_protection_muffs_a1e17b4f.jpg";
+import safetyGlassesImg from "@assets/stock_images/safety_glasses_prote_791951bd.jpg";
+import teaCoffeeImg from "@assets/stock_images/tea_coffee_service_c_4144e519.jpg";
+import snacksPlatterImg from "@assets/stock_images/snacks_platter_appet_922ac906.jpg";
+import floorMatsImg from "@assets/stock_images/yoga_floor_exercise__ef8642d4.jpg";
+import speakerMicImg from "@assets/stock_images/microphone_speaker_a_0daceca0.jpg";
+import squashRacketImg from "@assets/stock_images/squash_racket_sports_6d7b2f44.jpg";
+
 const FACILITIES = [
   { id: 'padel-tennis', label: 'Padel Tennis', count: 4, basePrice: 6000, minPlayers: 4, icon: GiTennisRacket, requiresCert: false },
   { id: 'squash', label: 'Squash Courts', count: 2, basePrice: 4000, minPlayers: 2, icon: GiSquare, requiresCert: false },
@@ -29,33 +41,34 @@ const FACILITIES = [
   { id: 'multipurpose-hall', label: 'Multipurpose Hall', count: 1, basePrice: 6000, minPlayers: 10, icon: Building2, requiresCert: false },
 ];
 
-const FACILITY_ADD_ONS: Record<string, Array<{ id: string; label: string; price: number; icon: typeof Target }>> = {
+type AddOn = { id: string; label: string; price: number; icon: typeof Target; image: string };
+const FACILITY_ADD_ONS: Record<string, AddOn[]> = {
   'padel-tennis': [
-    { id: 'racket', label: 'Rent Racket', price: 500, icon: Target },
-    { id: 'balls', label: 'Sleeve of Balls', price: 1500, icon: CircleDot },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
-    { id: 'towel', label: 'Fresh Towel', price: 300, icon: ShieldCheck },
+    { id: 'racket', label: 'Rent Racket', price: 500, icon: Target, image: padelRacketImg },
+    { id: 'balls', label: 'Sleeve of Balls', price: 1500, icon: CircleDot, image: sportsBallsImg },
+    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets, image: mineralWaterImg },
+    { id: 'towel', label: 'Fresh Towel', price: 300, icon: ShieldCheck, image: freshTowelImg },
   ],
   'squash': [
-    { id: 'sq_racket', label: 'Squash Racket Rental', price: 500, icon: Target },
-    { id: 'sq_balls', label: 'Squash Balls (Tube)', price: 1200, icon: CircleDot },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
-    { id: 'towel', label: 'Fresh Towel', price: 300, icon: ShieldCheck },
+    { id: 'sq_racket', label: 'Squash Racket Rental', price: 500, icon: Target, image: squashRacketImg },
+    { id: 'sq_balls', label: 'Squash Balls (Tube)', price: 1200, icon: CircleDot, image: sportsBallsImg },
+    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets, image: mineralWaterImg },
+    { id: 'towel', label: 'Fresh Towel', price: 300, icon: ShieldCheck, image: freshTowelImg },
   ],
   'air-rifle-range': [
-    { id: 'ear_protection', label: 'Ear Protection', price: 300, icon: Headphones },
-    { id: 'safety_glasses', label: 'Safety Glasses', price: 400, icon: Glasses },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
+    { id: 'ear_protection', label: 'Ear Protection', price: 300, icon: Headphones, image: earProtectionImg },
+    { id: 'safety_glasses', label: 'Safety Glasses', price: 400, icon: Glasses, image: safetyGlassesImg },
+    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets, image: mineralWaterImg },
   ],
   'bridge-room': [
-    { id: 'tea_coffee', label: 'Tea / Coffee Service', price: 300, icon: Coffee },
-    { id: 'snacks', label: 'Snacks Platter', price: 800, icon: ShieldCheck },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
+    { id: 'tea_coffee', label: 'Tea / Coffee Service', price: 300, icon: Coffee, image: teaCoffeeImg },
+    { id: 'snacks', label: 'Snacks Platter', price: 800, icon: ShieldCheck, image: snacksPlatterImg },
+    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets, image: mineralWaterImg },
   ],
   'multipurpose-hall': [
-    { id: 'mats', label: 'Floor Mats', price: 500, icon: ShieldCheck },
-    { id: 'speaker', label: 'Speaker & Mic Setup', price: 1500, icon: Speaker },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets },
+    { id: 'mats', label: 'Floor Mats', price: 500, icon: ShieldCheck, image: floorMatsImg },
+    { id: 'speaker', label: 'Speaker & Mic Setup', price: 1500, icon: Speaker, image: speakerMicImg },
+    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets, image: mineralWaterImg },
   ],
 };
 
@@ -670,27 +683,32 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                         <h4 className="text-xs font-bold text-muted-foreground uppercase mb-2">Add-ons</h4>
                         <div className="space-y-2">
                           {(FACILITY_ADD_ONS[selectedFacility.id] || []).map((item) => {
-                            const Icon = item.icon;
                             const selected = selectedAddOns.has(item.id);
                             const qty = addOnQuantities[item.id] ?? 1;
                             return (
                               <div
                                 key={item.id}
                                 onClick={() => toggleAddOn(item)}
-                                className={`border rounded-xl px-4 py-3 flex items-center gap-2 text-sm transition cursor-pointer hover:shadow-sm ${
+                                className={`border rounded-xl px-3 py-2 flex items-center gap-3 text-sm transition cursor-pointer hover:shadow-sm ${
                                   selected
                                     ? 'bg-sky-50 dark:bg-sky-900/30 border-amber-500 text-amber-800 dark:text-amber-300'
                                     : 'bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600'
                                 }`}
                                 data-testid={`addon-${item.id}`}
                               >
-                                <Icon className="w-5 h-5" />
-                                <div className="flex-1 text-left">
-                                  <p className="font-semibold">{item.label}</p>
+                                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-slate-600">
+                                  <img 
+                                    src={item.image} 
+                                    alt={item.label}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex-1 text-left min-w-0">
+                                  <p className="font-semibold truncate">{item.label}</p>
                                   <p className="text-[10px] text-muted-foreground">{formatPKR(item.price)} per unit</p>
                                 </div>
                                 {selected && (
-                                  <div className="flex items-center gap-1 text-xs" onClick={(e) => e.stopPropagation()}>
+                                  <div className="flex items-center gap-1 text-xs flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                                     <button
                                       onClick={() => changeAddOnQuantity(item.id, -1)}
                                       className="h-6 w-6 rounded-full border border-gray-300 dark:border-slate-600 flex items-center justify-center"
