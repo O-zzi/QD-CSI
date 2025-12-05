@@ -10,7 +10,7 @@ class ResendEmailService implements EmailService {
 
   constructor() {
     this.apiKey = process.env.RESEND_API_KEY || '';
-    this.fromEmail = process.env.EMAIL_FROM || 'The Quarterdeck <noreply@thequarterdeck.pk>';
+    this.fromEmail = process.env.EMAIL_FROM || 'The Quarterdeck <onboarding@resend.dev>';
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
