@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Menu, X, ChevronDown } from "lucide-react";
@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { NavbarItem, SiteSetting } from "@shared/schema";
 
 interface NavbarProps {
   onScrollTo?: (section: string) => void;
@@ -23,13 +24,25 @@ interface NavLink {
   children?: { label: string; href: string }[];
 }
 
+const defaultNavLinks: NavLink[] = [
+  { label: "Facilities", href: "/facilities" },
+  { label: "Events & Academies", href: "/events" },
+  { label: "Updates", href: "/roadmap" },
+  { label: "Gallery", section: "gallery" },
+  { label: "Contact", section: "contact" },
+];
+
 export function Navbar({ onScrollTo }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const [location] = useLocation();
 
-  const { data: siteSettings } = useQuery<Record<string, string>>({
+  const { data: siteSettings } = useQuery<SiteSetting[]>({
     queryKey: ['/api/site-settings'],
+  });
+
+  const { data: navbarItems } = useQuery<NavbarItem[]>({
+    queryKey: ['/api/navbar-items'],
   });
 
   const scrollToSection = (id: string) => {
@@ -45,17 +58,31 @@ export function Navbar({ onScrollTo }: NavbarProps) {
     setMobileMenuOpen(false);
   };
 
-  const logoUrl = siteSettings?.logo_main_url;
-  const siteName = siteSettings?.site_name || "The Quarterdeck";
-  const siteTagline = siteSettings?.site_tagline || "Sports & Recreation Complex";
+  const getSetting = (key: string, fallback: string = "") => {
+    if (Array.isArray(siteSettings)) {
+      return siteSettings.find(s => s.key === key)?.value || fallback;
+    }
+    return (siteSettings as any)?.[key] || fallback;
+  };
 
-  const navLinks: NavLink[] = [
-    { label: "Facilities", href: "/facilities" },
-    { label: "Events & Academies", href: "/events" },
-    { label: "Updates", href: "/roadmap" },
-    { label: "Gallery", section: "gallery" },
-    { label: "Contact", section: "contact" },
-  ];
+  const logoUrl = getSetting("logo_main_url");
+  const siteName = getSetting("site_name", "The Quarterdeck");
+  const siteTagline = getSetting("site_tagline", "Sports & Recreation Complex");
+
+  const navLinks: NavLink[] = useMemo(() => {
+    if (!navbarItems || navbarItems.length === 0) {
+      return defaultNavLinks;
+    }
+    return navbarItems
+      .filter(item => item.isVisible)
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      .map(item => {
+        if (item.href?.startsWith('/#')) {
+          return { label: item.label, section: item.href.replace('/#', '') };
+        }
+        return { label: item.label, href: item.href };
+      });
+  }, [navbarItems]);
 
   const handleNavClick = (link: NavLink) => {
     if (link.href) {

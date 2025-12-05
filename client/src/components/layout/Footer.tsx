@@ -1,8 +1,26 @@
 import { Link } from "wouter";
-import { Instagram, Facebook, Linkedin } from "lucide-react";
+import { Instagram, Facebook, Linkedin, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import footerBg from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
+import type { SiteSetting } from "@shared/schema";
 
 export function Footer() {
+  const { data: siteSettings, isLoading } = useQuery<SiteSetting[]>({
+    queryKey: ["/api/site-settings"],
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const getSetting = (key: string, fallback: string = "") => {
+    return siteSettings?.find(s => s.key === key)?.value || fallback;
+  };
+
+  const siteName = getSetting("site_name", "The Quarterdeck");
+  const siteTagline = getSetting("site_tagline", "Sports & Recreation Complex");
+  const instagramUrl = getSetting("instagram_url") || getSetting("social_instagram", "#");
+  const facebookUrl = getSetting("facebook_url") || getSetting("social_facebook", "#");
+  const linkedinUrl = getSetting("linkedin_url") || getSetting("social_linkedin", "#");
+  const copyrightYear = new Date().getFullYear();
+
   return (
     <footer className="qd-footer relative overflow-hidden">
       <div 
@@ -14,10 +32,10 @@ export function Footer() {
         <div className="flex flex-wrap justify-between gap-6 items-center">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer" data-testid="link-footer-logo">
-              <div className="qd-logo-mark">Q</div>
+              <div className="qd-logo-mark">{siteName.charAt(0)}</div>
               <div>
-                <div className="font-bold tracking-wider text-sm uppercase text-gray-200">The Quarterdeck</div>
-                <div className="text-xs text-gray-400">Sports & Recreation Complex</div>
+                <div className="font-bold tracking-wider text-sm uppercase text-gray-200">{siteName}</div>
+                <div className="text-xs text-gray-400">{siteTagline}</div>
               </div>
             </div>
           </Link>
@@ -47,7 +65,9 @@ export function Footer() {
 
           <div className="flex gap-4">
             <a
-              href="#"
+              href={instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="qd-social-icon"
               aria-label="Instagram"
               data-testid="link-social-instagram"
@@ -55,7 +75,9 @@ export function Footer() {
               <Instagram className="w-4 h-4" />
             </a>
             <a
-              href="#"
+              href={facebookUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="qd-social-icon"
               aria-label="Facebook"
               data-testid="link-social-facebook"
@@ -63,7 +85,9 @@ export function Footer() {
               <Facebook className="w-4 h-4" />
             </a>
             <a
-              href="#"
+              href={linkedinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="qd-social-icon"
               aria-label="LinkedIn"
               data-testid="link-social-linkedin"
@@ -74,7 +98,7 @@ export function Footer() {
         </div>
 
         <p className="text-center mt-6 text-gray-500 text-xs">
-          © 2025 The Quarterdeck – All rights reserved.{" "}
+          © {copyrightYear} {siteName} – All rights reserved.{" "}
           <Link href="/terms" className="font-semibold hover:text-gray-300 cursor-pointer" data-testid="link-footer-terms">
             Terms & Conditions
           </Link>
