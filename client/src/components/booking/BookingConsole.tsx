@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -145,7 +145,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   const [selectedDuration, setSelectedDuration] = useState(60);
   const [selectedResourceId, setSelectedResourceId] = useState(1);
   const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credits'>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'credits'>('cash');
   const [payerType, setPayerType] = useState<'self' | 'member'>('self');
   const [payerMembershipNumber, setPayerMembershipNumber] = useState('');
   const [payerMembershipValid, setPayerMembershipValid] = useState<boolean | null>(null);
@@ -162,6 +162,44 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Member',
     email: user.email || '',
   } : MOCK_USER_PROFILE;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const sessionId = params.get('session_id');
+    const canceled = params.get('canceled');
+
+    if (success === 'true' && sessionId) {
+      apiRequest('POST', '/api/stripe/verify-session', { sessionId })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.booking) {
+            toast({
+              title: "Payment Successful!",
+              description: "Your booking has been confirmed and paid.",
+            });
+            queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+          }
+        })
+        .catch((error) => {
+          toast({
+            title: "Payment Verification Failed",
+            description: error.message || "Please contact support if your payment was deducted.",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          window.history.replaceState({}, '', window.location.pathname);
+        });
+    } else if (canceled === 'true') {
+      toast({
+        title: "Payment Canceled",
+        description: "Your payment was canceled. No charges were made.",
+        variant: "default",
+      });
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [toast]);
 
   const { data: existingBookings = [] } = useQuery<Booking[]>({
     queryKey: ['/api/bookings', selectedFacility.id, selectedDate],
@@ -262,7 +300,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     });
   };
 
-  const confirmBooking = () => {
+  const confirmBooking = async () => {
     if (!bookingSummary || !selectedStartTime) return;
     if (selectedFacility.id === 'multipurpose-hall' && !selectedHallActivity) {
       toast({
@@ -270,6 +308,44 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         description: "Please select a purpose for the Multipurpose Hall booking.",
         variant: "destructive",
       });
+      return;
+    }
+
+    if (paymentMethod === 'card') {
+      try {
+        const response = await apiRequest('POST', '/api/stripe/create-checkout', {
+          facilitySlug: selectedFacility.id,
+          venue: selectedVenue,
+          resourceId: selectedResourceId,
+          date: selectedDate,
+          startTime: selectedStartTime,
+          endTime: bookingSummary.endTime,
+          durationMinutes: selectedDuration,
+          basePrice: bookingSummary.basePrice,
+          discount: bookingSummary.discount,
+          addOnTotal: bookingSummary.addOnTotal,
+          totalPrice: bookingSummary.totalPrice,
+          coachBooked,
+          isMatchmaking,
+          hallActivity: selectedHallActivity,
+          addOns: Array.from(selectedAddOns).map((id) => ({
+            id,
+            quantity: addOnQuantities[id] ?? 1,
+          })),
+        });
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error('No checkout URL returned');
+        }
+      } catch (error: any) {
+        toast({
+          title: "Payment Error",
+          description: error.message || "Failed to start payment. Please try again.",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
@@ -810,21 +886,32 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                       {/* Payment Method */}
                       <div className="mt-6">
                         <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">Payment Method</label>
-                        <div className="flex gap-3">
+                        <div className="flex gap-2 flex-wrap">
                           <button
                             onClick={() => setPaymentMethod('cash')}
-                            className={`flex-grow px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                            className={`flex-1 min-w-[100px] px-3 py-2 rounded-lg text-sm font-medium transition border ${
                               paymentMethod === 'cash'
                                 ? 'bg-green-500 text-white border-green-500'
                                 : 'bg-white dark:bg-slate-700 text-foreground border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600'
                             }`}
                             data-testid="button-payment-cash"
                           >
-                            Cash/Card (On-Site)
+                            Pay On-Site
+                          </button>
+                          <button
+                            onClick={() => setPaymentMethod('card')}
+                            className={`flex-1 min-w-[100px] px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                              paymentMethod === 'card'
+                                ? 'bg-purple-600 text-white border-purple-600'
+                                : 'bg-white dark:bg-slate-700 text-foreground border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600'
+                            }`}
+                            data-testid="button-payment-card"
+                          >
+                            Pay with Card
                           </button>
                           <button
                             onClick={() => setPaymentMethod('credits')}
-                            className={`flex-grow px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                            className={`flex-1 min-w-[100px] px-3 py-2 rounded-lg text-sm font-medium transition border ${
                               paymentMethod === 'credits'
                                 ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100'
                                 : 'bg-white dark:bg-slate-700 text-foreground border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600'
@@ -842,7 +929,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                         className="w-full mt-6 py-3 rounded-xl font-bold bg-sky-600 hover:bg-sky-500 shadow-lg"
                         data-testid="button-confirm-booking"
                       >
-                        {createBookingMutation.isPending ? 'Processing...' : 'Confirm Booking'}
+                        {createBookingMutation.isPending ? 'Processing...' : paymentMethod === 'card' ? 'Proceed to Payment' : 'Confirm Booking'}
                       </Button>
                     </>
                   ) : (

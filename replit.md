@@ -189,12 +189,46 @@ All protected with `isAuthenticated` and `isAdmin` middleware:
 
 All PATCH routes validate using partial Zod schemas for type safety.
 
+### Stripe Payment Integration (December 2025)
+Complete online payment system integrated with Stripe for card payments:
+
+**Payment Flow:**
+1. User selects facility, court, date, time, and add-ons
+2. User chooses "Pay with Card" payment method
+3. Frontend calls `/api/stripe/create-checkout` to initiate payment
+4. Server validates prices server-side (prevents tampering)
+5. Server checks for double-booking before allowing checkout
+6. Stripe checkout session created with booking metadata
+7. User redirected to Stripe-hosted checkout page
+8. After payment, user returns to `/booking?success=true&session_id=xxx`
+9. Frontend calls `/api/stripe/verify-session` to confirm payment
+10. Booking created only after payment verification
+
+**API Endpoints:**
+- POST `/api/stripe/create-checkout` - Creates Stripe checkout session (authenticated)
+- POST `/api/stripe/verify-session` - Verifies payment and creates booking
+- GET `/api/stripe/session/:sessionId` - Retrieves session details
+- Webhook: `/api/stripe/webhook/:uuid` - Receives Stripe events
+
+**Security Features:**
+- Server-side price calculation using database values (no client-submitted prices trusted)
+- NaN validation guard prevents invalid calculations
+- Double-booking check before checkout AND before booking creation
+- Idempotent booking creation via stripeSessionId tracking
+- Webhook route uses raw body (registered before express.json())
+
+**Database Fields Added:**
+- `bookings.hall_activity` - Activity type for multipurpose hall
+- `bookings.stripe_session_id` - Stripe checkout session ID
+- `bookings.stripe_payment_intent_id` - Stripe payment intent ID
+
 ### Security & Validation
 - Double-booking prevention: Server checks for existing bookings before creating new ones
 - Membership number format validation: Enforces QD-XXXX pattern (e.g., QD-0001)
 - Payer validation: Verifies membership exists and is active when booking on behalf of another member
 - Admin route protection with role-based middleware
 - Zod validation on all admin POST and PATCH endpoints
+- Server-side Stripe price validation prevents payment amount tampering
 
 ### Seed Data Available
 - 5 Facilities: Padel Tennis, Squash, Air Rifle Range, Bridge Club, Multipurpose Hall

@@ -62,9 +62,14 @@ export interface IStorage {
   // Booking operations
   getBookings(userId: string): Promise<Booking[]>;
   getBookingsByDate(facilityId: string, date: string): Promise<Booking[]>;
+  getBookingByStripeSessionId(sessionId: string): Promise<Booking | undefined>;
   createBooking(booking: InsertBooking): Promise<Booking>;
+  createBookingAddOn(data: { bookingId: string; addOnId: string; quantity: number; priceAtBooking: number }): Promise<any>;
   updateBookingStatus(bookingId: string, status: string): Promise<Booking | undefined>;
-  checkDoubleBooking(facilityId: string, resourceId: number, date: string, startTime: string): Promise<boolean>;
+  checkDoubleBooking(facilitySlug: string, resourceId: number, date: string, startTime: string, endTime: string): Promise<boolean>;
+  
+  // User update
+  updateUser(id: string, data: Partial<User>): Promise<User | undefined>;
 
   // Event operations
   getEvents(): Promise<Event[]>;
@@ -135,6 +140,15 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         },
       })
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: string, data: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(users.id, id))
       .returning();
     return user;
   }
@@ -212,23 +226,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   async checkDoubleBooking(
-    facilityId: string,
+    facilitySlug: string,
     resourceId: number,
     date: string,
-    startTime: string
+    startTime: string,
+    endTime: string
   ): Promise<boolean> {
+    const facility = await this.getFacilityBySlug(facilitySlug);
+    if (!facility) return false;
+    
     const existing = await db
       .select()
       .from(bookings)
       .where(
         and(
-          eq(bookings.facilityId, facilityId),
+          eq(bookings.facilityId, facility.id),
           eq(bookings.resourceId, resourceId),
           eq(bookings.date, date),
           eq(bookings.startTime, startTime)
         )
       );
     return existing.length > 0;
+  }
+
+  async getBookingByStripeSessionId(sessionId: string): Promise<Booking | undefined> {
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.stripeSessionId, sessionId));
+    return booking;
+  }
+
+  async createBookingAddOn(data: { bookingId: string; addOnId: string; quantity: number; priceAtBooking: number }): Promise<any> {
+    const [created] = await db
+      .insert(bookingAddOns)
+      .values({
+        bookingId: data.bookingId,
+        addOnId: data.addOnId,
+        quantity: data.quantity,
+        priceAtBooking: data.priceAtBooking,
+      })
+      .returning();
+    return created;
   }
 
   // Event operations

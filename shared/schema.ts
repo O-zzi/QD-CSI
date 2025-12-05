@@ -49,6 +49,7 @@ export const users = pgTable("users", {
   hasSignedWaiver: boolean("has_signed_waiver").default(false),
   creditBalance: integer("credit_balance").default(0),
   totalHoursPlayed: integer("total_hours_played").default(0),
+  stripeCustomerId: varchar("stripe_customer_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -119,6 +120,9 @@ export const bookings = pgTable("bookings", {
   isMatchmaking: boolean("is_matchmaking").default(false),
   currentPlayers: integer("current_players").default(1),
   maxPlayers: integer("max_players").default(4),
+  hallActivity: varchar("hall_activity"),
+  stripeSessionId: varchar("stripe_session_id"),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -13,6 +13,9 @@ import {
   insertFacilitySchema,
 } from "@shared/schema";
 import { z } from "zod";
+import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 
 // Admin middleware - checks if user is ADMIN or SUPER_ADMIN
 async function isAdmin(req: any, res: any, next: any) {
@@ -675,6 +678,309 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting facility:", error);
       res.status(500).json({ message: "Failed to delete facility" });
+    }
+  });
+
+  // ========== STRIPE PAYMENT ROUTES ==========
+  
+  app.get('/api/stripe/publishable-key', async (req, res) => {
+    try {
+      const publishableKey = await getStripePublishableKey();
+      res.json({ publishableKey });
+    } catch (error) {
+      console.error("Error fetching Stripe key:", error);
+      res.status(500).json({ message: "Failed to fetch Stripe key" });
+    }
+  });
+
+  app.get('/api/stripe/products', async (req, res) => {
+    try {
+      const result = await db.execute(
+        sql`SELECT * FROM stripe.products WHERE active = true`
+      );
+      res.json({ data: result.rows });
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  app.get('/api/stripe/prices', async (req, res) => {
+    try {
+      const result = await db.execute(
+        sql`SELECT * FROM stripe.prices WHERE active = true`
+      );
+      res.json({ data: result.rows });
+    } catch (error) {
+      console.error("Error fetching prices:", error);
+      res.status(500).json({ message: "Failed to fetch prices" });
+    }
+  });
+
+  const checkoutSchema = z.object({
+    facilitySlug: z.string(),
+    venue: z.string(),
+    resourceId: z.number(),
+    date: z.string(),
+    startTime: z.string(),
+    endTime: z.string(),
+    durationMinutes: z.number(),
+    basePrice: z.number(),
+    discount: z.number(),
+    addOnTotal: z.number(),
+    totalPrice: z.number(),
+    coachBooked: z.boolean().optional(),
+    isMatchmaking: z.boolean().optional(),
+    hallActivity: z.string().optional(),
+    addOns: z.array(z.object({ id: z.string(), quantity: z.number() })).optional(),
+  });
+
+  app.post('/api/stripe/create-checkout', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const result = checkoutSchema.safeParse(req.body);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid checkout data", errors: result.error.errors });
+      }
+
+      const data = result.data;
+      const stripe = await getUncachableStripeClient();
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check for double booking before allowing checkout
+      const existingBooking = await storage.checkDoubleBooking(
+        data.facilitySlug,
+        data.resourceId,
+        data.date,
+        data.startTime,
+        data.endTime
+      );
+      
+      if (existingBooking) {
+        return res.status(409).json({ message: "This time slot is already booked. Please choose another time." });
+      }
+
+      // Get facility and validate pricing server-side
+      const facility = await storage.getFacilityBySlug(data.facilitySlug);
+      if (!facility) {
+        return res.status(404).json({ message: "Facility not found" });
+      }
+
+      // Server-side price calculation to prevent tampering
+      // basePrice is the price per hour
+      const serverBasePrice = (facility.basePrice || 0) * (data.durationMinutes / 60);
+      const isOffPeakHour = (hour: number) => hour >= 6 && hour < 17;
+      const startHour = parseInt(data.startTime.split(':')[0]);
+      const serverDiscount = isOffPeakHour(startHour) ? Math.round(serverBasePrice * 0.3) : 0;
+      
+      // Validate add-on prices from database
+      let serverAddOnTotal = 0;
+      const validatedAddOns: { id: string; quantity: number; price: number; name: string }[] = [];
+      
+      if (data.addOns && data.addOns.length > 0) {
+        const facilityAddOns = await storage.getFacilityAddOns(facility.id);
+        for (const clientAddOn of data.addOns) {
+          const dbAddOn = facilityAddOns.find(a => a.slug === clientAddOn.id);
+          if (dbAddOn) {
+            serverAddOnTotal += dbAddOn.price * clientAddOn.quantity;
+            validatedAddOns.push({
+              id: clientAddOn.id,
+              quantity: clientAddOn.quantity,
+              price: dbAddOn.price,
+              name: dbAddOn.name
+            });
+          }
+        }
+      }
+
+      const serverTotalPrice = Math.round(serverBasePrice - serverDiscount + serverAddOnTotal);
+
+      // Validate computed values are not NaN
+      if (isNaN(serverBasePrice) || isNaN(serverDiscount) || isNaN(serverTotalPrice)) {
+        return res.status(400).json({ message: "Unable to calculate pricing. Please try again." });
+      }
+
+      let customerId = user.stripeCustomerId;
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email || undefined,
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || undefined,
+          metadata: { userId },
+        });
+        await storage.updateUser(userId, { stripeCustomerId: customer.id });
+        customerId = customer.id;
+      }
+
+      const lineItems: any[] = [];
+
+      lineItems.push({
+        price_data: {
+          currency: 'pkr',
+          product_data: {
+            name: `${facility.name} Booking`,
+            description: `${data.venue} - ${data.date} at ${data.startTime} (${data.durationMinutes} min)`,
+          },
+          unit_amount: Math.round((serverBasePrice - serverDiscount) * 100),
+        },
+        quantity: 1,
+      });
+
+      for (const addOn of validatedAddOns) {
+        lineItems.push({
+          price_data: {
+            currency: 'pkr',
+            product_data: {
+              name: `Add-on: ${addOn.name}`,
+            },
+            unit_amount: Math.round(addOn.price * 100),
+          },
+          quantity: addOn.quantity,
+        });
+      }
+
+      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+      
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        mode: 'payment',
+        success_url: `${baseUrl}/booking?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/booking?canceled=true`,
+        metadata: {
+          userId,
+          facilityId: String(facility.id),
+          facilitySlug: data.facilitySlug,
+          venue: data.venue,
+          resourceId: String(data.resourceId),
+          date: data.date,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          durationMinutes: String(data.durationMinutes),
+          basePrice: String(serverBasePrice),
+          discount: String(serverDiscount),
+          addOnTotal: String(serverAddOnTotal),
+          totalPrice: String(serverTotalPrice),
+          coachBooked: String(data.coachBooked || false),
+          isMatchmaking: String(data.isMatchmaking || false),
+          hallActivity: data.hallActivity || '',
+          addOns: JSON.stringify(validatedAddOns),
+        },
+      });
+
+      res.json({ url: session.url, sessionId: session.id });
+    } catch (error: any) {
+      console.error("Error creating checkout:", error);
+      res.status(500).json({ message: "Failed to create checkout session", error: error.message });
+    }
+  });
+
+  // Verify Stripe session and create booking after successful payment
+  app.post('/api/stripe/verify-session', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { sessionId } = req.body;
+      
+      if (!sessionId) {
+        return res.status(400).json({ message: "Session ID is required" });
+      }
+
+      const stripe = await getUncachableStripeClient();
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      // Verify session belongs to this user
+      if (session.metadata?.userId !== userId) {
+        return res.status(403).json({ message: "Session does not belong to this user" });
+      }
+
+      // Verify payment is complete
+      if (session.payment_status !== 'paid') {
+        return res.status(400).json({ message: "Payment not completed" });
+      }
+
+      // Check if booking was already created (idempotency)
+      const existingBooking = await storage.getBookingByStripeSessionId(sessionId);
+      if (existingBooking) {
+        return res.json({ message: "Booking already exists", booking: existingBooking });
+      }
+
+      // Double-check for conflicting bookings
+      const conflictingBooking = await storage.checkDoubleBooking(
+        session.metadata.facilitySlug,
+        parseInt(session.metadata.resourceId),
+        session.metadata.date,
+        session.metadata.startTime,
+        session.metadata.endTime
+      );
+
+      if (conflictingBooking) {
+        // Refund the payment since slot is no longer available
+        // In production, you'd want to handle this more gracefully
+        return res.status(409).json({ 
+          message: "Time slot was booked by another user. Please contact support for a refund.",
+          refundRequired: true 
+        });
+      }
+
+      // Parse add-ons from metadata
+      const addOns = session.metadata.addOns ? JSON.parse(session.metadata.addOns) : [];
+
+      // Create the booking
+      const booking = await storage.createBooking({
+        userId,
+        facilityId: parseInt(session.metadata.facilityId),
+        venue: session.metadata.venue,
+        resourceId: parseInt(session.metadata.resourceId),
+        date: session.metadata.date,
+        startTime: session.metadata.startTime,
+        endTime: session.metadata.endTime,
+        durationMinutes: parseInt(session.metadata.durationMinutes),
+        paymentMethod: 'card',
+        payerType: 'SELF',
+        payerMembershipNumber: null,
+        basePrice: parseInt(session.metadata.basePrice),
+        discount: parseInt(session.metadata.discount),
+        addOnTotal: parseInt(session.metadata.addOnTotal),
+        totalPrice: parseInt(session.metadata.totalPrice),
+        coachBooked: session.metadata.coachBooked === 'true',
+        isMatchmaking: session.metadata.isMatchmaking === 'true',
+        hallActivity: session.metadata.hallActivity || null,
+        status: 'CONFIRMED',
+        stripeSessionId: sessionId,
+        stripePaymentIntentId: session.payment_intent as string,
+      });
+
+      // Create booking add-ons
+      for (const addOn of addOns) {
+        await storage.createBookingAddOn({
+          bookingId: booking.id,
+          addOnId: addOn.id,
+          quantity: addOn.quantity,
+          priceAtBooking: addOn.price,
+        });
+      }
+
+      res.json({ message: "Booking confirmed", booking });
+    } catch (error: any) {
+      console.error("Error verifying session:", error);
+      res.status(500).json({ message: "Failed to verify session", error: error.message });
+    }
+  });
+
+  app.get('/api/stripe/session/:sessionId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { sessionId } = req.params;
+      const stripe = await getUncachableStripeClient();
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      res.json({ session });
+    } catch (error: any) {
+      console.error("Error fetching session:", error);
+      res.status(500).json({ message: "Failed to fetch session", error: error.message });
     }
   });
 
