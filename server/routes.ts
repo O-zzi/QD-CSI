@@ -39,9 +39,21 @@ export async function registerRoutes(
     }
   });
 
+  // Membership number format: QD-XXXX (e.g., QD-0001)
+  const membershipNumberPattern = /^QD-\d{4}$/;
+
   app.get('/api/memberships/validate/:number', async (req, res) => {
     try {
       const { number } = req.params;
+      
+      // Validate membership number format
+      if (!membershipNumberPattern.test(number)) {
+        return res.status(400).json({ 
+          valid: false, 
+          message: "Invalid membership number format. Expected format: QD-XXXX (e.g., QD-0001)" 
+        });
+      }
+      
       const membership = await storage.getMembershipByNumber(number);
       res.json({ valid: !!membership, membership });
     } catch (error) {
@@ -128,7 +140,7 @@ export async function registerRoutes(
     durationMinutes: z.number().default(60),
     paymentMethod: z.string().default('cash'),
     payerType: z.enum(['SELF', 'MEMBER']).default('SELF'),
-    payerMembershipNumber: z.string().nullable().optional(),
+    payerMembershipNumber: z.string().regex(/^QD-\d{4}$/, "Invalid membership number format. Expected QD-XXXX").nullable().optional(),
     basePrice: z.number().default(0),
     discount: z.number().default(0),
     addOnTotal: z.number().default(0),
@@ -150,6 +162,17 @@ export async function registerRoutes(
       }
 
       const data = result.data;
+      
+      // Validate payer membership if paying on behalf of another member
+      if (data.payerType === 'MEMBER' && data.payerMembershipNumber) {
+        const payerMembership = await storage.getMembershipByNumber(data.payerMembershipNumber);
+        if (!payerMembership) {
+          return res.status(400).json({ message: "Payer membership not found" });
+        }
+        if (payerMembership.status !== 'ACTIVE') {
+          return res.status(400).json({ message: "Payer membership is not active" });
+        }
+      }
       
       // Get facility by slug
       const facility = await storage.getFacilityBySlug(data.facilitySlug);

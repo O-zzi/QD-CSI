@@ -29,7 +29,7 @@ import {
   type GalleryImage,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc } from "drizzle-orm";
+import { eq, and, desc, asc, sql } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -193,21 +193,32 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(events.facilityId, facilityId), eq(events.isActive, true)));
   }
 
-  // Leaderboard operations
-  async getLeaderboard(facilityId?: string): Promise<LeaderboardEntry[]> {
-    if (facilityId) {
-      return await db
-        .select()
-        .from(leaderboard)
-        .where(eq(leaderboard.facilityId, facilityId))
-        .orderBy(desc(leaderboard.rankingPoints))
-        .limit(10);
-    }
-    return await db
-      .select()
+  // Leaderboard operations - returns entries with player info
+  async getLeaderboard(facilityId?: string): Promise<any[]> {
+    const query = db
+      .select({
+        id: leaderboard.id,
+        userId: leaderboard.userId,
+        facilityId: leaderboard.facilityId,
+        score: leaderboard.score,
+        wins: leaderboard.wins,
+        losses: leaderboard.losses,
+        rankingPoints: leaderboard.rankingPoints,
+        playerName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+        profileImageUrl: users.profileImageUrl,
+        winRate: sql<number>`CASE WHEN (${leaderboard.wins} + ${leaderboard.losses}) > 0 
+          THEN ${leaderboard.wins}::float / (${leaderboard.wins} + ${leaderboard.losses}) 
+          ELSE 0 END`,
+      })
       .from(leaderboard)
+      .leftJoin(users, eq(leaderboard.userId, users.id))
       .orderBy(desc(leaderboard.rankingPoints))
       .limit(10);
+
+    if (facilityId) {
+      return await query.where(eq(leaderboard.facilityId, facilityId));
+    }
+    return await query;
   }
 
   // CMS operations

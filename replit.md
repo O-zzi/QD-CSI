@@ -151,3 +151,30 @@ Preferred communication style: Simple, everyday language.
 **Path Resolution**
 - TypeScript path aliases: `@/` for client, `@shared/` for shared code, `@assets/` for static assets
 - Vite resolver for development, esbuild for production builds
+
+## Recent Changes (December 2025)
+
+### Completed Features
+- Full database schema with 15+ tables covering all aspects of the sports complex
+- Replit Auth integration with Google, GitHub, Apple, and email/password login
+- Complete landing page with all sections (Hero, About, Facilities, Updates, Gallery, Membership, Rules, Careers, Contact)
+- Booking Console with facility selection, venue picker, date/time selection, matchmaking, add-ons
+- Events and Leaderboard pages with filtering
+- Profile page with membership details and booking history
+- Seed data for demo users, facilities, events, and leaderboard entries
+
+### Security & Validation
+- Double-booking prevention: Server checks for existing bookings before creating new ones
+- Membership number format validation: Enforces QD-XXXX pattern (e.g., QD-0001)
+- Payer validation: Verifies membership exists and is active when booking on behalf of another member
+
+### Seed Data Available
+- 5 Facilities: Padel Tennis, Squash, Air Rifle Range, Bridge Club, Banquet Hall
+- 5 Demo Members: QD-0001 (Founding), QD-0002/0003 (Gold), QD-0004/0005 (Silver)
+- Events: Padel Beginner Academy, Monthly Tournament, Squash Pro Clinic, Air Rifle Safety Course
+- Leaderboard entries with sample rankings
+
+### Running the Seed Script
+```bash
+npx tsx script/seed.ts
+```
