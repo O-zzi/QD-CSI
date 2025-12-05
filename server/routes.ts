@@ -1108,6 +1108,103 @@ export async function registerRoutes(
     }
   });
 
+  // Facility-Venue relationship routes
+  app.get('/api/admin/facilities/:facilityId/venues', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const facilityVenues = await storage.getFacilityVenuesByFacility(req.params.facilityId);
+      res.json(facilityVenues);
+    } catch (error) {
+      console.error("Error fetching facility venues:", error);
+      res.status(500).json({ message: "Failed to fetch facility venues" });
+    }
+  });
+
+  app.post('/api/admin/facilities/:facilityId/venues', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { venueId, status, resourceCount, priceOverride } = req.body;
+      
+      // Validate required fields
+      if (!venueId || typeof venueId !== 'string') {
+        return res.status(400).json({ message: "venueId is required and must be a string" });
+      }
+      
+      // Validate status if provided
+      const validStatuses = ['PLANNED', 'COMING_SOON', 'ACTIVE'];
+      if (status && !validStatuses.includes(status)) {
+        return res.status(400).json({ message: `status must be one of: ${validStatuses.join(', ')}` });
+      }
+      
+      // Validate resourceCount if provided
+      if (resourceCount !== undefined && (typeof resourceCount !== 'number' || resourceCount < 1)) {
+        return res.status(400).json({ message: "resourceCount must be a positive number" });
+      }
+      
+      // Validate priceOverride if provided
+      if (priceOverride !== undefined && priceOverride !== null && (typeof priceOverride !== 'number' || priceOverride < 0)) {
+        return res.status(400).json({ message: "priceOverride must be a non-negative number or null" });
+      }
+      
+      const data = {
+        facilityId: req.params.facilityId,
+        venueId,
+        status: status || 'PLANNED',
+        resourceCount: resourceCount || 1,
+        priceOverride: priceOverride ?? null,
+      };
+      const facilityVenue = await storage.createFacilityVenue(data);
+      res.status(201).json(facilityVenue);
+    } catch (error) {
+      console.error("Error creating facility venue:", error);
+      res.status(500).json({ message: "Failed to create facility venue" });
+    }
+  });
+
+  app.patch('/api/admin/facility-venues/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { status, resourceCount, priceOverride } = req.body;
+      
+      // Validate status if provided
+      const validStatuses = ['PLANNED', 'COMING_SOON', 'ACTIVE'];
+      if (status !== undefined && !validStatuses.includes(status)) {
+        return res.status(400).json({ message: `status must be one of: ${validStatuses.join(', ')}` });
+      }
+      
+      // Validate resourceCount if provided
+      if (resourceCount !== undefined && (typeof resourceCount !== 'number' || resourceCount < 1)) {
+        return res.status(400).json({ message: "resourceCount must be a positive number" });
+      }
+      
+      // Validate priceOverride if provided
+      if (priceOverride !== undefined && priceOverride !== null && (typeof priceOverride !== 'number' || priceOverride < 0)) {
+        return res.status(400).json({ message: "priceOverride must be a non-negative number or null" });
+      }
+      
+      const updateData: { status?: "PLANNED" | "COMING_SOON" | "ACTIVE"; resourceCount?: number; priceOverride?: number | null } = {};
+      if (status !== undefined) updateData.status = status as "PLANNED" | "COMING_SOON" | "ACTIVE";
+      if (resourceCount !== undefined) updateData.resourceCount = resourceCount;
+      if (priceOverride !== undefined) updateData.priceOverride = priceOverride;
+      
+      const facilityVenue = await storage.updateFacilityVenue(req.params.id, updateData);
+      if (!facilityVenue) {
+        return res.status(404).json({ message: "Facility venue not found" });
+      }
+      res.json(facilityVenue);
+    } catch (error) {
+      console.error("Error updating facility venue:", error);
+      res.status(500).json({ message: "Failed to update facility venue" });
+    }
+  });
+
+  app.delete('/api/admin/facility-venues/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteFacilityVenue(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting facility venue:", error);
+      res.status(500).json({ message: "Failed to delete facility venue" });
+    }
+  });
+
   // Admin Construction Phases routes
   app.get('/api/admin/construction-phases', isAuthenticated, isAdmin, async (req, res) => {
     try {
