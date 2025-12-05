@@ -34,6 +34,42 @@ import {
 import { z } from "zod";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+// Setup file upload directory
+const uploadDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Configure multer for file uploads
+const multerStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `gallery-${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage: multerStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.'));
+    }
+  }
+});
 
 // Admin middleware - checks if user is ADMIN or SUPER_ADMIN
 async function isAdmin(req: any, res: any, next: any) {
@@ -684,6 +720,30 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting gallery image:", error);
       res.status(500).json({ message: "Failed to delete gallery image" });
+    }
+  });
+
+  // File upload route for gallery images
+  app.post('/api/admin/upload', isAuthenticated, isAdmin, upload.single('image'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      // Generate URL for the uploaded file
+      const imageUrl = `/uploads/${req.file.filename}`;
+      
+      res.json({ 
+        success: true,
+        imageUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimeType: req.file.mimetype,
+      });
+    } catch (error: any) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ message: error.message || "Failed to upload file" });
     }
   });
 

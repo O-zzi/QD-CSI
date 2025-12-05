@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AdminLayout } from "./AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Pencil, Trash2, Save, Image as ImageIcon, Info, Upload, Link as LinkIcon, HelpCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, Image as ImageIcon, Info, Upload, Link as LinkIcon, HelpCircle, Loader2, CheckCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,9 @@ export default function GalleryManagement() {
   const { toast } = useToast();
   const [editingImage, setEditingImage] = useState<GalleryImage | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; url: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     imageUrl: "",
     title: "",
@@ -54,6 +57,65 @@ export default function GalleryManagement() {
     sortOrder: 0,
     isActive: true,
   });
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG, PNG, or WebP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('image', file);
+      
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formDataUpload,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Upload failed');
+      }
+      
+      const result = await response.json();
+      
+      setUploadedFile({ name: file.name, url: result.imageUrl });
+      setFormData(prev => ({ ...prev, imageUrl: result.imageUrl }));
+      
+      toast({
+        title: "Upload successful",
+        description: "Your image has been uploaded.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload image.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const { data: images, isLoading } = useQuery<GalleryImage[]>({
     queryKey: ["/api/admin/gallery"],
@@ -112,6 +174,10 @@ export default function GalleryManagement() {
       sortOrder: 0,
       isActive: true,
     });
+    setUploadedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleEdit = (image: GalleryImage) => {
@@ -262,20 +328,62 @@ export default function GalleryManagement() {
                   </TabsContent>
                   
                   <TabsContent value="upload" className="space-y-4 mt-4">
-                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
-                      <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                      <p className="font-medium mb-1">File Upload (Coming Soon)</p>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Direct file upload is planned for a future release.
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        For now, please use external image hosting services and paste the URL.
-                      </p>
-                      <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
-                        <p className="text-xs text-amber-700 dark:text-amber-400">
-                          <strong>Tip:</strong> You can use free services like Imgur, ImgBB, or Cloudinary for image hosting.
-                        </p>
-                      </div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      data-testid="input-file-upload"
+                    />
+                    <div 
+                      className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+                        uploadedFile 
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                          : 'border-gray-300 dark:border-gray-600 hover:border-primary hover:bg-muted/50'
+                      }`}
+                      onClick={() => !isUploading && fileInputRef.current?.click()}
+                    >
+                      {isUploading ? (
+                        <>
+                          <Loader2 className="w-12 h-12 mx-auto text-primary animate-spin mb-4" />
+                          <p className="font-medium mb-1">Uploading...</p>
+                          <p className="text-sm text-muted-foreground">Please wait while your image is being uploaded.</p>
+                        </>
+                      ) : uploadedFile ? (
+                        <>
+                          <CheckCircle className="w-12 h-12 mx-auto text-green-600 dark:text-green-400 mb-4" />
+                          <p className="font-medium mb-1 text-green-700 dark:text-green-300">Upload Complete</p>
+                          <p className="text-sm text-muted-foreground mb-2">{uploadedFile.name}</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUploadedFile(null);
+                              setFormData(prev => ({ ...prev, imageUrl: '' }));
+                              if (fileInputRef.current) fileInputRef.current.value = '';
+                            }}
+                            data-testid="button-clear-upload"
+                          >
+                            Upload Different Image
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="font-medium mb-1">Click to Upload Image</p>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Drag and drop or click to browse
+                          </p>
+                          <div className="flex flex-wrap justify-center gap-2 text-xs text-muted-foreground">
+                            <span className="px-2 py-1 bg-muted rounded">JPEG</span>
+                            <span className="px-2 py-1 bg-muted rounded">PNG</span>
+                            <span className="px-2 py-1 bg-muted rounded">WebP</span>
+                            <span className="px-2 py-1 bg-muted rounded">Max 5MB</span>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </TabsContent>
                 </Tabs>
