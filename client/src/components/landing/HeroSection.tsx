@@ -1,10 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CMS_DEFAULTS } from "@/hooks/useCms";
 import heroBackground from "@assets/stock_images/padel_tennis_court_i_37ae0ba3.jpg";
 import type { CmsContent } from "@shared/schema";
+
+interface ConstructionPhase {
+  id: string;
+  venueId: string | null;
+  label: string;
+  title: string;
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETE';
+  progress: number;
+  isActive: boolean;
+  isComplete: boolean;
+  timeframe: string | null;
+  milestones: string[];
+  highlights: string[];
+  icon: string;
+  sortOrder: number;
+}
 
 export function HeroSection() {
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -13,6 +30,24 @@ export function HeroSection() {
     queryKey: ['/api/cms/bulk'],
     staleTime: 1000 * 60 * 5,
   });
+
+  const { data: phases = [], isLoading: phasesLoading } = useQuery<ConstructionPhase[]>({
+    queryKey: ['/api/construction-phases'],
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const sortedPhases = useMemo(() => {
+    return [...phases].sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [phases]);
+
+  const activePhase = useMemo(() => {
+    return sortedPhases.find(p => p.isActive) || sortedPhases[0];
+  }, [sortedPhases]);
+
+  const overallProgress = useMemo(() => {
+    if (sortedPhases.length === 0) return 0;
+    return sortedPhases.reduce((acc, phase) => acc + phase.progress, 0) / sortedPhases.length;
+  }, [sortedPhases]);
 
   const getCms = (key: string) => {
     const found = cmsContent.find(c => c.key === key);
@@ -138,33 +173,57 @@ export function HeroSection() {
                 <div className="text-sm uppercase tracking-widest text-muted-foreground">
                   Construction Status
                 </div>
-                <span className="text-xs py-1 px-3 rounded-full bg-blue-50 dark:bg-blue-900/30 text-slate-800 dark:text-blue-200 font-semibold uppercase tracking-wide">
-                  Phase II
-                </span>
+                {phasesLoading ? (
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                ) : activePhase ? (
+                  <span className="text-xs py-1 px-3 rounded-full bg-blue-50 dark:bg-blue-900/30 text-slate-800 dark:text-blue-200 font-semibold uppercase tracking-wide">
+                    {activePhase.label}
+                  </span>
+                ) : (
+                  <span className="text-xs py-1 px-3 rounded-full bg-gray-100 dark:bg-slate-700 text-muted-foreground font-semibold uppercase tracking-wide">
+                    Planning
+                  </span>
+                )}
               </div>
 
-              <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                <span>Phase II: Foundation & Structure</span>
-                <span>80% Complete</span>
-              </div>
-              <div className="qd-progress-track">
-                <div className="qd-progress-fill" style={{ width: "80%" }}></div>
-              </div>
+              {phasesLoading ? (
+                <>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-3 w-full rounded-full" />
+                  <Skeleton className="h-12 w-full mt-4" />
+                </>
+              ) : activePhase ? (
+                <>
+                  <div className="flex justify-between text-xs text-muted-foreground mb-2">
+                    <span>{activePhase.label}: {activePhase.title}</span>
+                    <span>{activePhase.progress}% Complete</span>
+                  </div>
+                  <div className="qd-progress-track">
+                    <div className="qd-progress-fill" style={{ width: `${activePhase.progress}%` }}></div>
+                  </div>
 
-              <p className="text-xs text-muted-foreground mt-4">
-                Structural steel erection is complete. Focus shifts to roofing insulation and external cladding to ensure all-weather play capability.
-              </p>
+                  {activePhase.highlights && activePhase.highlights.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-4">
+                      {activePhase.highlights[0]}
+                    </p>
+                  )}
 
-              <div className="grid grid-cols-2 gap-3 mt-5">
-                <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-                  <div className="text-xs text-muted-foreground">Steel Erection</div>
-                  <div className="font-semibold text-sm">Complete</div>
-                </div>
-                <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-                  <div className="text-xs text-muted-foreground">Roofing & MEP</div>
-                  <div className="font-semibold text-sm">In Progress</div>
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-3 mt-5">
+                    <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                      <div className="text-xs text-muted-foreground">Completed</div>
+                      <div className="font-semibold text-sm">{sortedPhases.filter(p => p.isComplete).length} phases</div>
+                    </div>
+                    <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                      <div className="text-xs text-muted-foreground">Overall</div>
+                      <div className="font-semibold text-sm">{Math.round(overallProgress)}% done</div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Construction timeline will be available soon.
+                </p>
+              )}
             </div>
           </aside>
         </div>

@@ -443,66 +443,72 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
             >
               <CalendarDays className="w-4 h-4" /> Book Facility
             </button>
-            <button
-              onClick={() => setCurrentView('events')}
-              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
-                currentView === 'events'
-                  ? 'bg-[#2a4060] text-white shadow-md'
-                  : 'text-muted-foreground hover:bg-sky-50 dark:hover:bg-slate-700'
-              }`}
-              data-testid="button-nav-events"
-            >
-              <Trophy className="w-4 h-4" /> Events & Academies
-            </button>
-            <button
-              onClick={() => setCurrentView('leaderboard')}
-              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
-                currentView === 'leaderboard'
-                  ? 'bg-[#2a4060] text-white shadow-md'
-                  : 'text-muted-foreground hover:bg-sky-50 dark:hover:bg-slate-700'
-              }`}
-              data-testid="button-nav-leaderboard"
-            >
-              <Trophy className="w-4 h-4" /> Leaderboard
-            </button>
-            <button
-              onClick={() => setCurrentView('profile')}
-              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
-                currentView === 'profile'
-                  ? 'bg-[#2a4060] text-white shadow-md'
-                  : 'text-muted-foreground hover:bg-sky-50 dark:hover:bg-slate-700'
-              }`}
-              data-testid="button-nav-profile"
-            >
-              <User className="w-4 h-4" /> My Profile
-            </button>
+            {isAuthenticated && (
+              <>
+                <button
+                  onClick={() => setCurrentView('events')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'events'
+                      ? 'bg-[#2a4060] text-white shadow-md'
+                      : 'text-muted-foreground hover:bg-sky-50 dark:hover:bg-slate-700'
+                  }`}
+                  data-testid="button-nav-events"
+                >
+                  <Trophy className="w-4 h-4" /> Events & Academies
+                </button>
+                <button
+                  onClick={() => setCurrentView('leaderboard')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'leaderboard'
+                      ? 'bg-[#2a4060] text-white shadow-md'
+                      : 'text-muted-foreground hover:bg-sky-50 dark:hover:bg-slate-700'
+                  }`}
+                  data-testid="button-nav-leaderboard"
+                >
+                  <Trophy className="w-4 h-4" /> Leaderboard
+                </button>
+                <button
+                  onClick={() => setCurrentView('profile')}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 transition ${
+                    currentView === 'profile'
+                      ? 'bg-[#2a4060] text-white shadow-md'
+                      : 'text-muted-foreground hover:bg-sky-50 dark:hover:bg-slate-700'
+                  }`}
+                  data-testid="button-nav-profile"
+                >
+                  <User className="w-4 h-4" /> My Profile
+                </button>
+              </>
+            )}
           </nav>
         </div>
         
-        {/* User Stats */}
-        <div className="border-t border-gray-200 dark:border-slate-700 pt-4 mt-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Wallet className="w-5 h-5 text-amber-500" />
-            <div>
-              <p className="text-xs text-muted-foreground uppercase font-semibold">Credit Balance</p>
-              <p className="text-lg font-bold">{formatPKR(userProfile.creditBalance)}</p>
+        {/* User Stats - Only show for authenticated users */}
+        {isAuthenticated && (
+          <div className="border-t border-gray-200 dark:border-slate-700 pt-4 mt-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Wallet className="w-5 h-5 text-amber-500" />
+              <div>
+                <p className="text-xs text-muted-foreground uppercase font-semibold">Credit Balance</p>
+                <p className="text-lg font-bold">{formatPKR(userProfile.creditBalance)}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <Timer className="w-5 h-5 text-sky-500" />
+              <div>
+                <p className="text-xs text-muted-foreground uppercase font-semibold">Hours Played</p>
+                <p className="text-lg font-bold">{userProfile.totalHoursPlayed} hrs</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Ticket className="w-5 h-5 text-emerald-500" />
+              <div>
+                <p className="text-xs text-muted-foreground uppercase font-semibold">Guest Passes</p>
+                <p className="text-lg font-bold">{userProfile.guestPasses}</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 mb-3">
-            <Timer className="w-5 h-5 text-sky-500" />
-            <div>
-              <p className="text-xs text-muted-foreground uppercase font-semibold">Hours Played</p>
-              <p className="text-lg font-bold">{userProfile.totalHoursPlayed} hrs</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Ticket className="w-5 h-5 text-emerald-500" />
-            <div>
-              <p className="text-xs text-muted-foreground uppercase font-semibold">Guest Passes</p>
-              <p className="text-lg font-bold">{userProfile.guestPasses}</p>
-            </div>
-          </div>
-        </div>
+        )}
       </aside>
 
       {/* Main Content */}

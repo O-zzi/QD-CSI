@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,6 +95,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
+            <ThemeToggle />
             {isAuthenticated ? (
               <>
                 <Link href="/booking">
@@ -157,6 +159,10 @@ export function Navbar({ onScrollTo }: NavbarProps) {
                 </button>
               )
             ))}
+            <div className="flex items-center justify-between border-t border-gray-100 dark:border-slate-700 pt-4 mt-4">
+              <span className="text-sm text-muted-foreground">Theme</span>
+              <ThemeToggle />
+            </div>
             <div className="flex flex-col gap-2 mt-4">
               {isAuthenticated ? (
                 <>

@@ -2,14 +2,13 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import { ArrowRight, Calendar, Mail, MapPin, Clock, Loader2, CheckCircle } from "lucide-react";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import Autoplay from "embla-carousel-autoplay";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
@@ -37,6 +36,7 @@ export default function ComingSoon() {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [isLaunched, setIsLaunched] = useState(false);
 
   const { getValue } = useCmsMultiple([
     'coming_soon_title',
@@ -54,6 +54,7 @@ export default function ComingSoon() {
       const difference = +launchDate - +new Date();
       
       if (difference > 0) {
+        setIsLaunched(false);
         return {
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
           hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
@@ -62,6 +63,7 @@ export default function ComingSoon() {
         };
       }
       
+      setIsLaunched(true);
       return { days: 0, hours: 0, minutes: 0, seconds: 0 };
     };
 
@@ -118,10 +120,6 @@ export default function ComingSoon() {
 
   return (
     <div className="min-h-screen bg-[#1a2a40] relative overflow-hidden">
-      <div className="absolute top-4 right-4 z-50">
-        <ThemeToggle />
-      </div>
-
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl" />
@@ -129,29 +127,10 @@ export default function ComingSoon() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex flex-col">
-        <header className="flex justify-between items-center mb-8">
-          <Link href="/">
-            <span className="text-2xl font-bold text-white cursor-pointer" data-testid="link-home">
-              {getValue('site_name') || CMS_DEFAULTS.site_name || 'The Quarterdeck'}
-            </span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/roadmap">
-              <span className="text-white/80 hover:text-white transition-colors cursor-pointer" data-testid="link-roadmap">
-                Roadmap
-              </span>
-            </Link>
-            <Link href="/vision">
-              <span className="text-white/80 hover:text-white transition-colors cursor-pointer" data-testid="link-vision">
-                Vision
-              </span>
-            </Link>
-            <Link href="/facilities">
-              <span className="text-white/80 hover:text-white transition-colors cursor-pointer" data-testid="link-facilities">
-                Facilities
-              </span>
-            </Link>
-          </nav>
+        <header className="flex justify-center items-center mb-8">
+          <span className="text-2xl font-bold text-white" data-testid="text-brand">
+            {getValue('site_name') || CMS_DEFAULTS.site_name || 'The Quarterdeck'}
+          </span>
         </header>
 
         <main className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
@@ -253,18 +232,32 @@ export default function ComingSoon() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="left-2 bg-white/10 border-white/20 text-white hover:bg-white/20" />
-              <CarouselNext className="right-2 bg-white/10 border-white/20 text-white hover:bg-white/20" />
             </Carousel>
 
             <div className="mt-6 flex justify-center gap-4">
-              <Link href="/">
-                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 rounded-lg" data-testid="button-explore-site">
+              {/* Explore Full Site - enabled only after launch */}
+              {isLaunched ? (
+                <Link href="/">
+                  <Button 
+                    variant="outline" 
+                    className="border-white/20 text-white hover:bg-white/10 rounded-lg" 
+                    data-testid="button-explore-site"
+                  >
+                    Explore Full Site
+                  </Button>
+                </Link>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  className="border-white/20 text-white/50 rounded-lg cursor-not-allowed opacity-60" 
+                  disabled
+                  data-testid="button-explore-site"
+                >
                   Explore Full Site
                 </Button>
-              </Link>
+              )}
               <Link href="/roadmap">
-                <Button className="bg-white/10 hover:bg-white/20 text-white rounded-lg" data-testid="button-view-progress">
+                <Button className="bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg" data-testid="button-view-progress">
                   View Progress
                 </Button>
               </Link>
