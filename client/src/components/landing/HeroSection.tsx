@@ -1,13 +1,28 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { CMS_DEFAULTS } from "@/hooks/useCms";
 import heroBackground from "@assets/stock_images/padel_tennis_court_i_37ae0ba3.jpg";
+import type { CmsContent } from "@shared/schema";
 
 export function HeroSection() {
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
+  const { data: cmsContent = [] } = useQuery<CmsContent[]>({
+    queryKey: ['/api/cms/bulk'],
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const getCms = (key: string) => {
+    const found = cmsContent.find(c => c.key === key);
+    return found?.content || (CMS_DEFAULTS as Record<string, string>)[key] || "";
+  };
+
+  const launchDate = getCms('hero_launch_date') || '2026-10-01';
+
   useEffect(() => {
-    const targetDate = new Date("2026-10-01T00:00:00");
+    const targetDate = new Date(`${launchDate}T00:00:00`);
     
     const updateCountdown = () => {
       const now = new Date();
@@ -25,7 +40,7 @@ export function HeroSection() {
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [launchDate]);
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -34,6 +49,12 @@ export function HeroSection() {
     const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
   };
+
+  const heroTitle = getCms('hero_title') || CMS_DEFAULTS.hero_title;
+  const heroSubtitle = getCms('hero_subtitle') || CMS_DEFAULTS.hero_subtitle;
+  const heroEyebrow = getCms('hero_eyebrow') || CMS_DEFAULTS.hero_eyebrow;
+  const cta1Text = getCms('hero_cta_1') || 'Explore Facilities';
+  const cta2Text = getCms('hero_cta_2') || 'View Site Updates';
 
   return (
     <section id="hero" className="qd-section pt-12 relative overflow-hidden">
@@ -46,13 +67,15 @@ export function HeroSection() {
         <div className="qd-hero-grid">
           <div>
             <div className="qd-eyebrow">
-              <span className="qd-eyebrow-dot"></span> Target Launch: Q4 2026
+              <span className="qd-eyebrow-dot"></span> {heroEyebrow}
             </div>
-            <h1 className="qd-hero-title" data-testid="text-hero-title">
-              A bright, premium <span className="qd-hero-highlight">multi-sport arena</span> built for play, performance & community.
-            </h1>
+            <h1 
+              className="qd-hero-title" 
+              data-testid="text-hero-title"
+              dangerouslySetInnerHTML={{ __html: heroTitle }}
+            />
             <p className="text-muted-foreground max-w-lg mb-6" data-testid="text-hero-subtitle">
-              The Quarterdeck brings state-of-the-art Padel Tennis, Squash, an Air Rifle Range, a Multipurpose Hall, Bridge Room, and an Open Café/Bar experience into a single, purpose-built complex. We are setting the new standard for indoor sports and recreation in Islamabad.
+              {heroSubtitle}
             </p>
 
             <div className="qd-countdown">
@@ -88,7 +111,7 @@ export function HeroSection() {
                 className="rounded-full px-6"
                 data-testid="button-explore-facilities"
               >
-                Explore Facilities
+                {cta1Text}
               </Button>
               <Button
                 variant="outline"
@@ -96,7 +119,7 @@ export function HeroSection() {
                 className="rounded-full px-6"
                 data-testid="button-view-updates"
               >
-                View Site Updates
+                {cta2Text}
               </Button>
             </div>
 

@@ -349,6 +349,16 @@ export async function registerRoutes(
   });
 
   // ========== CMS ROUTES ==========
+  app.get('/api/cms/bulk', async (req, res) => {
+    try {
+      const content = await storage.getAllCmsContent();
+      res.json(content);
+    } catch (error) {
+      console.error("Error fetching bulk CMS content:", error);
+      res.status(500).json({ message: "Failed to fetch content" });
+    }
+  });
+
   app.get('/api/cms/:key', async (req, res) => {
     try {
       const { key } = req.params;
