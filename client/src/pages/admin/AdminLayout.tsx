@@ -17,11 +17,15 @@ import {
   Clock,
   HardHat,
   CreditCard,
-  Palette
+  Palette,
+  Search,
+  Users,
+  MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import type { User } from "@shared/schema";
+import { useState, useEffect, useCallback } from "react";
+import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import type { User, Booking, Facility } from "@shared/schema";
 
 const navItems = [
   { path: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -45,12 +49,42 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ children, title }: AdminLayoutProps) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   
   const { data: user, isLoading: userLoading } = useQuery<User>({
     queryKey: ["/api/auth/user"],
   });
+
+  const { data: allUsers } = useQuery<User[]>({
+    queryKey: ["/api/admin/users"],
+  });
+
+  const { data: allBookings } = useQuery<Booking[]>({
+    queryKey: ["/api/admin/bookings"],
+  });
+
+  const { data: allFacilities } = useQuery<Facility[]>({
+    queryKey: ["/api/admin/facilities"],
+  });
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen((open) => !open);
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  const handleSelect = useCallback((path: string) => {
+    setSearchOpen(false);
+    setLocation(path);
+  }, [setLocation]);
 
   if (userLoading) {
     return (
@@ -149,10 +183,23 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
 
       <main className="lg:ml-64">
         <header className="sticky top-0 z-30 bg-background border-b px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <h1 className="text-2xl font-bold ml-12 lg:ml-0" data-testid="text-admin-title">{title}</h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">
+              <Button
+                variant="outline"
+                className="relative w-full justify-start text-sm text-muted-foreground sm:w-64 lg:w-80"
+                onClick={() => setSearchOpen(true)}
+                data-testid="button-global-search"
+              >
+                <Search className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Search bookings, users, facilities...</span>
+                <span className="inline sm:hidden">Search...</span>
+                <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+                  <span className="text-xs">Ctrl</span>K
+                </kbd>
+              </Button>
+              <span className="text-sm text-muted-foreground hidden md:block">
                 {user.firstName} {user.lastName}
               </span>
               <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
@@ -165,6 +212,78 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
             </div>
           </div>
         </header>
+
+        <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+          <CommandInput placeholder="Search bookings, users, facilities..." data-testid="input-global-search" />
+          <CommandList>
+            <CommandEmpty>No results found.</CommandEmpty>
+            
+            <CommandGroup heading="Navigation">
+              {navItems.map((item) => (
+                <CommandItem
+                  key={item.path}
+                  value={item.label}
+                  onSelect={() => handleSelect(item.path)}
+                  data-testid={`search-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  <item.icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            
+            {allFacilities && allFacilities.length > 0 && (
+              <CommandGroup heading="Facilities">
+                {allFacilities.slice(0, 5).map((facility) => (
+                  <CommandItem
+                    key={facility.id}
+                    value={`facility ${facility.name} ${facility.slug}`}
+                    onSelect={() => handleSelect("/admin/facilities")}
+                    data-testid={`search-facility-${facility.id}`}
+                  >
+                    <Building2 className="mr-2 h-4 w-4" />
+                    {facility.name}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            
+            {allUsers && allUsers.length > 0 && (
+              <CommandGroup heading="Users">
+                {allUsers.slice(0, 5).map((u) => (
+                  <CommandItem
+                    key={u.id}
+                    value={`user ${u.firstName} ${u.lastName} ${u.email}`}
+                    onSelect={() => handleSelect("/admin/bookings")}
+                    data-testid={`search-user-${u.id}`}
+                  >
+                    <Users className="mr-2 h-4 w-4" />
+                    {u.firstName} {u.lastName} - {u.email}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            
+            {allBookings && allBookings.length > 0 && (
+              <CommandGroup heading="Recent Bookings">
+                {allBookings.slice(0, 5).map((booking) => {
+                  const facility = allFacilities?.find(f => f.id === booking.facilityId);
+                  return (
+                    <CommandItem
+                      key={booking.id}
+                      value={`booking ${booking.id} ${facility?.name} ${booking.date}`}
+                      onSelect={() => handleSelect("/admin/bookings")}
+                      data-testid={`search-booking-${booking.id}`}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {facility?.name} - {booking.date} at {booking.startTime}
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+          </CommandList>
+        </CommandDialog>
 
         <div className="p-6">
           {children}
