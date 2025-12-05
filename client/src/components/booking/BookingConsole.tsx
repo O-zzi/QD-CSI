@@ -255,8 +255,25 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     const fac = selectedFacility;
     const perMinutePrice = fac.basePrice / 60;
     let base = perMinutePrice * selectedDuration;
+    
+    // Apply membership-based discounts
+    // Founding: 25% off all bookings
+    // Gold: 20% off all bookings  
+    // Silver: 10% off-peak only
+    // Guest: 0%
     let discount = 0;
-    if (isOffPeak(selectedStartTime)) discount = base * 0.3;
+    const tier = userProfile.membershipTier;
+    const offPeak = isOffPeak(selectedStartTime);
+    
+    if (tier === 'Founding') {
+      discount = base * 0.25;
+    } else if (tier === 'Gold') {
+      discount = base * 0.20;
+    } else if (tier === 'Silver' && offPeak) {
+      discount = base * 0.10;
+    }
+    // Guest tier gets no discount
+    
     const addOnList = FACILITY_ADD_ONS[fac.id] || [];
     let addOnTotal = 0;
     selectedAddOns.forEach((id) => {
@@ -270,13 +287,14 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     return {
       basePrice: Math.round(base),
       discount: Math.round(discount),
+      discountLabel: tier === 'Founding' ? '25% Founding' : tier === 'Gold' ? '20% Gold' : tier === 'Silver' && offPeak ? '10% Silver Off-Peak' : null,
       addOnTotal,
       totalPrice: Math.round(base - discount + addOnTotal),
       date: selectedDate,
       startTime: selectedStartTime,
       endTime: calculateEndTime(selectedStartTime, selectedDuration),
     };
-  }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate]);
+  }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate, userProfile.membershipTier]);
 
   const toggleAddOn = (item: { id: string }) => {
     const newSet = new Set(selectedAddOns);
@@ -490,7 +508,35 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       {/* Main Content */}
       <div className="flex-grow p-4 md:p-8 relative overflow-auto bg-gray-50 dark:bg-slate-900">
         {/* BOOKING VIEW */}
-        {currentView === 'booking' && (
+        {currentView === 'booking' && !isAuthenticated && (
+          <div className="max-w-md mx-auto mt-16 animate-qd-fade-in">
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg text-center">
+              <User className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-2xl font-bold mb-2" data-testid="text-auth-required">Sign In Required</h2>
+              <p className="text-muted-foreground mb-6">
+                Please log in to access the booking system and make reservations.
+              </p>
+              <div className="space-y-3">
+                <a href="/api/login" className="block">
+                  <Button className="w-full" data-testid="button-login-booking">
+                    Sign In to Continue
+                  </Button>
+                </a>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleBackToHome}
+                  data-testid="button-back-home-auth"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {currentView === 'booking' && isAuthenticated && (
           <div className="max-w-6xl mx-auto space-y-8 animate-qd-fade-in">
             <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
@@ -514,7 +560,18 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Venue</label>
                   <select
                     value={selectedVenue}
-                    onChange={(e) => setSelectedVenue(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedVenue(e.target.value);
+                      setSelectedFacility(FACILITIES[0]);
+                      setSelectedResourceId(1);
+                      setSelectedStartTime(null);
+                      setSelectedAddOns(new Set());
+                      setAddOnQuantities({});
+                      setCoachBooked(false);
+                      setIsMatchmaking(false);
+                      setCurrentGroupSize(1);
+                      setSelectedHallActivity(null);
+                    }}
                     className="w-full border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                     data-testid="select-venue"
                   >
@@ -867,7 +924,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                         </div>
                         {bookingSummary.discount > 0 && (
                           <div className="flex justify-between text-emerald-600">
-                            <span>Off-Peak Discount (30%)</span>
+                            <span>Member Discount ({bookingSummary.discountLabel})</span>
                             <span>- {formatPKR(bookingSummary.discount)}</span>
                           </div>
                         )}

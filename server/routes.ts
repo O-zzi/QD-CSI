@@ -134,13 +134,21 @@ export async function registerRoutes(
     }
   });
 
-  // ========== PUBLIC CAREERS ROUTE (salary hidden) ==========
-  app.get('/api/careers', async (req, res) => {
+  // ========== PUBLIC CAREERS ROUTE (salary hidden from non-admin) ==========
+  app.get('/api/careers', async (req: any, res) => {
     try {
       const careers = await storage.getActiveCarers();
-      // Hide salary from public view when salaryHidden is true
+      
+      // Check if user is authenticated and has admin role
+      const isAdmin = req.user?.claims?.sub && 
+        await (async () => {
+          const user = await storage.getUser(req.user.claims.sub);
+          return user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+        })();
+      
+      // Always hide salary from non-admin users (regardless of salaryHidden flag)
       const publicCareers = careers.map(career => {
-        if (career.salaryHidden) {
+        if (!isAdmin) {
           const { salary, ...publicData } = career;
           return publicData;
         }
@@ -1265,6 +1273,34 @@ export async function registerRoutes(
   });
 
   // Career Application Routes
+  // General CV submission (no specific career) - must be defined before :careerId route
+  app.post('/api/careers/general-application', async (req, res) => {
+    try {
+      const { fullName, email, phone, coverLetter, cvUrl, linkedinUrl } = req.body;
+      
+      const result = insertCareerApplicationSchema.safeParse({
+        careerId: null,
+        fullName,
+        email,
+        phone,
+        coverLetter,
+        cvUrl,
+        linkedinUrl,
+        status: 'NEW'
+      });
+      
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      
+      const application = await storage.submitCareerApplication(result.data);
+      res.status(201).json(application);
+    } catch (error) {
+      console.error("Error submitting general CV application:", error);
+      res.status(500).json({ message: "Failed to submit CV" });
+    }
+  });
+
   app.post('/api/careers/:careerId/apply', async (req, res) => {
     try {
       const { careerId } = req.params;

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Clock, Briefcase, Mail, ChevronRight, Loader2, X, Send, Linkedin } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Briefcase, Mail, ChevronRight, Loader2, Send, Linkedin, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import type { Career } from "@shared/schema";
 
 const applicationSchema = z.object({
@@ -87,14 +88,30 @@ const defaultJobs = [
 
 export default function Careers() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedJob, setSelectedJob] = useState<typeof defaultJobs[0] | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCvDialogOpen, setIsCvDialogOpen] = useState(false);
+
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
   const { data: careers } = useQuery<Career[]>({
     queryKey: ["/api/careers"],
   });
 
   const form = useForm<ApplicationFormData>({
+    resolver: zodResolver(applicationSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      cvUrl: "",
+      linkedinUrl: "",
+      coverLetter: "",
+    },
+  });
+
+  const cvForm = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
       name: "",
@@ -129,6 +146,34 @@ export default function Careers() {
       toast({
         title: "Submission Failed",
         description: error.message || "Unable to submit application. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const generalCvMutation = useMutation({
+    mutationFn: async (data: ApplicationFormData) => {
+      return await apiRequest("POST", "/api/careers/general-application", {
+        fullName: data.name,
+        email: data.email,
+        phone: data.phone,
+        cvUrl: data.cvUrl || null,
+        linkedinUrl: data.linkedinUrl || null,
+        coverLetter: data.coverLetter,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "CV Submitted",
+        description: "Thank you for your interest! We will keep your CV on file for future opportunities.",
+      });
+      setIsCvDialogOpen(false);
+      cvForm.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Unable to submit CV. Please try again.",
         variant: "destructive",
       });
     },
@@ -238,7 +283,7 @@ export default function Careers() {
                             <span className="flex items-center gap-1">
                               <MapPin className="w-4 h-4" /> {job.location}
                             </span>
-                            {job.salary && (
+                            {isAdmin && job.salary && (
                               <span className="text-[#2a4060] dark:text-sky-400 font-medium">{job.salary}</span>
                             )}
                           </div>
@@ -276,10 +321,10 @@ export default function Careers() {
               </p>
               <Button 
                 className="bg-[#2a4060] hover:bg-[#1e3048]"
-                onClick={() => window.location.href = 'mailto:careers@thequarterdeck.pk?subject=General Application'}
+                onClick={() => setIsCvDialogOpen(true)}
                 data-testid="button-submit-cv"
               >
-                <Mail className="w-4 h-4 mr-2" /> Send Your CV
+                <FileText className="w-4 h-4 mr-2" /> Send Your CV
               </Button>
             </CardContent>
           </Card>
@@ -413,6 +458,140 @@ export default function Careers() {
                     <Send className="w-4 h-4 mr-2" />
                   )}
                   Submit Application
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCvDialogOpen} onOpenChange={setIsCvDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Send Your CV</DialogTitle>
+            <DialogDescription>
+              Submit your CV for future opportunities at The Quarterdeck
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...cvForm}>
+            <form onSubmit={cvForm.handleSubmit((data) => generalCvMutation.mutate(data))} className="space-y-4">
+              <FormField
+                control={cvForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} data-testid="input-cv-name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={cvForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="john@example.com" {...field} data-testid="input-cv-email" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={cvForm.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="+92 300 1234567" {...field} data-testid="input-cv-phone" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={cvForm.control}
+                name="cvUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CV/Resume URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://drive.google.com/..." {...field} data-testid="input-cv-url" />
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                      Share a link to your CV on Google Drive, Dropbox, or similar service
+                    </p>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={cvForm.control}
+                name="linkedinUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Linkedin className="w-4 h-4" />
+                      LinkedIn Profile (Optional)
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://linkedin.com/in/..." {...field} data-testid="input-cv-linkedin" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={cvForm.control}
+                name="coverLetter"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Message / Cover Letter</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Tell us about yourself, your skills, and what kind of role you're looking for..."
+                        className="min-h-[120px]"
+                        {...field} 
+                        data-testid="input-cv-cover-letter"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsCvDialogOpen(false)}
+                  data-testid="button-cancel-cv"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={generalCvMutation.isPending}
+                  className="bg-[#2a4060] hover:bg-[#1e3048]"
+                  data-testid="button-submit-cv-form"
+                >
+                  {generalCvMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  Submit CV
                 </Button>
               </div>
             </form>
