@@ -1,0 +1,93 @@
+import { Link } from "wouter";
+import { Instagram, Facebook, Linkedin } from "lucide-react";
+
+export function Footer() {
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const yOffset = -80;
+    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  };
+
+  return (
+    <footer className="qd-footer">
+      <div className="qd-container">
+        <div className="flex flex-wrap justify-between gap-6 items-center">
+          <Link href="/">
+            <div className="flex items-center gap-3 cursor-pointer" data-testid="link-footer-logo">
+              <div className="qd-logo-mark">Q</div>
+              <div>
+                <div className="font-bold tracking-wider text-sm uppercase text-gray-200">The Quarterdeck</div>
+                <div className="text-xs text-gray-400">Sports & Recreation Complex</div>
+              </div>
+            </div>
+          </Link>
+
+          <div className="flex gap-4">
+            <button
+              onClick={() => scrollToSection("hero")}
+              className="text-gray-400 hover:text-white transition-colors"
+              data-testid="link-footer-home"
+            >
+              Home
+            </button>
+            <button
+              onClick={() => scrollToSection("rules")}
+              className="text-gray-400 hover:text-white transition-colors"
+              data-testid="link-footer-rules"
+            >
+              Rules & Safety
+            </button>
+            <button
+              onClick={() => scrollToSection("careers")}
+              className="text-gray-400 hover:text-white transition-colors"
+              data-testid="link-footer-careers"
+            >
+              Careers
+            </button>
+            <button
+              onClick={() => scrollToSection("contact")}
+              className="text-gray-400 hover:text-white transition-colors"
+              data-testid="link-footer-contact"
+            >
+              Contact
+            </button>
+          </div>
+
+          <div className="flex gap-4">
+            <a
+              href="#"
+              className="qd-social-icon"
+              aria-label="Instagram"
+              data-testid="link-social-instagram"
+            >
+              <Instagram className="w-4 h-4" />
+            </a>
+            <a
+              href="#"
+              className="qd-social-icon"
+              aria-label="Facebook"
+              data-testid="link-social-facebook"
+            >
+              <Facebook className="w-4 h-4" />
+            </a>
+            <a
+              href="#"
+              className="qd-social-icon"
+              aria-label="LinkedIn"
+              data-testid="link-social-linkedin"
+            >
+              <Linkedin className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+
+        <p className="text-center mt-6 text-gray-500 text-xs">
+          © 2025 The Quarterdeck – All rights reserved.{" "}
+          <span className="font-semibold">| Terms & Conditions | Privacy Policy</span>
+        </p>
+      </div>
+    </footer>
+  );
+}
