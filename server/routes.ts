@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated, isAdmin, isAdminSecure, adminHeartbeat } from "./replitAuth";
 import {
   sendBookingCreatedEmail,
   sendPaymentVerifiedEmail,
@@ -496,6 +496,9 @@ export async function registerRoutes(
 
   // ========== ADMIN ROUTES ==========
   
+  // Admin heartbeat endpoint for activity tracking
+  app.post('/api/admin/heartbeat', isAuthenticated, adminHeartbeat);
+
   // Admin CMS Content routes
   app.get('/api/admin/cms', isAuthenticated, isAdmin, async (req, res) => {
     try {
