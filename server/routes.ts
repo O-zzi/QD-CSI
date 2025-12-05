@@ -19,6 +19,7 @@ import {
   insertCareerApplicationSchema,
   insertContactSubmissionSchema,
   insertSiteSettingSchema,
+  insertNavbarItemSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
@@ -1753,6 +1754,64 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting site setting:", error);
       res.status(500).json({ message: "Failed to delete site setting" });
+    }
+  });
+
+  // ========== NAVBAR ITEMS ROUTES ==========
+  app.get('/api/navbar-items', async (req, res) => {
+    try {
+      const items = await storage.getNavbarItems();
+      res.json(items.filter(item => item.isVisible));
+    } catch (error) {
+      console.error("Error fetching navbar items:", error);
+      res.status(500).json({ message: "Failed to fetch navbar items" });
+    }
+  });
+
+  app.get('/api/admin/navbar-items', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const items = await storage.getNavbarItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching navbar items:", error);
+      res.status(500).json({ message: "Failed to fetch navbar items" });
+    }
+  });
+
+  app.post('/api/admin/navbar-items', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertNavbarItemSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const item = await storage.createNavbarItem(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating navbar item:", error);
+      res.status(500).json({ message: "Failed to create navbar item" });
+    }
+  });
+
+  app.patch('/api/admin/navbar-items/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const item = await storage.updateNavbarItem(req.params.id, req.body);
+      if (!item) {
+        return res.status(404).json({ message: "Navbar item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error updating navbar item:", error);
+      res.status(500).json({ message: "Failed to update navbar item" });
+    }
+  });
+
+  app.delete('/api/admin/navbar-items/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteNavbarItem(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting navbar item:", error);
+      res.status(500).json({ message: "Failed to delete navbar item" });
     }
   });
 

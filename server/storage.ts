@@ -23,6 +23,7 @@ import {
   careerApplications,
   contactSubmissions,
   siteSettings,
+  navbarItems,
   type User,
   type UpsertUser,
   type Membership,
@@ -63,6 +64,8 @@ import {
   type InsertContactSubmission,
   type SiteSetting,
   type InsertSiteSetting,
+  type NavbarItem,
+  type InsertNavbarItem,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
@@ -200,6 +203,13 @@ export interface IStorage {
   getSiteSetting(key: string): Promise<SiteSetting | undefined>;
   upsertSiteSetting(data: InsertSiteSetting): Promise<SiteSetting>;
   deleteSiteSetting(key: string): Promise<void>;
+  
+  // Navbar Items operations
+  getNavbarItems(): Promise<NavbarItem[]>;
+  getNavbarItem(id: string): Promise<NavbarItem | undefined>;
+  createNavbarItem(data: InsertNavbarItem): Promise<NavbarItem>;
+  updateNavbarItem(id: string, data: Partial<InsertNavbarItem>): Promise<NavbarItem | undefined>;
+  deleteNavbarItem(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -858,6 +868,34 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSiteSetting(key: string): Promise<void> {
     await db.delete(siteSettings).where(eq(siteSettings.key, key));
+  }
+
+  // Navbar Items operations
+  async getNavbarItems(): Promise<NavbarItem[]> {
+    return await db.select().from(navbarItems).orderBy(asc(navbarItems.sortOrder));
+  }
+
+  async getNavbarItem(id: string): Promise<NavbarItem | undefined> {
+    const [item] = await db.select().from(navbarItems).where(eq(navbarItems.id, id));
+    return item;
+  }
+
+  async createNavbarItem(data: InsertNavbarItem): Promise<NavbarItem> {
+    const [created] = await db.insert(navbarItems).values(data).returning();
+    return created;
+  }
+
+  async updateNavbarItem(id: string, data: Partial<InsertNavbarItem>): Promise<NavbarItem | undefined> {
+    const [updated] = await db
+      .update(navbarItems)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(navbarItems.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteNavbarItem(id: string): Promise<void> {
+    await db.delete(navbarItems).where(eq(navbarItems.id, id));
   }
 }
 

@@ -314,6 +314,20 @@ export const siteSettings = pgTable("site_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Navbar Items table (for editable navigation links)
+export const navbarItems = pgTable("navbar_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  label: varchar("label").notNull(),
+  href: varchar("href").notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isVisible: boolean("is_visible").default(true).notNull(),
+  target: varchar("target").default('_self'),
+  requiresAuth: boolean("requires_auth").default(false),
+  icon: varchar("icon"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Rules/Policies table
 export const rules = pgTable("rules", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -599,6 +613,12 @@ export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({
   updatedAt: true,
 });
 
+export const insertNavbarItemSchema = createInsertSchema(navbarItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -670,3 +690,6 @@ export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSche
 
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
+
+export type NavbarItem = typeof navbarItems.$inferSelect;
+export type InsertNavbarItem = z.infer<typeof insertNavbarItemSchema>;

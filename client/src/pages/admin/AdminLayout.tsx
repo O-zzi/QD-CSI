@@ -16,7 +16,8 @@ import {
   Calendar,
   Clock,
   HardHat,
-  CreditCard
+  CreditCard,
+  Palette
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -24,6 +25,7 @@ import type { User } from "@shared/schema";
 
 const navItems = [
   { path: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/admin/branding", label: "Branding & Nav", icon: Palette },
   { path: "/admin/homepage", label: "Site Content", icon: Home },
   { path: "/admin/coming-soon", label: "Coming Soon", icon: Clock },
   { path: "/admin/facilities", label: "Facilities", icon: Building2 },

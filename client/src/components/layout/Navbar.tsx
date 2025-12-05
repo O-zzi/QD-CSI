@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,6 +28,10 @@ export function Navbar({ onScrollTo }: NavbarProps) {
   const { user, isAuthenticated } = useAuth();
   const [location] = useLocation();
 
+  const { data: siteSettings } = useQuery<Record<string, string>>({
+    queryKey: ['/api/site-settings'],
+  });
+
   const scrollToSection = (id: string) => {
     if (location !== "/") {
       window.location.href = `/#${id}`;
@@ -39,6 +44,10 @@ export function Navbar({ onScrollTo }: NavbarProps) {
     window.scrollTo({ top: y, behavior: "smooth" });
     setMobileMenuOpen(false);
   };
+
+  const logoUrl = siteSettings?.logo_main_url;
+  const siteName = siteSettings?.site_name || "The Quarterdeck";
+  const siteTagline = siteSettings?.site_tagline || "Sports & Recreation Complex";
 
   const navLinks: NavLink[] = [
     { label: "Home", section: "hero" },
@@ -65,10 +74,19 @@ export function Navbar({ onScrollTo }: NavbarProps) {
         <nav className="h-[70px] flex items-center justify-between gap-8">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer" data-testid="link-logo">
-              <div className="qd-logo-mark">Q</div>
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt={siteName} 
+                  className="h-10 w-auto object-contain"
+                  data-testid="img-site-logo"
+                />
+              ) : (
+                <div className="qd-logo-mark">Q</div>
+              )}
               <div>
-                <div className="font-bold tracking-wider text-sm uppercase">The Quarterdeck</div>
-                <div className="text-xs text-muted-foreground">Sports & Recreation Complex</div>
+                <div className="font-bold tracking-wider text-sm uppercase">{siteName}</div>
+                <div className="text-xs text-muted-foreground">{siteTagline}</div>
               </div>
             </div>
           </Link>
