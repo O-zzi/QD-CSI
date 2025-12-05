@@ -29,6 +29,7 @@ import PricingManagement from "@/pages/admin/PricingManagement";
 import AnnouncementsManagement from "@/pages/admin/AnnouncementsManagement";
 import CareersManagement from "@/pages/admin/CareersManagement";
 import RulesManagement from "@/pages/admin/RulesManagement";
+import PolicyManagement from "@/pages/admin/PolicyManagement";
 import GalleryManagement from "@/pages/admin/GalleryManagement";
 import SiteImagesManagement from "@/pages/admin/SiteImagesManagement";
 import BookingsManagement from "@/pages/admin/BookingsManagement";
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/admin/announcements" component={AnnouncementsManagement} />
       <Route path="/admin/careers" component={CareersManagement} />
       <Route path="/admin/rules" component={RulesManagement} />
+      <Route path="/admin/policies" component={PolicyManagement} />
       <Route path="/admin/gallery" component={GalleryManagement} />
       <Route path="/admin/site-images" component={SiteImagesManagement} />
       <Route path="/admin/bookings" component={BookingsManagement} />

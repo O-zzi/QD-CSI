@@ -182,6 +182,17 @@ export async function registerRoutes(
     }
   });
 
+  // ========== PUBLIC RULES ROUTE ==========
+  app.get('/api/rules', async (req, res) => {
+    try {
+      const rules = await storage.getActiveRules();
+      res.json(rules);
+    } catch (error) {
+      console.error("Error fetching rules:", error);
+      res.status(500).json({ message: "Failed to fetch rules" });
+    }
+  });
+
   // ========== PUBLIC CAREERS ROUTE (salary hidden from non-admin) ==========
   app.get('/api/careers', async (req: any, res) => {
     try {

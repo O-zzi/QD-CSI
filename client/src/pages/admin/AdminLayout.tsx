@@ -20,7 +20,8 @@ import {
   Palette,
   Search,
   Users,
-  MapPin
+  MapPin,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback } from "react";
@@ -39,7 +40,8 @@ const navItems = [
   { path: "/admin/pricing", label: "Pricing Tiers", icon: DollarSign },
   { path: "/admin/announcements", label: "Announcements", icon: Bell },
   { path: "/admin/careers", label: "Careers", icon: Briefcase },
-  { path: "/admin/rules", label: "Rules & Policies", icon: FileText },
+  { path: "/admin/rules", label: "Rules & Safety", icon: FileText },
+  { path: "/admin/policies", label: "Privacy & Terms", icon: ShieldCheck },
   { path: "/admin/gallery", label: "Gallery", icon: Image },
   { path: "/admin/site-images", label: "Site Images", icon: Image },
 ];

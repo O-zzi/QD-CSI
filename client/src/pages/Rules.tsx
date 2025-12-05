@@ -1,117 +1,38 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Shield, Clock, Users, AlertTriangle, Shirt, Phone, Ban, Heart } from "lucide-react";
+import { ArrowLeft, Shield, Clock, Users, AlertTriangle, Shirt, Phone, Ban, Heart, Loader2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useQuery } from "@tanstack/react-query";
+import type { Rule } from "@shared/schema";
 
-const ruleCategories = [
-  {
-    id: "general",
-    title: "General Rules",
-    icon: Shield,
-    rules: [
-      "All members and guests must check in at reception upon arrival",
-      "Valid membership cards must be presented when requested by staff",
-      "Children under 16 must be accompanied by a member at all times",
-      "Photography and video recording require prior management approval",
-      "Lost and found items should be reported to reception immediately",
-      "Management reserves the right to refuse entry or ask anyone to leave",
-    ],
-  },
-  {
-    id: "booking",
-    title: "Booking & Scheduling",
-    icon: Clock,
-    rules: [
-      "Bookings must be made through the official booking system or app",
-      "Maximum booking window: 7 days in advance for Founding members, 3 days for others",
-      "Cancellations must be made at least 24 hours before the scheduled time",
-      "No-shows will result in forfeiture of booking credits and potential penalties",
-      "Late arrivals: 15-minute grace period, after which the booking may be released",
-      "Back-to-back bookings by the same member require a 30-minute gap",
-    ],
-  },
-  {
-    id: "conduct",
-    title: "Conduct & Behavior",
-    icon: Users,
-    rules: [
-      "Respectful behavior towards all staff, members, and guests is mandatory",
-      "Harassment, discrimination, or intimidation of any kind is prohibited",
-      "Excessive noise, profanity, and disruptive behavior are not permitted",
-      "Mobile phones must be on silent in all playing areas",
-      "Gambling or betting on premises is strictly prohibited",
-      "Any disputes should be reported to management for resolution",
-    ],
-  },
-  {
-    id: "safety",
-    title: "Safety Requirements",
-    icon: AlertTriangle,
-    rules: [
-      "All members must complete facility-specific safety orientations",
-      "Air Rifle Range requires mandatory safety certification before use",
-      "Protective equipment must be worn as required for each facility",
-      "Report any injuries, accidents, or safety hazards immediately",
-      "Emergency exits must be kept clear at all times",
-      "Fire alarms and safety equipment are for emergencies only",
-    ],
-  },
-  {
-    id: "dresscode",
-    title: "Dress Code",
-    icon: Shirt,
-    rules: [
-      "Appropriate athletic attire required for all sports facilities",
-      "Non-marking indoor shoes mandatory for Padel and Squash courts",
-      "Proper enclosed footwear required in Air Rifle Range",
-      "Smart casual dress code in Bridge Room and common areas",
-      "Swimming attire only permitted in designated areas (future)",
-      "Offensive or inappropriate clothing will not be permitted",
-    ],
-  },
-  {
-    id: "equipment",
-    title: "Equipment & Facilities",
-    icon: Ban,
-    rules: [
-      "Handle all equipment with care; damage may result in charges",
-      "Return rented equipment in the same condition as received",
-      "Personal equipment must meet safety standards and be approved",
-      "Do not leave personal belongings unattended in facility areas",
-      "Report any equipment malfunctions to staff immediately",
-      "Outside food and beverages not permitted in playing areas",
-    ],
-  },
-  {
-    id: "guests",
-    title: "Guest Policy",
-    icon: Heart,
-    rules: [
-      "Guest passes subject to availability based on membership tier",
-      "Members are responsible for their guests' conduct at all times",
-      "Guests must complete registration and sign waivers before facility use",
-      "Same guest may visit maximum 3 times before membership required",
-      "Guest fees apply as per current pricing schedule",
-      "Corporate members have separate guest allocation policies",
-    ],
-  },
-  {
-    id: "emergency",
-    title: "Emergency Procedures",
-    icon: Phone,
-    rules: [
-      "In case of fire, evacuate via nearest exit and assemble at designated point",
-      "Medical emergencies: Contact reception or any staff member immediately",
-      "First aid kits available at reception and all facility areas",
-      "Emergency contact numbers posted at all facility entrances",
-      "Do not re-enter building until all-clear is given by staff",
-      "AED (Automated External Defibrillator) located at main reception",
-    ],
-  },
-];
+const categoryConfig: Record<string, { title: string; icon: any }> = {
+  general: { title: "General Rules", icon: Shield },
+  booking: { title: "Booking & Scheduling", icon: Clock },
+  conduct: { title: "Conduct & Behavior", icon: Users },
+  safety: { title: "Safety Requirements", icon: AlertTriangle },
+  dresscode: { title: "Dress Code", icon: Shirt },
+  equipment: { title: "Equipment & Facilities", icon: Ban },
+  guests: { title: "Guest Policy", icon: Heart },
+  emergency: { title: "Emergency Procedures", icon: Phone },
+};
+
+const categoryOrder = ["general", "booking", "conduct", "safety", "dresscode", "equipment", "guests", "emergency"];
 
 export default function Rules() {
+  const { data: rules = [], isLoading } = useQuery<Rule[]>({
+    queryKey: ["/api/rules"],
+  });
+
+  const groupedRules = rules.reduce((acc, rule) => {
+    const category = rule.category || "general";
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(rule);
+    return acc;
+  }, {} as Record<string, Rule[]>);
+
+  const sortedCategories = categoryOrder.filter(cat => groupedRules[cat]?.length > 0);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-[#2a4060] py-16">
@@ -147,38 +68,55 @@ export default function Rules() {
             </CardContent>
           </Card>
 
-          <Accordion type="multiple" className="space-y-4">
-            {ruleCategories.map((category) => {
-              const Icon = category.icon;
-              return (
-                <AccordionItem 
-                  key={category.id} 
-                  value={category.id} 
-                  className="border rounded-md px-4"
-                  data-testid={`accordion-${category.id}`}
-                >
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-md bg-[#2a4060]/10 flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-[#2a4060]" />
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : sortedCategories.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Shield className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Rules are being updated. Please check back soon.</p>
+            </div>
+          ) : (
+            <Accordion type="multiple" className="space-y-4">
+              {sortedCategories.map((categoryKey) => {
+                const config = categoryConfig[categoryKey] || { title: categoryKey, icon: Shield };
+                const Icon = config.icon;
+                const categoryRules = groupedRules[categoryKey] || [];
+                
+                return (
+                  <AccordionItem 
+                    key={categoryKey} 
+                    value={categoryKey} 
+                    className="border rounded-md px-4"
+                    data-testid={`accordion-${categoryKey}`}
+                  >
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-md bg-[#2a4060]/10 flex items-center justify-center">
+                          <Icon className="w-5 h-5 text-[#2a4060]" />
+                        </div>
+                        <span className="font-semibold">{config.title}</span>
                       </div>
-                      <span className="font-semibold">{category.title}</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <ul className="space-y-3 pl-13 py-4">
-                      {category.rules.map((rule, index) => (
-                        <li key={index} className="flex items-start gap-3 text-muted-foreground">
-                          <span className="text-[#2a4060] font-bold">{index + 1}.</span>
-                          {rule}
-                        </li>
-                      ))}
-                    </ul>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <ul className="space-y-3 pl-13 py-4">
+                        {categoryRules.map((rule, index) => (
+                          <li key={rule.id} className="flex items-start gap-3 text-muted-foreground">
+                            <span className="text-[#2a4060] font-bold">{index + 1}.</span>
+                            <div>
+                              {rule.title && <span className="font-medium text-foreground">{rule.title}: </span>}
+                              {rule.content}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          )}
 
           <Card className="mt-8">
             <CardHeader>

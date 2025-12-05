@@ -556,10 +556,82 @@ export default function SiteImagesManagement() {
         </div>
 
         {Object.keys(groupedImages).length === 0 ? (
-          <div className="text-center text-muted-foreground py-12 border border-dashed rounded-lg">
-            <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No site images found. Add your first image to get started.</p>
-          </div>
+          <Card className="border-dashed">
+            <CardContent className="py-12">
+              <div className="text-center mb-8">
+                <ImageIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <h3 className="text-lg font-semibold mb-2">No Site Images Yet</h3>
+                <p className="text-muted-foreground max-w-md mx-auto mb-6">
+                  Upload images to customize the look of your website. Images can be used for hero backgrounds, 
+                  facility headers, gallery sections, and more.
+                </p>
+                <Button onClick={() => setIsDialogOpen(true)} data-testid="button-add-first-image">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Your First Image
+                </Button>
+              </div>
+              
+              <div className="border-t pt-8 mt-8">
+                <h4 className="font-semibold text-center mb-6">Where Images Can Be Used</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                  <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    <h5 className="font-medium text-blue-700 dark:text-blue-300 mb-1">Landing Page</h5>
+                    <p className="text-sm text-muted-foreground">Hero background, gallery images, about section</p>
+                    <p className="text-xs text-blue-500 mt-2">Recommended: 1920x1080 for hero</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <h5 className="font-medium text-green-700 dark:text-green-300 mb-1">Facilities</h5>
+                    <p className="text-sm text-muted-foreground">Headers for each sport facility page</p>
+                    <p className="text-xs text-green-500 mt-2">Recommended: 1920x600</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                    <h5 className="font-medium text-purple-700 dark:text-purple-300 mb-1">Coming Soon</h5>
+                    <p className="text-sm text-muted-foreground">Hero and countdown backgrounds</p>
+                    <p className="text-xs text-purple-500 mt-2">Recommended: 1920x1080</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <h5 className="font-medium text-amber-700 dark:text-amber-300 mb-1">About Page</h5>
+                    <p className="text-sm text-muted-foreground">About hero and team section</p>
+                    <p className="text-xs text-amber-500 mt-2">Recommended: 1920x600</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-teal-500/10 border border-teal-500/20">
+                    <h5 className="font-medium text-teal-700 dark:text-teal-300 mb-1">Contact Page</h5>
+                    <p className="text-sm text-muted-foreground">Contact hero and map background</p>
+                    <p className="text-xs text-teal-500 mt-2">Recommended: 1920x400</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                    <h5 className="font-medium text-rose-700 dark:text-rose-300 mb-1">Events Page</h5>
+                    <p className="text-sm text-muted-foreground">Events hero and academy section</p>
+                    <p className="text-xs text-rose-500 mt-2">Recommended: 1920x600</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-8 mt-8 text-center">
+                <h4 className="font-semibold mb-4">How It Works</h4>
+                <div className="flex flex-col md:flex-row justify-center gap-6 text-sm text-muted-foreground max-w-2xl mx-auto">
+                  <div className="flex items-start gap-2">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-primary font-bold text-xs">1</span>
+                    </div>
+                    <span>Click "Add Site Image" and select a page and section</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-primary font-bold text-xs">2</span>
+                    </div>
+                    <span>Upload your image or paste a URL</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-primary font-bold text-xs">3</span>
+                    </div>
+                    <span>Save and it appears on your website instantly</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ) : (
           Object.entries(groupedImages).map(([page, pageImages]) => (
             <div key={page} className="space-y-4">
