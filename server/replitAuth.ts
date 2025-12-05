@@ -9,6 +9,10 @@ import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { sendWelcomeEmail } from "./email";
 
+// Security constants for admin access
+const ADMIN_REAUTH_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes - require fresh login
+const ADMIN_INACTIVITY_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes - inactivity timeout
+
 const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
@@ -58,13 +62,17 @@ async function upsertUser(claims: any) {
   const existingUser = await storage.getUser(userId);
   const isNewUser = !existingUser;
   
-  // Upsert user record
+  const now = new Date();
+  
+  // Upsert user record with authentication timestamp
   const user = await storage.upsertUser({
     id: userId,
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
+    lastAuthenticatedAt: now,
+    lastActivityAt: now,
   });
   
   // Check if user has a membership, if not create a guest membership
@@ -203,4 +211,133 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
+};
+
+// Middleware to check admin role
+export const isAdmin: RequestHandler = async (req, res, next) => {
+  const sessionUser = req.user as any;
+  if (!sessionUser?.claims?.sub) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = await storage.getUser(sessionUser.claims.sub);
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    return res.status(403).json({ message: "Forbidden: Admin access required" });
+  }
+
+  next();
+};
+
+// Middleware to enforce admin security (re-authentication + activity timeout)
+export const isAdminSecure: RequestHandler = async (req, res, next) => {
+  const sessionUser = req.user as any;
+  if (!sessionUser?.claims?.sub) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = await storage.getUser(sessionUser.claims.sub);
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    return res.status(403).json({ message: "Forbidden: Admin access required" });
+  }
+
+  const now = Date.now();
+
+  // Check if authentication is fresh (within 10 minutes)
+  if (user.lastAuthenticatedAt) {
+    const authAge = now - new Date(user.lastAuthenticatedAt).getTime();
+    if (authAge > ADMIN_REAUTH_TIMEOUT_MS) {
+      return res.status(401).json({ 
+        message: "Session expired", 
+        code: "ADMIN_REAUTH_REQUIRED",
+        reason: "Your admin session has expired. Please log in again to access the admin panel."
+      });
+    }
+  } else {
+    // No authentication timestamp - require fresh login
+    return res.status(401).json({ 
+      message: "Session expired", 
+      code: "ADMIN_REAUTH_REQUIRED",
+      reason: "Please log in again to access the admin panel."
+    });
+  }
+
+  // Check for inactivity timeout (2 minutes)
+  if (user.lastActivityAt) {
+    const inactiveTime = now - new Date(user.lastActivityAt).getTime();
+    if (inactiveTime > ADMIN_INACTIVITY_TIMEOUT_MS) {
+      return res.status(401).json({ 
+        message: "Session timed out", 
+        code: "ADMIN_INACTIVITY_TIMEOUT",
+        reason: "You have been logged out due to inactivity. Please log in again."
+      });
+    }
+  }
+
+  // Update last activity timestamp
+  await storage.updateUserActivity(user.id);
+
+  next();
+};
+
+// Middleware to update activity timestamp (for admin routes)
+export const updateAdminActivity: RequestHandler = async (req, res, next) => {
+  const sessionUser = req.user as any;
+  if (sessionUser?.claims?.sub) {
+    const user = await storage.getUser(sessionUser.claims.sub);
+    if (user && (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN')) {
+      await storage.updateUserActivity(user.id);
+    }
+  }
+  next();
+};
+
+// API endpoint to refresh admin activity (heartbeat)
+export const adminHeartbeat: RequestHandler = async (req, res) => {
+  const sessionUser = req.user as any;
+  if (!sessionUser?.claims?.sub) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = await storage.getUser(sessionUser.claims.sub);
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  const now = Date.now();
+
+  // Check if authentication is still valid
+  if (user.lastAuthenticatedAt) {
+    const authAge = now - new Date(user.lastAuthenticatedAt).getTime();
+    if (authAge > ADMIN_REAUTH_TIMEOUT_MS) {
+      return res.status(401).json({ 
+        code: "ADMIN_REAUTH_REQUIRED",
+        message: "Admin session expired"
+      });
+    }
+  }
+
+  // Check for inactivity timeout
+  if (user.lastActivityAt) {
+    const inactiveTime = now - new Date(user.lastActivityAt).getTime();
+    if (inactiveTime > ADMIN_INACTIVITY_TIMEOUT_MS) {
+      return res.status(401).json({ 
+        code: "ADMIN_INACTIVITY_TIMEOUT",
+        message: "Session timed out due to inactivity"
+      });
+    }
+  }
+
+  // Update activity and return remaining time
+  await storage.updateUserActivity(user.id);
+
+  const authAge = user.lastAuthenticatedAt ? now - new Date(user.lastAuthenticatedAt).getTime() : 0;
+  const sessionRemainingMs = ADMIN_REAUTH_TIMEOUT_MS - authAge;
+  const inactivityRemainingMs = ADMIN_INACTIVITY_TIMEOUT_MS;
+
+  res.json({ 
+    success: true,
+    sessionRemainingMs,
+    inactivityTimeoutMs: ADMIN_INACTIVITY_TIMEOUT_MS,
+    reauthTimeoutMs: ADMIN_REAUTH_TIMEOUT_MS
+  });
 };

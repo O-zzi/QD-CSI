@@ -53,6 +53,8 @@ export const users = pgTable("users", {
   creditBalance: integer("credit_balance").default(0),
   totalHoursPlayed: integer("total_hours_played").default(0),
   stripeCustomerId: varchar("stripe_customer_id"),
+  lastAuthenticatedAt: timestamp("last_authenticated_at"),
+  lastActivityAt: timestamp("last_activity_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

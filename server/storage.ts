@@ -78,6 +78,7 @@ export interface IStorage {
   // User operations - mandatory for Replit Auth
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUserActivity(userId: string): Promise<void>;
 
   // Membership operations
   getMembership(userId: string): Promise<Membership | undefined>;
@@ -254,6 +255,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async updateUserActivity(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ lastActivityAt: new Date() })
+      .where(eq(users.id, userId));
   }
 
   // Membership operations
