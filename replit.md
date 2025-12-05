@@ -197,7 +197,7 @@ All PATCH routes validate using partial Zod schemas for type safety.
 - Zod validation on all admin POST and PATCH endpoints
 
 ### Seed Data Available
-- 5 Facilities: Padel Tennis, Squash, Air Rifle Range, Bridge Club, Banquet Hall
+- 5 Facilities: Padel Tennis, Squash, Air Rifle Range, Bridge Club, Multipurpose Hall
 - 5 Demo Members: QD-0001 (Founding), QD-0002/0003 (Gold), QD-0004/0005 (Silver)
 - Events: Padel Beginner Academy, Monthly Tournament, Squash Pro Clinic, Air Rifle Safety Course
 - Leaderboard entries with sample rankings
@@ -206,3 +206,60 @@ All PATCH routes validate using partial Zod schemas for type safety.
 ```bash
 npx tsx script/seed.ts
 ```
+
+## Admin Dashboard Access
+
+### Accessing the Admin Panel
+
+The admin dashboard is available at `/admin` for users with ADMIN or SUPER_ADMIN roles.
+
+**How to Access:**
+1. Log in using Replit Auth (Google, GitHub, Apple, or email)
+2. Navigate to `/admin` in your browser
+3. If unauthorized, you'll be redirected to the homepage
+
+**Setting Up Admin Access:**
+To make a user an admin, update their role directly in the database:
+
+```sql
+-- Make a user an ADMIN
+UPDATE users SET role = 'ADMIN' WHERE email = 'your-email@example.com';
+
+-- Make a user a SUPER_ADMIN (highest privileges)
+UPDATE users SET role = 'SUPER_ADMIN' WHERE email = 'your-email@example.com';
+```
+
+Or run via the execute_sql tool or Replit's database pane.
+
+**Admin Role Permissions:**
+- `USER` (default): Standard member access, can book facilities
+- `ADMIN`: Access to admin dashboard, can manage CMS content, announcements, gallery, careers, rules
+- `SUPER_ADMIN`: Full access including facilities and pricing management
+
+**Admin Dashboard Sections:**
+| Route | Purpose | Access Level |
+|-------|---------|--------------|
+| `/admin` | Dashboard with statistics overview | ADMIN+ |
+| `/admin/homepage` | Edit homepage CMS content | ADMIN+ |
+| `/admin/facilities` | Manage facilities, pricing, status | ADMIN+ |
+| `/admin/pricing` | Membership tier pricing and benefits | ADMIN+ |
+| `/admin/announcements` | Site-wide announcements | ADMIN+ |
+| `/admin/careers` | Job listings management | ADMIN+ |
+| `/admin/rules` | Rules and policies | ADMIN+ |
+| `/admin/gallery` | Gallery image management | ADMIN+ |
+
+**Testing Admin Access:**
+After setting up admin access, verify by:
+1. Logging in with your account
+2. Going to `/admin` - you should see the admin dashboard
+3. Check that sidebar navigation shows all management sections
+
+### Booking Console Layout
+
+The booking console at `/booking` now features a sidebar-based layout with:
+- **Navigation Tabs:** Book Facility, Events & Academies, Leaderboard, My Profile
+- **User Stats Panel:** Credit Balance, Hours Played, Guest Passes
+- **Facility Selection:** All 5 facilities with court/lane selection
+- **Hall-Specific Activity Type:** Team Training, Private Event/Party, General Practice options
+- **Time Slot Picker:** Off-peak discount indicators, duration selection
+- **Add-Ons & Payment:** Quantity controls, payer details, payment method selection

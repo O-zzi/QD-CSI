@@ -2,8 +2,30 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ChevronRight, Users, Clock, Star } from "lucide-react";
+import { ArrowLeft, ChevronRight, Users, Clock, Star, Target, Dumbbell, Crosshair, Spade, Building } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+import padelImage from "@assets/stock_images/padel_tennis_court_i_d29f9aaf.jpg";
+import squashImage from "@assets/stock_images/professional_squash__c4dca43a.jpg";
+import rifleImage from "@assets/stock_images/air_rifle_shooting_r_931e6002.jpg";
+import bridgeImage from "@assets/stock_images/bridge_card_game_clu_6f83cf65.jpg";
+import hallImage from "@assets/stock_images/multipurpose_event_h_e7c6ac62.jpg";
+
+const facilityIcons: Record<string, any> = {
+  "padel-tennis": Target,
+  "squash": Dumbbell,
+  "air-rifle-range": Crosshair,
+  "bridge-room": Spade,
+  "multipurpose-hall": Building,
+};
+
+const facilityImages: Record<string, string> = {
+  "padel-tennis": padelImage,
+  "squash": squashImage,
+  "air-rifle-range": rifleImage,
+  "bridge-room": bridgeImage,
+  "multipurpose-hall": hallImage,
+};
 
 interface FacilityDisplay {
   id: number | string;
@@ -30,7 +52,6 @@ const defaultFacilities: FacilityDisplay[] = [
     slug: "padel-tennis",
     description: "Experience the fastest-growing racquet sport on our 4 international-standard courts with LED lighting and premium surfaces.",
     longDescription: "Padel Tennis combines elements of tennis and squash in an exciting, social game format. Our courts feature tempered glass walls, professional-grade turf, and state-of-the-art LED lighting for evening play.",
-    imageUrl: "/images/padel.jpg",
     courtCount: 4,
     basePrice: "6000",
     peakPrice: "8000",
@@ -47,7 +68,6 @@ const defaultFacilities: FacilityDisplay[] = [
     slug: "squash",
     description: "Two championship-grade squash courts built to World Squash Federation standards with glass back walls.",
     longDescription: "Our squash courts meet international competition standards with specially designed floors, glass back walls for viewing, and professional lighting systems. Perfect for casual games or serious training.",
-    imageUrl: "/images/squash.jpg",
     courtCount: 2,
     basePrice: "4000",
     peakPrice: "6000",
@@ -64,7 +84,6 @@ const defaultFacilities: FacilityDisplay[] = [
     slug: "air-rifle-range",
     description: "Pakistan's premier 10-meter air rifle range with 6 lanes, electronic scoring, and professional supervision.",
     longDescription: "Our state-of-the-art air rifle range features electronic scoring systems, professional-grade targets, and comprehensive safety measures. All shooters must complete our safety certification course before using the range.",
-    imageUrl: "/images/rifle.jpg",
     courtCount: 6,
     basePrice: "6000",
     peakPrice: "8000",
@@ -81,7 +100,6 @@ const defaultFacilities: FacilityDisplay[] = [
     slug: "bridge-room",
     description: "Elegant Bridge Room with 5 tables in a refined atmosphere for contract bridge enthusiasts.",
     longDescription: "A sophisticated space designed for serious bridge players. Features comfortable seating, proper lighting, and a quiet atmosphere conducive to concentration. Exclusive to Founding and Forces category members.",
-    imageUrl: "/images/bridge.jpg",
     courtCount: 5,
     basePrice: "0",
     peakPrice: "0",
@@ -98,7 +116,6 @@ const defaultFacilities: FacilityDisplay[] = [
     slug: "multipurpose-hall",
     description: "Versatile 500-capacity hall for corporate events, fitness classes, and private functions.",
     longDescription: "Our multipurpose hall offers flexible space for a variety of activities from aerobics classes to corporate events and private functions. Features include a professional sound system, adjustable lighting, and full catering support.",
-    imageUrl: "/images/hall.jpg",
     courtCount: 1,
     basePrice: "6000",
     peakPrice: "150000",
@@ -157,14 +174,30 @@ export default function Facilities() {
                 <Card className="overflow-hidden hover-elevate cursor-pointer" data-testid={`card-facility-${facility.slug}`}>
                   <CardContent className="p-0">
                     <div className="flex flex-col md:flex-row">
-                      <div className="md:w-1/3 h-48 md:h-auto bg-[#2a4060]/10 flex items-center justify-center">
-                        <div className="text-6xl opacity-50">
-                          {facility.slug === 'padel-tennis' && '🎾'}
-                          {facility.slug === 'squash' && '🧱'}
-                          {facility.slug === 'air-rifle-range' && '🎯'}
-                          {facility.slug === 'bridge-room' && '♠️'}
-                          {facility.slug === 'multipurpose-hall' && '🏛️'}
-                        </div>
+                      <div className="md:w-1/3 h-48 md:h-auto relative overflow-hidden">
+                        {facilityImages[facility.slug] ? (
+                          <>
+                            <img 
+                              src={facilityImages[facility.slug]} 
+                              alt={facility.name}
+                              className="absolute inset-0 w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+                            <div className="absolute bottom-4 left-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                              {(() => {
+                                const Icon = facilityIcons[facility.slug] || Target;
+                                return <Icon className="w-5 h-5 text-white" />;
+                              })()}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="w-full h-full bg-[#2a4060]/10 flex items-center justify-center">
+                            {(() => {
+                              const Icon = facilityIcons[facility.slug] || Target;
+                              return <Icon className="w-12 h-12 text-[#2a4060]/50" />;
+                            })()}
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 p-6">
                         <div className="flex items-start justify-between gap-4 mb-3">

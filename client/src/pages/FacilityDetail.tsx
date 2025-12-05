@@ -2,9 +2,31 @@ import { Link, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Clock, Users, MapPin, Check, AlertTriangle, Calendar } from "lucide-react";
+import { ArrowLeft, Clock, Users, MapPin, Check, AlertTriangle, Calendar, Target, Dumbbell, Crosshair, Spade, Building } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Facility, FacilityAddOn } from "@shared/schema";
+
+import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
+import squashImage from "@assets/stock_images/indoor_squash_court__3447d74a.jpg";
+import rifleImage from "@assets/stock_images/shooting_range_indoo_e2b54b1a.jpg";
+import bridgeImage from "@assets/stock_images/elegant_card_game_ro_42b0454d.jpg";
+import hallImage from "@assets/stock_images/large_event_hall_int_32ffc7ae.jpg";
+
+const facilityIcons: Record<string, any> = {
+  "padel-tennis": Target,
+  "squash": Dumbbell,
+  "air-rifle-range": Crosshair,
+  "bridge-room": Spade,
+  "multipurpose-hall": Building,
+};
+
+const facilityImages: Record<string, string> = {
+  "padel-tennis": padelImage,
+  "squash": squashImage,
+  "air-rifle-range": rifleImage,
+  "bridge-room": bridgeImage,
+  "multipurpose-hall": hallImage,
+};
 
 const defaultFacilities: Record<string, any> = {
   "padel-tennis": {
@@ -13,7 +35,6 @@ const defaultFacilities: Record<string, any> = {
     slug: "padel-tennis",
     description: "Experience the fastest-growing racquet sport on our 4 international-standard courts.",
     longDescription: "Padel Tennis combines elements of tennis and squash in an exciting, social game format. Our courts feature tempered glass walls, professional-grade artificial turf, and state-of-the-art LED lighting for evening play. Whether you're a beginner or seasoned player, our facilities provide the perfect environment for this dynamic sport.",
-    imageUrl: "/images/padel.jpg",
     courtCount: 4,
     basePrice: "6000",
     peakPrice: "8000",
@@ -23,7 +44,6 @@ const defaultFacilities: Record<string, any> = {
     amenities: ["LED Lighting", "Climate Control", "Locker Rooms", "Equipment Rental", "Coaching Available", "Video Analysis", "Pro Shop"],
     requiresCertification: false,
     isActive: true,
-    icon: "🎾",
     features: [
       "4 International-standard courts",
       "Tempered glass walls",
@@ -44,7 +64,6 @@ const defaultFacilities: Record<string, any> = {
     slug: "squash",
     description: "Two championship-grade squash courts built to World Squash Federation standards.",
     longDescription: "Our squash courts meet international competition standards with specially designed maple floors, glass back walls for viewing, and professional lighting systems. The courts are perfect for casual games, serious training, or competitive matches.",
-    imageUrl: "/images/squash.jpg",
     courtCount: 2,
     basePrice: "4000",
     peakPrice: "6000",
@@ -54,7 +73,6 @@ const defaultFacilities: Record<string, any> = {
     amenities: ["Glass Back Wall", "Pro Lighting", "Locker Rooms", "Equipment Rental", "Coaching Available"],
     requiresCertification: false,
     isActive: true,
-    icon: "🧱",
     features: [
       "2 Championship-grade courts",
       "World Squash Federation compliant",
@@ -75,7 +93,6 @@ const defaultFacilities: Record<string, any> = {
     slug: "air-rifle-range",
     description: "Pakistan's premier 10-meter air rifle range with professional supervision.",
     longDescription: "Our state-of-the-art 10-meter air rifle range features electronic scoring systems, professional-grade targets, and comprehensive safety measures. All shooters must complete our mandatory safety certification course before using the range. Professional supervision is provided at all times.",
-    imageUrl: "/images/rifle.jpg",
     courtCount: 6,
     basePrice: "6000",
     peakPrice: "8000",
@@ -85,7 +102,6 @@ const defaultFacilities: Record<string, any> = {
     amenities: ["Electronic Scoring", "Safety Equipment", "Professional Supervision", "Rifle Rental", "Certification Course"],
     requiresCertification: true,
     isActive: true,
-    icon: "🎯",
     features: [
       "6 Shooting lanes",
       "10-meter Olympic distance",
@@ -105,7 +121,6 @@ const defaultFacilities: Record<string, any> = {
     slug: "bridge-room",
     description: "Elegant Bridge Room with refined atmosphere for contract bridge enthusiasts.",
     longDescription: "A sophisticated space designed specifically for serious bridge players. Features comfortable seating, proper lighting, quiet atmosphere, and complimentary tea service. This facility is exclusive to Founding Members and Forces category members.",
-    imageUrl: "/images/bridge.jpg",
     courtCount: 5,
     basePrice: "0",
     peakPrice: "0",
@@ -115,7 +130,6 @@ const defaultFacilities: Record<string, any> = {
     amenities: ["5 Card Tables", "Tea Service", "Air Conditioning", "Quiet Atmosphere", "Card Sets Provided"],
     requiresCertification: false,
     isActive: true,
-    icon: "♠️",
     restricted: true,
     features: [
       "5 Premium card tables",
@@ -136,7 +150,6 @@ const defaultFacilities: Record<string, any> = {
     slug: "multipurpose-hall",
     description: "Versatile 500-capacity hall for events, fitness classes, and private functions.",
     longDescription: "Our multipurpose hall offers flexible space for a variety of activities from aerobics classes to corporate events and private functions. The venue features a professional sound system, adjustable lighting, projector facilities, and full catering support.",
-    imageUrl: "/images/hall.jpg",
     courtCount: 1,
     basePrice: "6000",
     peakPrice: "150000",
@@ -146,7 +159,6 @@ const defaultFacilities: Record<string, any> = {
     amenities: ["Sound System", "Projector", "Catering Available", "Flexible Layout", "Stage Available"],
     requiresCertification: false,
     isActive: true,
-    icon: "🏛️",
     features: [
       "500-person capacity",
       "Professional sound system",
@@ -192,12 +204,21 @@ export default function FacilityDetail() {
     );
   }
 
+  const FacilityIcon = facilityIcons[slug || ""] || Target;
+  const facilityBgImage = facilityImages[slug || ""] || padelImage;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="relative h-[50vh] min-h-[400px] bg-[#2a4060] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${facilityBgImage})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
-          <div className="text-6xl mb-4">{facility.icon}</div>
+          <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur flex items-center justify-center mb-4">
+            <FacilityIcon className="w-8 h-8" />
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-facility-name">
             {facility.name}
           </h1>
