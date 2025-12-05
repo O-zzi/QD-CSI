@@ -199,7 +199,7 @@ export async function registerRoutes(
       const careers = await storage.getActiveCarers();
       
       // Check if user is authenticated and has admin role
-      const isAdmin = req.user?.claims?.sub && 
+      const isAdminUser = req.user?.claims?.sub && 
         await (async () => {
           const user = await storage.getUser(req.user.claims.sub);
           return user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
@@ -207,7 +207,7 @@ export async function registerRoutes(
       
       // Always hide salary from non-admin users (regardless of salaryHidden flag)
       const publicCareers = careers.map(career => {
-        if (!isAdmin) {
+        if (!isAdminUser) {
           const { salary, ...publicData } = career;
           return publicData;
         }

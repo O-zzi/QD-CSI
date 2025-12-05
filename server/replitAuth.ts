@@ -213,7 +213,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
 };
 
-// Middleware to check admin role
+// Middleware to check admin role and update activity
 export const isAdmin: RequestHandler = async (req, res, next) => {
   const sessionUser = req.user as any;
   if (!sessionUser?.claims?.sub) {
@@ -224,6 +224,42 @@ export const isAdmin: RequestHandler = async (req, res, next) => {
   if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
     return res.status(403).json({ message: "Forbidden: Admin access required" });
   }
+
+  const now = Date.now();
+
+  // Check for inactivity timeout (2 minutes)
+  if (user.lastActivityAt) {
+    const inactiveTime = now - new Date(user.lastActivityAt).getTime();
+    if (inactiveTime > ADMIN_INACTIVITY_TIMEOUT_MS) {
+      return res.status(401).json({ 
+        message: "Session timed out", 
+        code: "ADMIN_INACTIVITY_TIMEOUT",
+        reason: "You have been logged out due to inactivity. Please log in again."
+      });
+    }
+  }
+
+  // Check if authentication is fresh (within 10 minutes)
+  if (user.lastAuthenticatedAt) {
+    const authAge = now - new Date(user.lastAuthenticatedAt).getTime();
+    if (authAge > ADMIN_REAUTH_TIMEOUT_MS) {
+      return res.status(401).json({ 
+        message: "Session expired", 
+        code: "ADMIN_REAUTH_REQUIRED",
+        reason: "Your admin session has expired. Please log in again to access the admin panel."
+      });
+    }
+  } else {
+    // No authentication timestamp - require fresh login
+    return res.status(401).json({ 
+      message: "Session expired", 
+      code: "ADMIN_REAUTH_REQUIRED",
+      reason: "Please log in again to access the admin panel."
+    });
+  }
+
+  // Update activity on every admin request
+  await storage.updateUserActivity(user.id);
 
   next();
 };

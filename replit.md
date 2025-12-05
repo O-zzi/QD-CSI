@@ -40,6 +40,20 @@ An `/admin` panel provides role-based access (ADMIN, SUPER_ADMIN) for managing C
 
 The system incorporates double-booking prevention, membership number format validation (e.g., QD-XXXX), payer validation for booking on behalf of others, and role-based access control for admin routes. Server-side validation with Zod is implemented across all critical endpoints, including payment processing.
 
+### Admin Security Enhancements
+
+The admin panel has enhanced security measures:
+- **Re-authentication Timeout**: Admin users must have logged in within the last 10 minutes to access admin routes
+- **Inactivity Timeout**: Admin sessions expire after 2 minutes of inactivity
+- **Activity Tracking**: User activity is tracked via `lastActivityAt` and `lastAuthenticatedAt` timestamps
+- **Heartbeat System**: Frontend sends activity heartbeats every 30 seconds to maintain admin sessions
+- **Automatic Logout**: Users are automatically redirected to login when sessions expire
+
+Key files:
+- `server/replitAuth.ts`: Contains `isAdmin` middleware with security checks
+- `client/src/hooks/useAdminSession.ts`: Frontend activity tracking hook
+- `client/src/pages/admin/AdminLayout.tsx`: Admin layout with session management
+
 ## External Dependencies
 
 **Authentication & Session Management:**
