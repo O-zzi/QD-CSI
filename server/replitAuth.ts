@@ -9,9 +9,9 @@ import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { sendWelcomeEmail } from "./email";
 
-// Security constants for admin access
-const ADMIN_REAUTH_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes - require fresh login
-const ADMIN_INACTIVITY_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes - inactivity timeout
+// Security constants for all authenticated users
+const SESSION_REAUTH_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes - require fresh login
+const SESSION_INACTIVITY_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes - inactivity timeout
 
 const getOidcConfig = memoize(
   async () => {
@@ -185,35 +185,79 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  const user = req.user as any;
+  const sessionUser = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !sessionUser.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const now = Math.floor(Date.now() / 1000);
-  if (now <= user.expires_at) {
-    return next();
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const nowMs = Date.now();
+
+  // Check if OIDC token is expired and try to refresh
+  if (nowSeconds > sessionUser.expires_at) {
+    const refreshToken = sessionUser.refresh_token;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const config = await getOidcConfig();
+      const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
+      updateUserSession(sessionUser, tokenResponse);
+    } catch (error) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
   }
 
-  const refreshToken = user.refresh_token;
-  if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+  // Get user from database for session timeout checks
+  if (!sessionUser?.claims?.sub) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
-  try {
-    const config = await getOidcConfig();
-    const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
-    updateUserSession(user, tokenResponse);
-    return next();
-  } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+  const user = await storage.getUser(sessionUser.claims.sub);
+  if (!user) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
+
+  // Check for inactivity timeout (2 minutes)
+  if (user.lastActivityAt) {
+    const inactiveTime = nowMs - new Date(user.lastActivityAt).getTime();
+    if (inactiveTime > SESSION_INACTIVITY_TIMEOUT_MS) {
+      return res.status(401).json({ 
+        message: "Session timed out", 
+        code: "SESSION_INACTIVITY_TIMEOUT",
+        reason: "You have been logged out due to inactivity. Please log in again."
+      });
+    }
+  }
+
+  // Check if authentication is fresh (within 10 minutes)
+  if (user.lastAuthenticatedAt) {
+    const authAge = nowMs - new Date(user.lastAuthenticatedAt).getTime();
+    if (authAge > SESSION_REAUTH_TIMEOUT_MS) {
+      return res.status(401).json({ 
+        message: "Session expired", 
+        code: "SESSION_REAUTH_REQUIRED",
+        reason: "Your session has expired. Please log in again."
+      });
+    }
+  } else {
+    // No authentication timestamp - require fresh login
+    return res.status(401).json({ 
+      message: "Session expired", 
+      code: "SESSION_REAUTH_REQUIRED",
+      reason: "Please log in again."
+    });
+  }
+
+  // Update activity on every authenticated request
+  await storage.updateUserActivity(user.id);
+
+  next();
 };
 
-// Middleware to check admin role and update activity
+// Middleware to check admin role (session security already handled by isAuthenticated)
 export const isAdmin: RequestHandler = async (req, res, next) => {
   const sessionUser = req.user as any;
   if (!sessionUser?.claims?.sub) {
@@ -225,118 +269,19 @@ export const isAdmin: RequestHandler = async (req, res, next) => {
     return res.status(403).json({ message: "Forbidden: Admin access required" });
   }
 
-  const now = Date.now();
-
-  // Check for inactivity timeout (2 minutes)
-  if (user.lastActivityAt) {
-    const inactiveTime = now - new Date(user.lastActivityAt).getTime();
-    if (inactiveTime > ADMIN_INACTIVITY_TIMEOUT_MS) {
-      return res.status(401).json({ 
-        message: "Session timed out", 
-        code: "ADMIN_INACTIVITY_TIMEOUT",
-        reason: "You have been logged out due to inactivity. Please log in again."
-      });
-    }
-  }
-
-  // Check if authentication is fresh (within 10 minutes)
-  if (user.lastAuthenticatedAt) {
-    const authAge = now - new Date(user.lastAuthenticatedAt).getTime();
-    if (authAge > ADMIN_REAUTH_TIMEOUT_MS) {
-      return res.status(401).json({ 
-        message: "Session expired", 
-        code: "ADMIN_REAUTH_REQUIRED",
-        reason: "Your admin session has expired. Please log in again to access the admin panel."
-      });
-    }
-  } else {
-    // No authentication timestamp - require fresh login
-    return res.status(401).json({ 
-      message: "Session expired", 
-      code: "ADMIN_REAUTH_REQUIRED",
-      reason: "Please log in again to access the admin panel."
-    });
-  }
-
-  // Update activity on every admin request
-  await storage.updateUserActivity(user.id);
-
   next();
 };
 
-// Middleware to enforce admin security (re-authentication + activity timeout)
-export const isAdminSecure: RequestHandler = async (req, res, next) => {
+// API endpoint to check session status and refresh activity (heartbeat) - for all authenticated users
+export const sessionHeartbeat: RequestHandler = async (req, res) => {
   const sessionUser = req.user as any;
   if (!sessionUser?.claims?.sub) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   const user = await storage.getUser(sessionUser.claims.sub);
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-    return res.status(403).json({ message: "Forbidden: Admin access required" });
-  }
-
-  const now = Date.now();
-
-  // Check if authentication is fresh (within 10 minutes)
-  if (user.lastAuthenticatedAt) {
-    const authAge = now - new Date(user.lastAuthenticatedAt).getTime();
-    if (authAge > ADMIN_REAUTH_TIMEOUT_MS) {
-      return res.status(401).json({ 
-        message: "Session expired", 
-        code: "ADMIN_REAUTH_REQUIRED",
-        reason: "Your admin session has expired. Please log in again to access the admin panel."
-      });
-    }
-  } else {
-    // No authentication timestamp - require fresh login
-    return res.status(401).json({ 
-      message: "Session expired", 
-      code: "ADMIN_REAUTH_REQUIRED",
-      reason: "Please log in again to access the admin panel."
-    });
-  }
-
-  // Check for inactivity timeout (2 minutes)
-  if (user.lastActivityAt) {
-    const inactiveTime = now - new Date(user.lastActivityAt).getTime();
-    if (inactiveTime > ADMIN_INACTIVITY_TIMEOUT_MS) {
-      return res.status(401).json({ 
-        message: "Session timed out", 
-        code: "ADMIN_INACTIVITY_TIMEOUT",
-        reason: "You have been logged out due to inactivity. Please log in again."
-      });
-    }
-  }
-
-  // Update last activity timestamp
-  await storage.updateUserActivity(user.id);
-
-  next();
-};
-
-// Middleware to update activity timestamp (for admin routes)
-export const updateAdminActivity: RequestHandler = async (req, res, next) => {
-  const sessionUser = req.user as any;
-  if (sessionUser?.claims?.sub) {
-    const user = await storage.getUser(sessionUser.claims.sub);
-    if (user && (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN')) {
-      await storage.updateUserActivity(user.id);
-    }
-  }
-  next();
-};
-
-// API endpoint to refresh admin activity (heartbeat)
-export const adminHeartbeat: RequestHandler = async (req, res) => {
-  const sessionUser = req.user as any;
-  if (!sessionUser?.claims?.sub) {
+  if (!user) {
     return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  const user = await storage.getUser(sessionUser.claims.sub);
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-    return res.status(403).json({ message: "Forbidden" });
   }
 
   const now = Date.now();
@@ -344,10 +289,10 @@ export const adminHeartbeat: RequestHandler = async (req, res) => {
   // Check if authentication is still valid
   if (user.lastAuthenticatedAt) {
     const authAge = now - new Date(user.lastAuthenticatedAt).getTime();
-    if (authAge > ADMIN_REAUTH_TIMEOUT_MS) {
+    if (authAge > SESSION_REAUTH_TIMEOUT_MS) {
       return res.status(401).json({ 
-        code: "ADMIN_REAUTH_REQUIRED",
-        message: "Admin session expired"
+        code: "SESSION_REAUTH_REQUIRED",
+        message: "Session expired"
       });
     }
   }
@@ -355,9 +300,9 @@ export const adminHeartbeat: RequestHandler = async (req, res) => {
   // Check for inactivity timeout
   if (user.lastActivityAt) {
     const inactiveTime = now - new Date(user.lastActivityAt).getTime();
-    if (inactiveTime > ADMIN_INACTIVITY_TIMEOUT_MS) {
+    if (inactiveTime > SESSION_INACTIVITY_TIMEOUT_MS) {
       return res.status(401).json({ 
-        code: "ADMIN_INACTIVITY_TIMEOUT",
+        code: "SESSION_INACTIVITY_TIMEOUT",
         message: "Session timed out due to inactivity"
       });
     }
@@ -367,13 +312,15 @@ export const adminHeartbeat: RequestHandler = async (req, res) => {
   await storage.updateUserActivity(user.id);
 
   const authAge = user.lastAuthenticatedAt ? now - new Date(user.lastAuthenticatedAt).getTime() : 0;
-  const sessionRemainingMs = ADMIN_REAUTH_TIMEOUT_MS - authAge;
-  const inactivityRemainingMs = ADMIN_INACTIVITY_TIMEOUT_MS;
+  const sessionRemainingMs = SESSION_REAUTH_TIMEOUT_MS - authAge;
 
   res.json({ 
     success: true,
     sessionRemainingMs,
-    inactivityTimeoutMs: ADMIN_INACTIVITY_TIMEOUT_MS,
-    reauthTimeoutMs: ADMIN_REAUTH_TIMEOUT_MS
+    inactivityTimeoutMs: SESSION_INACTIVITY_TIMEOUT_MS,
+    reauthTimeoutMs: SESSION_REAUTH_TIMEOUT_MS
   });
 };
+
+// Legacy admin heartbeat - now uses same logic as general session heartbeat
+export const adminHeartbeat: RequestHandler = sessionHeartbeat;

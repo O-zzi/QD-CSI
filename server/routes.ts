@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, isAdmin, isAdminSecure, adminHeartbeat } from "./replitAuth";
+import { setupAuth, isAuthenticated, isAdmin, sessionHeartbeat, adminHeartbeat } from "./replitAuth";
 import {
   sendBookingCreatedEmail,
   sendPaymentVerifiedEmail,
@@ -103,6 +103,9 @@ export async function registerRoutes(
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
+
+  // Session heartbeat for all authenticated users
+  app.post('/api/session/heartbeat', sessionHeartbeat);
 
   // ========== MEMBERSHIP ROUTES ==========
   app.get('/api/memberships/my', isAuthenticated, async (req: any, res) => {
