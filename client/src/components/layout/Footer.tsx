@@ -2,16 +2,15 @@ import { Link } from "wouter";
 import { Instagram, Facebook, Linkedin, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import footerBg from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
-import type { SiteSetting } from "@shared/schema";
 
 export function Footer() {
-  const { data: siteSettings, isLoading } = useQuery<SiteSetting[]>({
+  const { data: siteSettings, isLoading } = useQuery<Record<string, string>>({
     queryKey: ["/api/site-settings"],
     staleTime: 1000 * 60 * 5,
   });
 
   const getSetting = (key: string, fallback: string = "") => {
-    return siteSettings?.find(s => s.key === key)?.value || fallback;
+    return siteSettings?.[key] || fallback;
   };
 
   const siteName = getSetting("site_name", "The Quarterdeck");

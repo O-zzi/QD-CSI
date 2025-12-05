@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { NavbarItem, SiteSetting } from "@shared/schema";
+import type { NavbarItem } from "@shared/schema";
 
 interface NavbarProps {
   onScrollTo?: (section: string) => void;
@@ -37,7 +37,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
   const { user, isAuthenticated } = useAuth();
   const [location] = useLocation();
 
-  const { data: siteSettings } = useQuery<SiteSetting[]>({
+  const { data: siteSettings } = useQuery<Record<string, string>>({
     queryKey: ['/api/site-settings'],
   });
 
@@ -59,10 +59,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
   };
 
   const getSetting = (key: string, fallback: string = "") => {
-    if (Array.isArray(siteSettings)) {
-      return siteSettings.find(s => s.key === key)?.value || fallback;
-    }
-    return (siteSettings as any)?.[key] || fallback;
+    return siteSettings?.[key] || fallback;
   };
 
   const logoUrl = getSetting("logo_main_url");
