@@ -182,7 +182,19 @@ export default function FacilityDetail() {
     enabled: !!slug,
   });
 
-  const facility = dbFacility || defaultFacilities[slug || ""];
+  const defaultData = defaultFacilities[slug || ""];
+  const facility = dbFacility 
+    ? {
+        ...defaultData,
+        ...dbFacility,
+        features: (dbFacility as any).features || defaultData?.features,
+        amenities: (dbFacility as any).amenities || defaultData?.amenities,
+        longDescription: (dbFacility as any).longDescription || defaultData?.longDescription,
+        operatingHours: (dbFacility as any).operatingHours || defaultData?.operatingHours,
+        addOns: (dbFacility as any).addOns || defaultData?.addOns,
+        courtCount: (dbFacility as any).resourceCount || (dbFacility as any).courtCount || defaultData?.courtCount,
+      }
+    : defaultData;
 
   if (!facility) {
     return (
