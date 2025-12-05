@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Trophy, Medal, Target, Swords } from "lucide-react";
+import { ArrowLeft, Trophy, Medal, Target, Swords, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import type { LeaderboardEntry } from "@shared/schema";
 
 const FACILITIES = [
@@ -19,10 +20,50 @@ const FACILITIES = [
 
 export default function Leaderboard() {
   const [selectedFacility, setSelectedFacility] = useState('all');
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const { data: entries = [], isLoading } = useQuery<LeaderboardEntry[]>({
     queryKey: ['/api/leaderboard', selectedFacility !== 'all' ? selectedFacility : undefined],
+    enabled: isAuthenticated,
   });
+
+  // Auth loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+        <div className="qd-container py-8">
+          <Skeleton className="h-12 w-64 mb-8" />
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-20 rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Auth gate - require login
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4">
+          <CardContent className="pt-6 text-center">
+            <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Sign In Required</h2>
+            <p className="text-muted-foreground mb-6">
+              Please log in to view the leaderboard and player rankings.
+            </p>
+            <a href="/api/login">
+              <Button className="w-full" data-testid="button-login-prompt">
+                Sign In with Replit
+              </Button>
+            </a>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const getRankStyle = (rank: number) => {
     switch (rank) {
@@ -115,7 +156,7 @@ export default function Leaderboard() {
                       <div className="text-sm text-muted-foreground flex items-center gap-2">
                         <span>{entry.wins}W - {entry.losses}L</span>
                         {entry.winRate && (
-                          <Badge variant="secondary" size="sm">
+                          <Badge variant="secondary" className="text-xs">
                             {(entry.winRate * 100).toFixed(0)}% WR
                           </Badge>
                         )}

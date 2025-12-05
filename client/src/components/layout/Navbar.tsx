@@ -43,6 +43,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
     { label: "Home", section: "hero" },
     { label: "About", href: "/vision" },
     { label: "Facilities", href: "/facilities" },
+    { label: "Events & Academies", href: "/events" },
     { label: "Updates", href: "/roadmap" },
     { label: "Gallery", section: "gallery" },
     { label: "Contact", section: "contact" },

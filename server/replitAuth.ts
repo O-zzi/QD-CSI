@@ -51,13 +51,43 @@ function updateUserSession(
 }
 
 async function upsertUser(claims: any) {
+  const userId = claims["sub"];
+  
+  // Upsert user record
   await storage.upsertUser({
-    id: claims["sub"],
+    id: userId,
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
   });
+  
+  // Check if user has a membership, if not create a guest membership
+  const existingMembership = await storage.getMembership(userId);
+  if (!existingMembership) {
+    try {
+      // Generate membership number: QD-XXXX format
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const membershipNumber = `QD-${randomNum}`;
+      
+      // Create a guest membership valid for 1 year
+      const validTo = new Date();
+      validTo.setFullYear(validTo.getFullYear() + 1);
+      
+      await storage.createMembership({
+        userId,
+        tier: 'GUEST',
+        membershipNumber,
+        status: 'ACTIVE',
+        validFrom: new Date(),
+        validTo,
+        guestPasses: 0,
+      });
+      console.log(`Created guest membership for user ${userId}`);
+    } catch (error) {
+      console.error(`Failed to create guest membership for user ${userId}:`, error);
+    }
+  }
 }
 
 export async function setupAuth(app: Express) {

@@ -121,14 +121,18 @@ export default function Events() {
   };
 
   const openRegistrationDialog = (event: Event) => {
-    setSelectedEvent(event);
-    // Pre-fill form with user data if logged in
-    if (user) {
-      form.setValue("fullName", user.firstName && user.lastName 
-        ? `${user.firstName} ${user.lastName}` 
-        : user.firstName || "");
-      form.setValue("email", user.email || "");
+    // Redirect to login if not authenticated
+    if (!user) {
+      window.location.href = '/api/login';
+      return;
     }
+    
+    setSelectedEvent(event);
+    // Pre-fill form with user data
+    form.setValue("fullName", user.firstName && user.lastName 
+      ? `${user.firstName} ${user.lastName}` 
+      : user.firstName || "");
+    form.setValue("email", user.email || "");
     setIsDialogOpen(true);
   };
 
@@ -246,7 +250,7 @@ export default function Events() {
                           disabled={isFull}
                           data-testid={`button-register-event-${event.id}`}
                         >
-                          {isFull ? 'Full' : 'Register'}
+                          {isFull ? 'Full' : user ? 'Register' : 'Sign in to Register'}
                         </Button>
                       )}
                     </div>
