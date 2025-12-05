@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, Star, Sparkles, Users } from "lucide-react";
+import { Check, Crown, Star, Sparkles, Users, ChevronDown, ChevronUp } from "lucide-react";
 import membershipBg from "@assets/stock_images/modern_indoor_sports_8b182ff8.jpg";
 
 const membershipTiers = [
@@ -97,12 +98,18 @@ const comparisonFeatures = [
 ];
 
 export function MembershipSection() {
+  const [expandedTier, setExpandedTier] = useState<string | null>(null);
+
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
     const yOffset = -80;
     const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
+  };
+
+  const toggleTier = (tierId: string) => {
+    setExpandedTier(expandedTier === tierId ? null : tierId);
   };
 
   return (
@@ -132,14 +139,18 @@ export function MembershipSection() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {membershipTiers.map((tier) => {
             const Icon = tier.icon;
+            const isExpanded = expandedTier === tier.id;
+            const hasMoreBenefits = tier.benefits.length > 5;
+            
             return (
               <div
                 key={tier.id}
-                className={`relative rounded-xl border p-6 bg-white dark:bg-slate-800 ${
+                className={`relative rounded-xl border p-6 bg-white dark:bg-slate-800 transition-all duration-300 ${
                   tier.featured 
                     ? 'border-amber-500/50 shadow-lg ring-2 ring-amber-500/20' 
                     : 'border-gray-200 dark:border-slate-700'
-                }`}
+                } ${hasMoreBenefits ? 'cursor-pointer hover-elevate' : ''}`}
+                onClick={() => hasMoreBenefits && toggleTier(tier.id)}
                 data-testid={`membership-tier-${tier.id}`}
               >
                 {tier.closed && (
@@ -176,25 +187,46 @@ export function MembershipSection() {
 
                 <p className="text-sm text-muted-foreground text-center mb-4">{tier.description}</p>
 
-                <ul className="space-y-2 mb-6">
-                  {tier.benefits.slice(0, 5).map((benefit, index) => (
+                <ul className="space-y-2 mb-4">
+                  {(isExpanded ? tier.benefits : tier.benefits.slice(0, 5)).map((benefit, index) => (
                     <li key={index} className="flex items-start gap-2 text-sm">
                       <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                       <span>{benefit}</span>
                     </li>
                   ))}
-                  {tier.benefits.length > 5 && (
-                    <li className="text-sm text-muted-foreground text-center">
-                      +{tier.benefits.length - 5} more benefits
-                    </li>
-                  )}
                 </ul>
+
+                {hasMoreBenefits && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleTier(tier.id);
+                    }}
+                    className="flex items-center justify-center gap-1 w-full text-sm text-muted-foreground mb-4 py-2 rounded-lg transition-colors"
+                    data-testid={`button-expand-${tier.id}`}
+                  >
+                    {isExpanded ? (
+                      <>
+                        <ChevronUp className="w-4 h-4" />
+                        Show less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-4 h-4" />
+                        +{tier.benefits.length - 5} more benefits
+                      </>
+                    )}
+                  </button>
+                )}
 
                 <Button 
                   variant={tier.featured ? "default" : "outline"} 
                   className="w-full rounded-full"
                   disabled={tier.closed}
-                  onClick={() => !tier.closed && scrollToSection("contact")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!tier.closed) scrollToSection("contact");
+                  }}
                   data-testid={`button-select-${tier.id}`}
                 >
                   {tier.closed ? "Waitlist Closed" : "Join Waitlist"}
