@@ -652,6 +652,11 @@
   color: #064e3b;
 }
 
+.qd-status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
 /* Button Styles */
 .qd-btn {
   display: inline-flex;

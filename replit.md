@@ -79,7 +79,10 @@ The system incorporates double-booking prevention, membership number format vali
 - `drizzle-zod`
 
 **Payment Processing:**
-- Stripe (for online payments, with server-side validation and webhooks)
+- Offline Payment System (Bank Transfer, Cash) for Pakistan market
+- Stripe integration disabled - Stripe client libraries remain for future use
+- Payment verification workflow: PENDING_PAYMENT -> PENDING_VERIFICATION -> VERIFIED/REJECTED
+- Admin booking management at /admin/bookings for payment verification
 
 **Utility Libraries:**
 - `nanoid`

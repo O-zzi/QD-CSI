@@ -15,7 +15,8 @@ import {
   X,
   Calendar,
   Clock,
-  HardHat
+  HardHat,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -26,6 +27,7 @@ const navItems = [
   { path: "/admin/homepage", label: "Site Content", icon: Home },
   { path: "/admin/coming-soon", label: "Coming Soon", icon: Clock },
   { path: "/admin/facilities", label: "Facilities", icon: Building2 },
+  { path: "/admin/bookings", label: "Bookings", icon: CreditCard },
   { path: "/admin/roadmap", label: "Construction Status", icon: HardHat },
   { path: "/admin/events", label: "Events & Academies", icon: Calendar },
   { path: "/admin/pricing", label: "Pricing Tiers", icon: DollarSign },

@@ -85,11 +85,14 @@ export interface IStorage {
 
   // Booking operations
   getBookings(userId: string): Promise<Booking[]>;
+  getAllBookings(): Promise<Booking[]>;
+  getBookingById(id: string): Promise<Booking | undefined>;
   getBookingsByDate(facilityId: string, date: string): Promise<Booking[]>;
   getBookingByStripeSessionId(sessionId: string): Promise<Booking | undefined>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   createBookingAddOn(data: { bookingId: string; addOnId: string; quantity: number; priceAtBooking: number }): Promise<any>;
   updateBookingStatus(bookingId: string, status: string): Promise<Booking | undefined>;
+  updateBookingPayment(bookingId: string, data: { paymentStatus?: string; paymentProofUrl?: string; paymentVerifiedBy?: string; paymentVerifiedAt?: Date; paymentNotes?: string; status?: string }): Promise<Booking | undefined>;
   checkDoubleBooking(facilitySlug: string, resourceId: number, date: string, startTime: string, endTime: string): Promise<boolean>;
   
   // User update
@@ -281,6 +284,21 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(bookings.createdAt));
   }
 
+  async getAllBookings(): Promise<Booking[]> {
+    return await db
+      .select()
+      .from(bookings)
+      .orderBy(desc(bookings.createdAt));
+  }
+
+  async getBookingById(id: string): Promise<Booking | undefined> {
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, id));
+    return booking;
+  }
+
   async getBookingsByDate(facilityId: string, date: string): Promise<Booking[]> {
     return await db
       .select()
@@ -297,6 +315,23 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db
       .update(bookings)
       .set({ status: status as any, updatedAt: new Date() })
+      .where(eq(bookings.id, bookingId))
+      .returning();
+    return updated;
+  }
+
+  async updateBookingPayment(bookingId: string, data: { paymentStatus?: string; paymentProofUrl?: string; paymentVerifiedBy?: string; paymentVerifiedAt?: Date; paymentNotes?: string; status?: string }): Promise<Booking | undefined> {
+    const updateData: any = { updatedAt: new Date() };
+    if (data.paymentStatus) updateData.paymentStatus = data.paymentStatus;
+    if (data.paymentProofUrl !== undefined) updateData.paymentProofUrl = data.paymentProofUrl;
+    if (data.paymentVerifiedBy) updateData.paymentVerifiedBy = data.paymentVerifiedBy;
+    if (data.paymentVerifiedAt) updateData.paymentVerifiedAt = data.paymentVerifiedAt;
+    if (data.paymentNotes !== undefined) updateData.paymentNotes = data.paymentNotes;
+    if (data.status) updateData.status = data.status;
+    
+    const [updated] = await db
+      .update(bookings)
+      .set(updateData)
       .where(eq(bookings.id, bookingId))
       .returning();
     return updated;

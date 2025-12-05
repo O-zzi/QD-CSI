@@ -25,6 +25,7 @@ export const eventTypeEnum = pgEnum('event_type', ['ACADEMY', 'TOURNAMENT', 'CLA
 export const facilityStatusEnum = pgEnum('facility_status', ['OPENING_SOON', 'PLANNED', 'ACTIVE']);
 export const venueStatusEnum = pgEnum('venue_status', ['ACTIVE', 'COMING_SOON', 'PLANNED']);
 export const constructionPhaseStatusEnum = pgEnum('construction_phase_status', ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETE']);
+export const paymentStatusEnum = pgEnum('payment_status', ['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'VERIFIED', 'REJECTED']);
 
 // Session storage table - Required for Replit Auth
 export const sessions = pgTable(
@@ -125,6 +126,11 @@ export const bookings = pgTable("bookings", {
   hallActivity: varchar("hall_activity"),
   stripeSessionId: varchar("stripe_session_id"),
   stripePaymentIntentId: varchar("stripe_payment_intent_id"),
+  paymentStatus: paymentStatusEnum("payment_status").default('PENDING_PAYMENT'),
+  paymentProofUrl: varchar("payment_proof_url"),
+  paymentVerifiedBy: varchar("payment_verified_by"),
+  paymentVerifiedAt: timestamp("payment_verified_at"),
+  paymentNotes: text("payment_notes"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

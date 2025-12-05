@@ -30,6 +30,7 @@ import AnnouncementsManagement from "@/pages/admin/AnnouncementsManagement";
 import CareersManagement from "@/pages/admin/CareersManagement";
 import RulesManagement from "@/pages/admin/RulesManagement";
 import GalleryManagement from "@/pages/admin/GalleryManagement";
+import BookingsManagement from "@/pages/admin/BookingsManagement";
 
 function Router() {
   return (
@@ -60,6 +61,7 @@ function Router() {
       <Route path="/admin/careers" component={CareersManagement} />
       <Route path="/admin/rules" component={RulesManagement} />
       <Route path="/admin/gallery" component={GalleryManagement} />
+      <Route path="/admin/bookings" component={BookingsManagement} />
       <Route component={NotFound} />
     </Switch>
   );

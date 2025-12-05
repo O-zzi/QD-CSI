@@ -145,7 +145,8 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   const [selectedDuration, setSelectedDuration] = useState(60);
   const [selectedResourceId, setSelectedResourceId] = useState(1);
   const [selectedStartTime, setSelectedStartTime] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'credits'>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer' | 'credits'>('cash');
+  const [showBankDetails, setShowBankDetails] = useState(false);
   const [payerType, setPayerType] = useState<'self' | 'member'>('self');
   const [payerMembershipNumber, setPayerMembershipNumber] = useState('');
   const [payerMembershipValid, setPayerMembershipValid] = useState<boolean | null>(null);
@@ -209,11 +210,26 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     mutationFn: async (bookingData: any) => {
       return await apiRequest('POST', '/api/bookings', bookingData);
     },
-    onSuccess: () => {
-      toast({
-        title: "Booking Confirmed!",
-        description: "Your booking has been successfully created.",
-      });
+    onSuccess: (_, variables) => {
+      const isBankTransfer = variables.paymentMethod === 'bank_transfer';
+      const isCash = variables.paymentMethod === 'cash';
+      
+      if (isBankTransfer) {
+        toast({
+          title: "Booking Created!",
+          description: "Please complete your bank transfer and share the receipt with us for verification.",
+        });
+      } else if (isCash) {
+        toast({
+          title: "Booking Created!",
+          description: "Please pay at the facility on your booking date. Your booking will be confirmed upon payment.",
+        });
+      } else {
+        toast({
+          title: "Booking Created!",
+          description: "Your booking has been successfully created.",
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
       setSelectedStartTime(null);
       setSelectedAddOns(new Set());
@@ -326,44 +342,6 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         description: "Please select a purpose for the Multipurpose Hall booking.",
         variant: "destructive",
       });
-      return;
-    }
-
-    if (paymentMethod === 'card') {
-      try {
-        const response = await apiRequest('POST', '/api/stripe/create-checkout', {
-          facilitySlug: selectedFacility.id,
-          venue: selectedVenue,
-          resourceId: selectedResourceId,
-          date: selectedDate,
-          startTime: selectedStartTime,
-          endTime: bookingSummary.endTime,
-          durationMinutes: selectedDuration,
-          basePrice: bookingSummary.basePrice,
-          discount: bookingSummary.discount,
-          addOnTotal: bookingSummary.addOnTotal,
-          totalPrice: bookingSummary.totalPrice,
-          coachBooked,
-          isMatchmaking,
-          hallActivity: selectedHallActivity,
-          addOns: Array.from(selectedAddOns).map((id) => ({
-            id,
-            quantity: addOnQuantities[id] ?? 1,
-          })),
-        });
-        const data = await response.json();
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          throw new Error('No checkout URL returned');
-        }
-      } catch (error: any) {
-        toast({
-          title: "Payment Error",
-          description: error.message || "Failed to start payment. Please try again.",
-          variant: "destructive",
-        });
-      }
       return;
     }
 
@@ -962,15 +940,15 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                             Pay On-Site
                           </button>
                           <button
-                            onClick={() => setPaymentMethod('card')}
+                            onClick={() => setPaymentMethod('bank_transfer')}
                             className={`flex-1 min-w-[100px] px-3 py-2 rounded-lg text-sm font-medium transition border ${
-                              paymentMethod === 'card'
+                              paymentMethod === 'bank_transfer'
                                 ? 'bg-purple-600 text-white border-purple-600'
                                 : 'bg-white dark:bg-slate-700 text-foreground border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600'
                             }`}
-                            data-testid="button-payment-card"
+                            data-testid="button-payment-bank"
                           >
-                            Pay with Card
+                            Bank Transfer
                           </button>
                           <button
                             onClick={() => setPaymentMethod('credits')}
@@ -986,13 +964,29 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                         </div>
                       </div>
 
+                      {/* Bank Transfer Instructions */}
+                      {paymentMethod === 'bank_transfer' && (
+                        <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl">
+                          <h5 className="font-bold text-purple-800 dark:text-purple-300 text-sm mb-2">Bank Transfer Instructions</h5>
+                          <div className="text-xs text-purple-700 dark:text-purple-400 space-y-1">
+                            <p><span className="font-semibold">Bank:</span> HBL (Habib Bank Limited)</p>
+                            <p><span className="font-semibold">Account Title:</span> The Quarterdeck Sports Club</p>
+                            <p><span className="font-semibold">Account #:</span> 1234-5678-9012-3456</p>
+                            <p><span className="font-semibold">IBAN:</span> PK00HABB1234567890123456</p>
+                          </div>
+                          <p className="text-xs text-purple-600 dark:text-purple-400 mt-3 italic">
+                            After payment, please share your receipt with admin for verification. Your booking will be confirmed once payment is verified.
+                          </p>
+                        </div>
+                      )}
+
                       <Button
                         onClick={confirmBooking}
                         disabled={createBookingMutation.isPending}
                         className="w-full mt-6 py-3 rounded-xl font-bold bg-sky-600 hover:bg-sky-500 shadow-lg"
                         data-testid="button-confirm-booking"
                       >
-                        {createBookingMutation.isPending ? 'Processing...' : paymentMethod === 'card' ? 'Proceed to Payment' : 'Confirm Booking'}
+                        {createBookingMutation.isPending ? 'Processing...' : 'Confirm Booking'}
                       </Button>
                     </>
                   ) : (

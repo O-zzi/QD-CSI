@@ -275,6 +275,13 @@ export async function registerRoutes(
         return res.status(409).json({ message: "This time slot is already booked" });
       }
 
+      // Determine initial payment status based on payment method
+      // For offline payments (cash, bank transfer), booking starts as PENDING until payment is verified
+      // For online payments (card - currently disabled for Pakistan), would be CONFIRMED after payment
+      const isOfflinePayment = data.paymentMethod === 'cash' || data.paymentMethod === 'bank_transfer';
+      const initialPaymentStatus = isOfflinePayment ? 'PENDING_PAYMENT' : 'PENDING_PAYMENT';
+      const initialBookingStatus = isOfflinePayment ? 'PENDING' : 'PENDING';
+
       // Create the booking
       const booking = await storage.createBooking({
         userId,
@@ -285,7 +292,8 @@ export async function registerRoutes(
         startTime: data.startTime,
         endTime: data.endTime,
         durationMinutes: data.durationMinutes,
-        status: 'CONFIRMED',
+        status: initialBookingStatus,
+        paymentStatus: initialPaymentStatus,
         paymentMethod: data.paymentMethod,
         payerType: data.payerType,
         payerMembershipNumber: data.payerMembershipNumber || null,
@@ -1070,6 +1078,83 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting CMS field:", error);
       res.status(500).json({ message: "Failed to delete CMS field" });
+    }
+  });
+
+  // ========== ADMIN BOOKING ROUTES ==========
+  
+  app.get('/api/admin/bookings', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const allBookings = await storage.getAllBookings();
+      res.json(allBookings);
+    } catch (error) {
+      console.error("Error fetching all bookings:", error);
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  app.get('/api/admin/bookings/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const booking = await storage.getBookingById(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      res.json(booking);
+    } catch (error) {
+      console.error("Error fetching booking:", error);
+      res.status(500).json({ message: "Failed to fetch booking" });
+    }
+  });
+
+  const paymentVerificationSchema = z.object({
+    paymentStatus: z.enum(['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'VERIFIED', 'REJECTED']).optional(),
+    paymentProofUrl: z.string().optional(),
+    paymentNotes: z.string().optional(),
+    status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED']).optional(),
+  });
+
+  app.patch('/api/admin/bookings/:id/payment', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const result = paymentVerificationSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+
+      const adminUserId = req.user.claims.sub;
+      const updateData: any = { ...result.data };
+      
+      // If verifying payment, set verification details
+      if (result.data.paymentStatus === 'VERIFIED') {
+        updateData.paymentVerifiedBy = adminUserId;
+        updateData.paymentVerifiedAt = new Date();
+        updateData.status = 'CONFIRMED'; // Auto-confirm booking when payment is verified
+      }
+
+      const booking = await storage.updateBookingPayment(req.params.id, updateData);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      res.json(booking);
+    } catch (error) {
+      console.error("Error updating booking payment:", error);
+      res.status(500).json({ message: "Failed to update booking payment" });
+    }
+  });
+
+  app.patch('/api/admin/bookings/:id/status', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { status } = req.body;
+      if (!['PENDING', 'CONFIRMED', 'CANCELLED'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      const booking = await storage.updateBookingStatus(req.params.id, status);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      res.json(booking);
+    } catch (error) {
+      console.error("Error updating booking status:", error);
+      res.status(500).json({ message: "Failed to update booking status" });
     }
   });
 
