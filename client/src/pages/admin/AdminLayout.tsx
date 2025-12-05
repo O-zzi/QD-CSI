@@ -13,7 +13,9 @@ import {
   ArrowLeft,
   Menu,
   X,
-  Calendar
+  Calendar,
+  Clock,
+  HardHat
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -22,7 +24,9 @@ import type { User } from "@shared/schema";
 const navItems = [
   { path: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { path: "/admin/homepage", label: "Site Content", icon: Home },
+  { path: "/admin/coming-soon", label: "Coming Soon", icon: Clock },
   { path: "/admin/facilities", label: "Facilities", icon: Building2 },
+  { path: "/admin/roadmap", label: "Construction Status", icon: HardHat },
   { path: "/admin/events", label: "Events & Academies", icon: Calendar },
   { path: "/admin/pricing", label: "Pricing Tiers", icon: DollarSign },
   { path: "/admin/announcements", label: "Announcements", icon: Bell },

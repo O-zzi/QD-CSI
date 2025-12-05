@@ -65,8 +65,8 @@ export const CMS_DEFAULTS: Record<string, string> = {
   // Hero Section
   hero_title: 'A bright, premium <span class="qd-hero-highlight">multi-sport arena</span> built for play, performance & community.',
   hero_subtitle: 'The Quarterdeck brings state-of-the-art Padel Tennis, Squash, an Air Rifle Range, a Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience into a single, purpose-built complex. We are setting the new standard for indoor sports and recreation in Islamabad.',
-  hero_eyebrow: 'Target Launch: Q4 2026',
-  hero_launch_date: '2026-10-01',
+  hero_eyebrow: 'Target Launch: December 2025',
+  hero_launch_date: '2025-12-25',
   hero_cta_1: 'Explore Facilities',
   hero_cta_2: 'View Site Updates',
   hero_countdown_label: 'Estimated Launch Countdown',
@@ -195,7 +195,7 @@ export const CMS_DEFAULTS: Record<string, string> = {
   coming_soon_description: 'The Quarterdeck will feature world-class Padel Tennis courts, Squash facilities, an Air Rifle Range, Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience.',
   coming_soon_cta: 'Join the Waitlist',
   coming_soon_progress_label: 'Construction Progress',
-  coming_soon_launch_date: '2026-10-01',
+  coming_soon_launch_date: '2025-12-25',
   coming_soon_location: 'Sector F-7, Islamabad',
   
   // Site-wide Settings

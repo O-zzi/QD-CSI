@@ -21,7 +21,9 @@ import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/not-found";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import HomepageManagement from "@/pages/admin/HomepageManagement";
+import ComingSoonManagement from "@/pages/admin/ComingSoonManagement";
 import FacilitiesManagement from "@/pages/admin/FacilitiesManagement";
+import RoadmapManagement from "@/pages/admin/RoadmapManagement";
 import EventsManagement from "@/pages/admin/EventsManagement";
 import PricingManagement from "@/pages/admin/PricingManagement";
 import AnnouncementsManagement from "@/pages/admin/AnnouncementsManagement";
@@ -49,7 +51,9 @@ function Router() {
       <Route path="/coming-soon" component={ComingSoon} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/homepage" component={HomepageManagement} />
+      <Route path="/admin/coming-soon" component={ComingSoonManagement} />
       <Route path="/admin/facilities" component={FacilitiesManagement} />
+      <Route path="/admin/roadmap" component={RoadmapManagement} />
       <Route path="/admin/events" component={EventsManagement} />
       <Route path="/admin/pricing" component={PricingManagement} />
       <Route path="/admin/announcements" component={AnnouncementsManagement} />

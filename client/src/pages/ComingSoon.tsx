@@ -44,6 +44,7 @@ export default function ComingSoon() {
     'coming_soon_launch_date',
     'coming_soon_location',
     'site_name',
+    'hero_eyebrow',
   ], CMS_DEFAULTS);
 
   const launchDateStr = getValue('coming_soon_launch_date') || CMS_DEFAULTS.coming_soon_launch_date || '2026-10-01';
@@ -137,7 +138,9 @@ export default function ComingSoon() {
           <div className="flex-1 max-w-xl text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
               <Calendar className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm text-white/90">Q4 2026 Launch</span>
+              <span className="text-sm text-white/90" data-testid="text-launch-badge">
+                {getValue('hero_eyebrow') || CMS_DEFAULTS.hero_eyebrow}
+              </span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 leading-tight" data-testid="text-coming-soon-title">
