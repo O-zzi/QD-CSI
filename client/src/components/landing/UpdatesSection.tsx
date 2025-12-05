@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Check, Clock, Hammer, Rocket, CheckCircle, Target, HardHat } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 interface ConstructionPhase {
   id: string;
@@ -32,6 +33,12 @@ const iconMap: Record<string, typeof Check> = {
 
 export function UpdatesSection() {
   const [hoveredPhase, setHoveredPhase] = useState<string | null>(null);
+
+  const { getValue } = useCmsMultiple([
+    'updates_title',
+    'updates_subtitle',
+    'updates_cta',
+  ], CMS_DEFAULTS);
 
   const { data: phases = [], isLoading } = useQuery<ConstructionPhase[]>({
     queryKey: ['/api/construction-phases'],
@@ -97,14 +104,16 @@ export function UpdatesSection() {
       <div className="qd-container">
         <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
           <div>
-            <h2 className="qd-section-title" data-testid="text-updates-title">Construction Updates</h2>
+            <h2 className="qd-section-title" data-testid="text-updates-title">
+              {getValue('updates_title') || CMS_DEFAULTS.updates_title}
+            </h2>
             <p className="text-muted-foreground max-w-2xl mt-2">
-              Transparent updates on progress, timeline, and achievements. Hover over each phase to see milestones.
+              {getValue('updates_subtitle') || CMS_DEFAULTS.updates_subtitle}
             </p>
           </div>
           <Link href="/roadmap">
             <span className="text-sm font-semibold text-[#2a4060] dark:text-blue-400 hover:underline cursor-pointer flex items-center gap-1" data-testid="link-view-roadmap">
-              View Full Roadmap <ChevronRight className="w-4 h-4" />
+              {getValue('updates_cta') || CMS_DEFAULTS.updates_cta} <ChevronRight className="w-4 h-4" />
             </span>
           </Link>
         </div>

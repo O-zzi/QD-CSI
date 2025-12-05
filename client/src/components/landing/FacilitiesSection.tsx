@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Crosshair, Building2, Coffee, Spade } from "lucide-react";
 import { GiTennisRacket, GiSquare } from "react-icons/gi";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
 import squashImage from "@assets/stock_images/indoor_squash_court__c97e350b.jpg";
@@ -68,12 +69,12 @@ const facilities = [
   },
   {
     id: "cafe",
-    name: "Open Café/Bar",
+    name: "Open Cafe/Bar",
     icon: Coffee,
     category: "Recreation",
     status: "planned",
     statusLabel: "Planned",
-    description: "The Quarterdeck Social Hub: A bright, spacious area offering artisanal coffee, healthy refreshments, light meals, and a view overlooking the main courts—perfect for post-match debriefs or casual meetings.",
+    description: "The Quarterdeck Social Hub: A bright, spacious area offering artisanal coffee, healthy refreshments, light meals, and a view overlooking the main courts - perfect for post-match debriefs or casual meetings.",
     footer: "No booking required",
     image: cafeImage,
   },
@@ -85,23 +86,31 @@ const facilitySlugMap: Record<string, string> = {
   air_rifle: "air-rifle-range",
   hall: "multipurpose-hall",
   bridge: "bridge-room",
-  cafe: "multipurpose-hall", // Cafe not separate page, link to hall
+  cafe: "multipurpose-hall",
 };
 
 export function FacilitiesSection() {
+  const { getValue } = useCmsMultiple([
+    'facilities_title',
+    'facilities_subtitle',
+    'facilities_cta',
+  ], CMS_DEFAULTS);
+
   return (
     <section id="facilities" className="qd-section">
       <div className="qd-container">
         <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
           <div>
-            <h2 className="qd-section-title" data-testid="text-facilities-title">Facilities at a Glance</h2>
+            <h2 className="qd-section-title" data-testid="text-facilities-title">
+              {getValue('facilities_title') || CMS_DEFAULTS.facilities_title}
+            </h2>
             <p className="text-muted-foreground max-w-2xl mt-2">
-              The complex is engineered for high-performance sports and comfortable recreation. Click "View details" for the dedicated facility pages.
+              {getValue('facilities_subtitle') || CMS_DEFAULTS.facilities_subtitle}
             </p>
           </div>
           <Link href="/booking">
             <Button className="rounded-full" data-testid="button-check-availability">
-              Check Court Availability
+              {getValue('facilities_cta') || CMS_DEFAULTS.facilities_cta}
             </Button>
           </Link>
         </div>

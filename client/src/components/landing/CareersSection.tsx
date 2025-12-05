@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 const positions = [
   {
@@ -12,8 +13,8 @@ const positions = [
     description: "Experienced, certified coaches to run academies, private lessons, and group clinics. Certification is mandatory. Competitive salary and commission structure offered.",
   },
   {
-    title: "Café & Barista Staff",
-    description: "Staff to manage the open café, serving refreshments, light meals, and ensuring a clean, welcoming social environment. Food and beverage experience preferred.",
+    title: "Cafe & Barista Staff",
+    description: "Staff to manage the open cafe, serving refreshments, light meals, and ensuring a clean, welcoming social environment. Food and beverage experience preferred.",
   },
   {
     title: "Facility Management",
@@ -22,19 +23,27 @@ const positions = [
 ];
 
 export function CareersSection() {
+  const { getValue } = useCmsMultiple([
+    'careers_title',
+    'careers_subtitle',
+    'careers_cta',
+  ], CMS_DEFAULTS);
+
   return (
     <section id="careers" className="qd-section bg-gray-50 dark:bg-slate-900">
       <div className="qd-container">
         <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
           <div>
-            <h2 className="qd-section-title" data-testid="text-careers-title">Careers at The Quarterdeck</h2>
+            <h2 className="qd-section-title" data-testid="text-careers-title">
+              {getValue('careers_title') || CMS_DEFAULTS.careers_title}
+            </h2>
             <p className="text-muted-foreground max-w-2xl mt-2">
-              Join our team! We are looking for passionate, high-energy individuals to help us launch and run Islamabad's premier sports complex.
+              {getValue('careers_subtitle') || CMS_DEFAULTS.careers_subtitle}
             </p>
           </div>
           <Link href="/careers">
             <Button className="rounded-full" data-testid="button-submit-cv">
-              View Open Positions <ChevronRight className="w-4 h-4 ml-1" />
+              {getValue('careers_cta') || CMS_DEFAULTS.careers_cta} <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
         </div>

@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 import renderExterior1 from "@assets/stock_images/architectural_render_b118ee78.jpg";
 import renderExterior2 from "@assets/stock_images/architectural_render_cd4dce75.jpg";
@@ -19,19 +20,27 @@ const galleryItems = [
 ];
 
 export function GallerySection() {
+  const { getValue } = useCmsMultiple([
+    'gallery_title',
+    'gallery_subtitle',
+    'gallery_cta',
+  ], CMS_DEFAULTS);
+
   return (
     <section id="gallery" className="qd-section">
       <div className="qd-container">
         <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
           <div>
-            <h2 className="qd-section-title" data-testid="text-gallery-title">Gallery & Progress Photos</h2>
+            <h2 className="qd-section-title" data-testid="text-gallery-title">
+              {getValue('gallery_title') || CMS_DEFAULTS.gallery_title}
+            </h2>
             <p className="text-muted-foreground max-w-2xl mt-2">
-              Visual updates from the construction site and architectural renders of the completed facility.
+              {getValue('gallery_subtitle') || CMS_DEFAULTS.gallery_subtitle}
             </p>
           </div>
           <Link href="/gallery">
             <Button variant="outline" className="rounded-full" data-testid="button-view-full-gallery">
-              View Full Gallery <ArrowRight className="ml-2 w-4 h-4" />
+              {getValue('gallery_cta') || CMS_DEFAULTS.gallery_cta} <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </Link>
         </div>

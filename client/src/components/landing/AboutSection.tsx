@@ -1,15 +1,34 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 export function AboutSection() {
+  const { getValue } = useCmsMultiple([
+    'about_title',
+    'about_subtitle',
+    'about_cta',
+    'about_vision_title',
+    'about_vision_content',
+    'about_vision_content_2',
+    'about_tags',
+    'about_team_title',
+    'about_team_content',
+    'about_team_credits',
+  ], CMS_DEFAULTS);
+
+  const tags = (getValue('about_tags') || CMS_DEFAULTS.about_tags).split(',').map(t => t.trim());
+  const credits = (getValue('about_team_credits') || CMS_DEFAULTS.about_team_credits).split('|').map(c => c.trim());
+
   return (
     <section id="about" className="qd-section bg-gray-50 dark:bg-slate-900">
       <div className="qd-container">
         <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
           <div>
-            <h2 className="qd-section-title" data-testid="text-about-title">About The Quarterdeck</h2>
+            <h2 className="qd-section-title" data-testid="text-about-title">
+              {getValue('about_title') || CMS_DEFAULTS.about_title}
+            </h2>
             <p className="text-muted-foreground max-w-2xl mt-2">
-              Our core vision: Excellence in Play and Community. We are building Islamabad's premier destination for indoor sports, recreation, and social gathering.
+              {getValue('about_subtitle') || CMS_DEFAULTS.about_subtitle}
             </p>
           </div>
           <Link href="/vision">
@@ -18,7 +37,7 @@ export function AboutSection() {
               className="rounded-full"
               data-testid="button-see-vision"
             >
-              See Our Vision
+              {getValue('about_cta') || CMS_DEFAULTS.about_cta}
             </Button>
           </Link>
         </div>
@@ -26,33 +45,32 @@ export function AboutSection() {
         <div className="qd-dev-grid">
           <div className="qd-info-card">
             <div className="text-sm font-bold uppercase tracking-wide text-[#2a4060] dark:text-blue-400 mb-3">
-              Vision & Philosophy
+              {getValue('about_vision_title') || CMS_DEFAULTS.about_vision_title}
             </div>
             <p className="text-sm text-muted-foreground">
-              The Quarterdeck is born from a simple idea: that sports facilities should be world-class, accessible, and designed for social connection. We prioritize bright, modern architecture, superior court surfaces, and a welcoming atmosphere. Our aim is to cultivate a vibrant community around Padel, Squash, and recreational activities.
+              {getValue('about_vision_content') || CMS_DEFAULTS.about_vision_content}
             </p>
             <p className="text-sm text-muted-foreground mt-4">
-              We are locally invested and committed to transparency throughout the construction and launch phases, ensuring the highest standards of quality and service.
+              {getValue('about_vision_content_2') || CMS_DEFAULTS.about_vision_content_2}
             </p>
             <div className="flex flex-wrap gap-2 mt-5">
-              <span className="qd-tag">World-Class Courts</span>
-              <span className="qd-tag">Community Focus</span>
-              <span className="qd-tag">Transparency</span>
-              <span className="qd-tag">All-Ages Friendly</span>
+              {tags.map((tag, index) => (
+                <span key={index} className="qd-tag">{tag}</span>
+              ))}
             </div>
           </div>
 
           <div className="qd-info-card">
             <div className="text-sm font-bold uppercase tracking-wide text-[#2a4060] dark:text-blue-400 mb-3">
-              The Project Team
+              {getValue('about_team_title') || CMS_DEFAULTS.about_team_title}
             </div>
             <p className="text-sm text-muted-foreground">
-              The project is managed by a consortium of local real estate developers, sports enthusiasts, and seasoned facility operators. We have brought together expertise in engineering, architecture, and sports management to deliver an exceptional facility.
+              {getValue('about_team_content') || CMS_DEFAULTS.about_team_content}
             </p>
             <ul className="list-disc list-inside mt-4 text-sm space-y-1 text-muted-foreground">
-              <li>Lead Architect: Studio 78</li>
-              <li>Structural Engineering: Eng. Solutions Pvt.</li>
-              <li>Padel Court Consultant: International Padel Federation</li>
+              {credits.map((credit, index) => (
+                <li key={index}>{credit}</li>
+              ))}
             </ul>
           </div>
         </div>

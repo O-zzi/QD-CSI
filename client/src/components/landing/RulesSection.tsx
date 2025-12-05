@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 const rules = [
   {
@@ -22,19 +23,27 @@ const rules = [
 ];
 
 export function RulesSection() {
+  const { getValue } = useCmsMultiple([
+    'rules_title',
+    'rules_subtitle',
+    'rules_cta',
+  ], CMS_DEFAULTS);
+
   return (
     <section id="rules" className="qd-section">
       <div className="qd-container">
         <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
           <div>
-            <h2 className="qd-section-title" data-testid="text-rules-title">Rules & Safety Protocols</h2>
+            <h2 className="qd-section-title" data-testid="text-rules-title">
+              {getValue('rules_title') || CMS_DEFAULTS.rules_title}
+            </h2>
             <p className="text-muted-foreground max-w-2xl mt-2">
-              Ensuring a safe, respectful, and high-quality environment for all members and guests. These are our key rules.
+              {getValue('rules_subtitle') || CMS_DEFAULTS.rules_subtitle}
             </p>
           </div>
           <Link href="/rules">
             <Button variant="outline" className="rounded-full" data-testid="button-view-all-rules">
-              View All Rules <ChevronRight className="w-4 h-4 ml-1" />
+              {getValue('rules_cta') || CMS_DEFAULTS.rules_cta} <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
         </div>

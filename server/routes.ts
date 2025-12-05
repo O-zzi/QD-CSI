@@ -430,6 +430,129 @@ export async function registerRoutes(
     }
   });
 
+  // Seed CMS with defaults (admin only)
+  app.post('/api/admin/cms/seed', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const CMS_DEFAULTS: Record<string, { title: string; content: string }> = {
+        // Hero Section
+        hero_title: { title: 'Hero Title', content: 'A bright, premium <span class="qd-hero-highlight">multi-sport arena</span> built for play, performance & community.' },
+        hero_subtitle: { title: 'Hero Subtitle', content: 'The Quarterdeck brings state-of-the-art Padel Tennis, Squash, an Air Rifle Range, a Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience into a single, purpose-built complex. We are setting the new standard for indoor sports and recreation in Islamabad.' },
+        hero_eyebrow: { title: 'Hero Eyebrow', content: 'Target Launch: Q4 2026' },
+        hero_launch_date: { title: 'Launch Date', content: '2026-10-01' },
+        hero_cta_1: { title: 'Hero CTA 1', content: 'Explore Facilities' },
+        hero_cta_2: { title: 'Hero CTA 2', content: 'View Site Updates' },
+        hero_countdown_label: { title: 'Countdown Label', content: 'Estimated Launch Countdown' },
+        hero_status_active: { title: 'Status Active Text', content: 'Construction Active' },
+        hero_status_updates: { title: 'Status Updates Text', content: 'Transparent progress updates' },
+        hero_status_booking: { title: 'Status Booking Text', content: 'Early booking & waitlists planned' },
+        
+        // About Section
+        about_title: { title: 'About Title', content: 'About The Quarterdeck' },
+        about_subtitle: { title: 'About Subtitle', content: 'Our core vision: Excellence in Play and Community. We are building Islamabad\'s premier destination for indoor sports, recreation, and social gathering.' },
+        about_cta: { title: 'About CTA', content: 'See Our Vision' },
+        about_vision_title: { title: 'Vision Title', content: 'Vision & Philosophy' },
+        about_vision_content: { title: 'Vision Content', content: 'The Quarterdeck is born from a simple idea: that sports facilities should be world-class, accessible, and designed for social connection. We prioritize bright, modern architecture, superior court surfaces, and a welcoming atmosphere. Our aim is to cultivate a vibrant community around Padel, Squash, and recreational activities.' },
+        about_vision_content_2: { title: 'Vision Content 2', content: 'We are locally invested and committed to transparency throughout the construction and launch phases, ensuring the highest standards of quality and service.' },
+        about_tags: { title: 'About Tags', content: 'World-Class Courts,Community Focus,Transparency,All-Ages Friendly' },
+        about_team_title: { title: 'Team Title', content: 'The Project Team' },
+        about_team_content: { title: 'Team Content', content: 'The project is managed by a consortium of local real estate developers, sports enthusiasts, and seasoned facility operators. We have brought together expertise in engineering, architecture, and sports management to deliver an exceptional facility.' },
+        about_team_credits: { title: 'Team Credits', content: 'Lead Architect: Studio 78|Structural Engineering: Eng. Solutions Pvt.|Padel Court Consultant: International Padel Federation' },
+        
+        // Facilities Section
+        facilities_title: { title: 'Facilities Title', content: 'Facilities at a Glance' },
+        facilities_subtitle: { title: 'Facilities Subtitle', content: 'The complex is engineered for high-performance sports and comfortable recreation. Click "View details" for the dedicated facility pages.' },
+        facilities_cta: { title: 'Facilities CTA', content: 'Check Court Availability' },
+        
+        // Membership Section
+        membership_title: { title: 'Membership Title', content: 'Membership & Pricing' },
+        membership_subtitle: { title: 'Membership Subtitle', content: 'Choose the membership tier that fits your lifestyle. All members enjoy priority booking, exclusive discounts, and access to our world-class facilities.' },
+        membership_cta: { title: 'Membership CTA', content: 'Inquire Now' },
+        membership_comparison_title: { title: 'Comparison Title', content: 'Quick Comparison' },
+        membership_footer: { title: 'Membership Footer', content: 'Questions about membership? Contact us for more details or to discuss corporate packages.' },
+        
+        // Contact Section
+        contact_title: { title: 'Contact Title', content: 'Contact & Early Interest' },
+        contact_subtitle: { title: 'Contact Subtitle', content: 'Connect with Our Development Team: Use the form to subscribe to our construction updates, inquire about corporate partnerships, or apply for our pre-launch membership waitlist.' },
+        contact_form_title: { title: 'Form Title', content: 'Early Interest Form' },
+        contact_form_subtitle: { title: 'Form Subtitle', content: 'Submit your interest below and we\'ll keep you updated on our progress and launch.' },
+        contact_email: { title: 'Contact Email', content: 'info@thequarterdeck.pk' },
+        contact_phone: { title: 'Contact Phone', content: '+92 51 1234567' },
+        contact_address: { title: 'Contact Address', content: 'Sector F-7, Islamabad, Pakistan' },
+        contact_site_status: { title: 'Site Status', content: 'The complex is currently under active construction. No public access or walk-ins are permitted for safety reasons. All updates will be digital.' },
+        
+        // Updates Section
+        updates_title: { title: 'Updates Title', content: 'Construction Updates' },
+        updates_subtitle: { title: 'Updates Subtitle', content: 'Transparent updates on progress, timeline, and achievements. Hover over each phase to see milestones.' },
+        updates_cta: { title: 'Updates CTA', content: 'View Full Roadmap' },
+        
+        // Gallery Section
+        gallery_title: { title: 'Gallery Title', content: 'Gallery & Progress Photos' },
+        gallery_subtitle: { title: 'Gallery Subtitle', content: 'Visual updates from the construction site and architectural renders of the completed facility.' },
+        gallery_cta: { title: 'Gallery CTA', content: 'View Full Gallery' },
+        
+        // Rules Section
+        rules_title: { title: 'Rules Title', content: 'Rules & Safety Protocols' },
+        rules_subtitle: { title: 'Rules Subtitle', content: 'Ensuring a safe, respectful, and high-quality environment for all members and guests. These are our key rules.' },
+        rules_cta: { title: 'Rules CTA', content: 'View All Rules' },
+        
+        // Careers Section
+        careers_title: { title: 'Careers Title', content: 'Careers at The Quarterdeck' },
+        careers_subtitle: { title: 'Careers Subtitle', content: 'Join our team! We are looking for passionate, high-energy individuals to help us launch and run Islamabad\'s premier sports complex.' },
+        careers_cta: { title: 'Careers CTA', content: 'View Open Positions' },
+        
+        // Events Section
+        events_title: { title: 'Events Title', content: 'Events & Programs' },
+        events_subtitle: { title: 'Events Subtitle', content: 'Join tournaments, training academies, and social events at The Quarterdeck.' },
+        
+        // Leaderboard Section
+        leaderboard_title: { title: 'Leaderboard Title', content: 'Leaderboard' },
+        leaderboard_subtitle: { title: 'Leaderboard Subtitle', content: 'Track your progress and compete with fellow members.' },
+        
+        // Footer
+        footer_tagline: { title: 'Footer Tagline', content: 'Pakistan\'s Premier Sports & Recreation Complex' },
+        footer_copyright: { title: 'Copyright Text', content: '2024 The Quarterdeck. All rights reserved.' },
+        
+        // Social URLs
+        social_instagram: { title: 'Instagram URL', content: 'https://instagram.com/thequarterdeck' },
+        social_facebook: { title: 'Facebook URL', content: 'https://facebook.com/thequarterdeck' },
+        social_linkedin: { title: 'LinkedIn URL', content: 'https://linkedin.com/company/thequarterdeck' },
+        
+        // Coming Soon Page
+        coming_soon_title: { title: 'Coming Soon Title', content: 'Coming Soon' },
+        coming_soon_subtitle: { title: 'Coming Soon Subtitle', content: 'Pakistan\'s Premier Sports & Recreation Complex is under construction.' },
+        coming_soon_description: { title: 'Coming Soon Description', content: 'The Quarterdeck will feature world-class Padel Tennis courts, Squash facilities, an Air Rifle Range, Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience.' },
+        coming_soon_cta: { title: 'Coming Soon CTA', content: 'Join the Waitlist' },
+        
+        // Site Settings
+        site_name: { title: 'Site Name', content: 'The Quarterdeck' },
+        site_tagline: { title: 'Site Tagline', content: 'Sports & Recreation Complex' },
+      };
+      
+      const results = [];
+      for (const [key, data] of Object.entries(CMS_DEFAULTS)) {
+        const existing = await storage.getCmsContent(key);
+        if (!existing) {
+          const created = await storage.upsertCmsContent({
+            key,
+            title: data.title,
+            content: data.content,
+            isActive: true,
+          });
+          results.push(created);
+        }
+      }
+      
+      res.json({ 
+        message: `Seeded ${results.length} new CMS entries`, 
+        seeded: results.length,
+        total: Object.keys(CMS_DEFAULTS).length 
+      });
+    } catch (error) {
+      console.error("Error seeding CMS content:", error);
+      res.status(500).json({ message: "Failed to seed CMS content" });
+    }
+  });
+
   // Admin Announcements routes
   app.get('/api/admin/announcements', isAuthenticated, isAdmin, async (req, res) => {
     try {

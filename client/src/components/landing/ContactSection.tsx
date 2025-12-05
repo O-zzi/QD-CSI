@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Instagram, Facebook, Linkedin, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 export function ContactSection() {
   const { toast } = useToast();
@@ -15,6 +16,21 @@ export function ContactSection() {
     email: "",
     message: "",
   });
+
+  const { getValue } = useCmsMultiple([
+    'contact_title',
+    'contact_subtitle',
+    'contact_form_title',
+    'contact_form_subtitle',
+    'contact_submit',
+    'contact_socials_title',
+    'contact_socials_subtitle',
+    'contact_site_status_title',
+    'contact_site_status',
+    'social_instagram',
+    'social_facebook',
+    'social_linkedin',
+  ], CMS_DEFAULTS);
 
   const submitMutation = useMutation({
     mutationFn: async (data: { name: string; email: string; message: string }) => {
@@ -50,19 +66,21 @@ export function ContactSection() {
     <section id="contact" className="qd-section">
       <div className="qd-container">
         <div className="mb-8">
-          <h2 className="qd-section-title" data-testid="text-contact-title">Contact & Early Interest</h2>
+          <h2 className="qd-section-title" data-testid="text-contact-title">
+            {getValue('contact_title') || CMS_DEFAULTS.contact_title}
+          </h2>
           <p className="text-muted-foreground max-w-2xl mt-2">
-            Connect with Our Development Team: Use the form to subscribe to our construction updates, inquire about corporate partnerships, or apply for our pre-launch membership waitlist.
+            {getValue('contact_subtitle') || CMS_DEFAULTS.contact_subtitle}
           </p>
         </div>
 
         <div className="qd-contact-grid">
           <div className="qd-info-card">
             <div className="text-sm font-bold uppercase tracking-wide text-[#2a4060] dark:text-blue-400 mb-3">
-              Early Interest Form
+              {getValue('contact_form_title') || CMS_DEFAULTS.contact_form_title}
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              Submit your interest below and we'll keep you updated on our progress and launch.
+              {getValue('contact_form_subtitle') || CMS_DEFAULTS.contact_form_subtitle}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -104,7 +122,7 @@ export function ContactSection() {
                     Sending...
                   </>
                 ) : (
-                  "Send Message"
+                  getValue('contact_submit') || CMS_DEFAULTS.contact_submit || "Send Message"
                 )}
               </Button>
             </form>
@@ -112,29 +130,29 @@ export function ContactSection() {
 
           <div className="qd-info-card">
             <div className="text-sm font-bold uppercase tracking-wide text-[#2a4060] dark:text-blue-400 mb-3">
-              Socials & Location
+              {getValue('contact_socials_title') || 'Socials & Location'}
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              Follow our official channels for the most recent updates and progress photos:
+              {getValue('contact_socials_subtitle') || CMS_DEFAULTS.contact_socials_subtitle}
             </p>
 
             <div className="flex gap-3 mb-6">
-              <a href="#" className="qd-social-icon" aria-label="Instagram" data-testid="link-contact-instagram">
+              <a href={getValue('social_instagram') || CMS_DEFAULTS.social_instagram} target="_blank" rel="noopener noreferrer" className="qd-social-icon" aria-label="Instagram" data-testid="link-contact-instagram">
                 <Instagram className="w-4 h-4" />
               </a>
-              <a href="#" className="qd-social-icon" aria-label="Facebook" data-testid="link-contact-facebook">
+              <a href={getValue('social_facebook') || CMS_DEFAULTS.social_facebook} target="_blank" rel="noopener noreferrer" className="qd-social-icon" aria-label="Facebook" data-testid="link-contact-facebook">
                 <Facebook className="w-4 h-4" />
               </a>
-              <a href="#" className="qd-social-icon" aria-label="LinkedIn" data-testid="link-contact-linkedin">
+              <a href={getValue('social_linkedin') || CMS_DEFAULTS.social_linkedin} target="_blank" rel="noopener noreferrer" className="qd-social-icon" aria-label="LinkedIn" data-testid="link-contact-linkedin">
                 <Linkedin className="w-4 h-4" />
               </a>
             </div>
 
             <div className="text-sm font-bold uppercase tracking-wide text-[#2a4060] dark:text-blue-400 mb-3">
-              Site Status
+              {getValue('contact_site_status_title') || 'Site Status'}
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              The complex is currently under active construction. No public access or walk-ins are permitted for safety reasons. All updates will be digital.
+              {getValue('contact_site_status') || CMS_DEFAULTS.contact_site_status}
             </p>
 
             <div className="flex gap-4">
