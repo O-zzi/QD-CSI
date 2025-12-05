@@ -227,6 +227,48 @@ export const timeSlotBlocks = pgTable("time_slot_blocks", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Pricing Tiers table
+export const pricingTiers = pgTable("pricing_tiers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  tier: membershipTierEnum("tier").notNull(),
+  price: integer("price").default(0).notNull(),
+  billingPeriod: varchar("billing_period").default('yearly'),
+  benefits: text("benefits").array(),
+  isPopular: boolean("is_popular").default(false),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Careers/Jobs table
+export const careers = pgTable("careers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  department: varchar("department"),
+  location: varchar("location").default('Islamabad'),
+  type: varchar("type").default('Full-time'),
+  description: text("description"),
+  requirements: text("requirements"),
+  salary: varchar("salary"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Rules/Policies table
+export const rules = pgTable("rules", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  category: varchar("category"),
+  content: text("content"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   membership: one(memberships, {
@@ -361,6 +403,24 @@ export const insertGalleryImageSchema = createInsertSchema(galleryImages).omit({
   createdAt: true,
 });
 
+export const insertPricingTierSchema = createInsertSchema(pricingTiers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCareerSchema = createInsertSchema(careers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRuleSchema = createInsertSchema(rules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -397,3 +457,12 @@ export type GalleryImage = typeof galleryImages.$inferSelect;
 export type InsertGalleryImage = z.infer<typeof insertGalleryImageSchema>;
 
 export type TimeSlotBlock = typeof timeSlotBlocks.$inferSelect;
+
+export type PricingTier = typeof pricingTiers.$inferSelect;
+export type InsertPricingTier = z.infer<typeof insertPricingTierSchema>;
+
+export type Career = typeof careers.$inferSelect;
+export type InsertCareer = z.infer<typeof insertCareerSchema>;
+
+export type Rule = typeof rules.$inferSelect;
+export type InsertRule = z.infer<typeof insertRuleSchema>;

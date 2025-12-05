@@ -155,18 +155,46 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes (December 2025)
 
 ### Completed Features
-- Full database schema with 15+ tables covering all aspects of the sports complex
+- Full database schema with 18+ tables covering all aspects of the sports complex
 - Replit Auth integration with Google, GitHub, Apple, and email/password login
 - Complete landing page with all sections (Hero, About, Facilities, Updates, Gallery, Membership, Rules, Careers, Contact)
 - Booking Console with facility selection, venue picker, date/time selection, matchmaking, add-ons
 - Events and Leaderboard pages with filtering
 - Profile page with membership details and booking history
+- Full Gallery page with category filtering (Renders, Construction, Facilities)
 - Seed data for demo users, facilities, events, and leaderboard entries
+
+### Admin CMS Dashboard (December 2025)
+Complete admin panel at `/admin` with role-based access control (ADMIN/SUPER_ADMIN roles required):
+
+**Admin Routes:**
+- `/admin` - Dashboard with statistics overview
+- `/admin/homepage` - CMS content management for homepage text
+- `/admin/facilities` - CRUD for facilities with pricing, status, certification requirements
+- `/admin/pricing` - Membership pricing tiers with benefits management
+- `/admin/announcements` - Site announcements with publish status
+- `/admin/careers` - Job listings with department, location, type
+- `/admin/rules` - Rules and policies with categories and sort order
+- `/admin/gallery` - Gallery image management with categories
+
+**Admin API Endpoints:**
+All protected with `isAuthenticated` and `isAdmin` middleware:
+- GET/POST/PATCH/DELETE `/api/admin/cms`
+- GET/POST/PATCH/DELETE `/api/admin/announcements`
+- GET/POST/PATCH/DELETE `/api/admin/gallery`
+- GET/POST/PATCH/DELETE `/api/admin/pricing-tiers`
+- GET/POST/PATCH/DELETE `/api/admin/careers`
+- GET/POST/PATCH/DELETE `/api/admin/rules`
+- GET/POST/PATCH/DELETE `/api/admin/facilities`
+
+All PATCH routes validate using partial Zod schemas for type safety.
 
 ### Security & Validation
 - Double-booking prevention: Server checks for existing bookings before creating new ones
 - Membership number format validation: Enforces QD-XXXX pattern (e.g., QD-0001)
 - Payer validation: Verifies membership exists and is active when booking on behalf of another member
+- Admin route protection with role-based middleware
+- Zod validation on all admin POST and PATCH endpoints
 
 ### Seed Data Available
 - 5 Facilities: Padel Tennis, Squash, Air Rifle Range, Bridge Club, Banquet Hall

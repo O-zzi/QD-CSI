@@ -2,8 +2,30 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertBookingSchema } from "@shared/schema";
+import { 
+  insertBookingSchema,
+  insertCmsContentSchema,
+  insertAnnouncementSchema,
+  insertGalleryImageSchema,
+  insertPricingTierSchema,
+  insertCareerSchema,
+  insertRuleSchema,
+  insertFacilitySchema,
+} from "@shared/schema";
 import { z } from "zod";
+
+// Admin middleware - checks if user is ADMIN or SUPER_ADMIN
+async function isAdmin(req: any, res: any, next: any) {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const userId = req.user.claims.sub;
+  const user = await storage.getUser(userId);
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    return res.status(403).json({ message: "Forbidden: Admin access required" });
+  }
+  next();
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -298,6 +320,361 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching gallery images:", error);
       res.status(500).json({ message: "Failed to fetch gallery images" });
+    }
+  });
+
+  // ========== ADMIN ROUTES ==========
+  
+  // Admin CMS Content routes
+  app.get('/api/admin/cms', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const content = await storage.getAllCmsContent();
+      res.json(content);
+    } catch (error) {
+      console.error("Error fetching CMS content:", error);
+      res.status(500).json({ message: "Failed to fetch CMS content" });
+    }
+  });
+
+  app.post('/api/admin/cms', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertCmsContentSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const content = await storage.upsertCmsContent(result.data);
+      res.status(201).json(content);
+    } catch (error) {
+      console.error("Error creating CMS content:", error);
+      res.status(500).json({ message: "Failed to create CMS content" });
+    }
+  });
+
+  app.delete('/api/admin/cms/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteCmsContent(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting CMS content:", error);
+      res.status(500).json({ message: "Failed to delete CMS content" });
+    }
+  });
+
+  // Admin Announcements routes
+  app.get('/api/admin/announcements', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const announcements = await storage.getAllAnnouncements();
+      res.json(announcements);
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+      res.status(500).json({ message: "Failed to fetch announcements" });
+    }
+  });
+
+  app.post('/api/admin/announcements', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertAnnouncementSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const announcement = await storage.createAnnouncement(result.data);
+      res.status(201).json(announcement);
+    } catch (error) {
+      console.error("Error creating announcement:", error);
+      res.status(500).json({ message: "Failed to create announcement" });
+    }
+  });
+
+  app.patch('/api/admin/announcements/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertAnnouncementSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateAnnouncement(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Announcement not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating announcement:", error);
+      res.status(500).json({ message: "Failed to update announcement" });
+    }
+  });
+
+  app.delete('/api/admin/announcements/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteAnnouncement(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting announcement:", error);
+      res.status(500).json({ message: "Failed to delete announcement" });
+    }
+  });
+
+  // Admin Gallery routes
+  app.get('/api/admin/gallery', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const images = await storage.getAllGalleryImages();
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching gallery images:", error);
+      res.status(500).json({ message: "Failed to fetch gallery images" });
+    }
+  });
+
+  app.post('/api/admin/gallery', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertGalleryImageSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const image = await storage.createGalleryImage(result.data);
+      res.status(201).json(image);
+    } catch (error) {
+      console.error("Error creating gallery image:", error);
+      res.status(500).json({ message: "Failed to create gallery image" });
+    }
+  });
+
+  app.patch('/api/admin/gallery/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertGalleryImageSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateGalleryImage(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating gallery image:", error);
+      res.status(500).json({ message: "Failed to update gallery image" });
+    }
+  });
+
+  app.delete('/api/admin/gallery/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteGalleryImage(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting gallery image:", error);
+      res.status(500).json({ message: "Failed to delete gallery image" });
+    }
+  });
+
+  // Admin Pricing Tiers routes
+  app.get('/api/admin/pricing-tiers', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const tiers = await storage.getPricingTiers();
+      res.json(tiers);
+    } catch (error) {
+      console.error("Error fetching pricing tiers:", error);
+      res.status(500).json({ message: "Failed to fetch pricing tiers" });
+    }
+  });
+
+  app.post('/api/admin/pricing-tiers', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertPricingTierSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const tier = await storage.createPricingTier(result.data);
+      res.status(201).json(tier);
+    } catch (error) {
+      console.error("Error creating pricing tier:", error);
+      res.status(500).json({ message: "Failed to create pricing tier" });
+    }
+  });
+
+  app.patch('/api/admin/pricing-tiers/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertPricingTierSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updatePricingTier(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Pricing tier not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating pricing tier:", error);
+      res.status(500).json({ message: "Failed to update pricing tier" });
+    }
+  });
+
+  app.delete('/api/admin/pricing-tiers/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deletePricingTier(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting pricing tier:", error);
+      res.status(500).json({ message: "Failed to delete pricing tier" });
+    }
+  });
+
+  // Admin Careers routes
+  app.get('/api/admin/careers', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const careers = await storage.getCareers();
+      res.json(careers);
+    } catch (error) {
+      console.error("Error fetching careers:", error);
+      res.status(500).json({ message: "Failed to fetch careers" });
+    }
+  });
+
+  app.post('/api/admin/careers', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertCareerSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const career = await storage.createCareer(result.data);
+      res.status(201).json(career);
+    } catch (error) {
+      console.error("Error creating career:", error);
+      res.status(500).json({ message: "Failed to create career" });
+    }
+  });
+
+  app.patch('/api/admin/careers/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertCareerSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateCareer(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Career not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating career:", error);
+      res.status(500).json({ message: "Failed to update career" });
+    }
+  });
+
+  app.delete('/api/admin/careers/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteCareer(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting career:", error);
+      res.status(500).json({ message: "Failed to delete career" });
+    }
+  });
+
+  // Admin Rules routes
+  app.get('/api/admin/rules', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const rules = await storage.getRules();
+      res.json(rules);
+    } catch (error) {
+      console.error("Error fetching rules:", error);
+      res.status(500).json({ message: "Failed to fetch rules" });
+    }
+  });
+
+  app.post('/api/admin/rules', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertRuleSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const rule = await storage.createRule(result.data);
+      res.status(201).json(rule);
+    } catch (error) {
+      console.error("Error creating rule:", error);
+      res.status(500).json({ message: "Failed to create rule" });
+    }
+  });
+
+  app.patch('/api/admin/rules/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertRuleSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateRule(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Rule not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating rule:", error);
+      res.status(500).json({ message: "Failed to update rule" });
+    }
+  });
+
+  app.delete('/api/admin/rules/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteRule(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting rule:", error);
+      res.status(500).json({ message: "Failed to delete rule" });
+    }
+  });
+
+  // Admin Facilities routes
+  app.get('/api/admin/facilities', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const facilities = await storage.getFacilities();
+      res.json(facilities);
+    } catch (error) {
+      console.error("Error fetching facilities:", error);
+      res.status(500).json({ message: "Failed to fetch facilities" });
+    }
+  });
+
+  app.post('/api/admin/facilities', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertFacilitySchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const facility = await storage.createFacility(result.data);
+      res.status(201).json(facility);
+    } catch (error) {
+      console.error("Error creating facility:", error);
+      res.status(500).json({ message: "Failed to create facility" });
+    }
+  });
+
+  app.patch('/api/admin/facilities/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertFacilitySchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateFacility(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Facility not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating facility:", error);
+      res.status(500).json({ message: "Failed to update facility" });
+    }
+  });
+
+  app.delete('/api/admin/facilities/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteFacility(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting facility:", error);
+      res.status(500).json({ message: "Failed to delete facility" });
     }
   });
 

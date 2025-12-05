@@ -1,19 +1,20 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Target, Dumbbell, Users, Coffee, Crosshair } from "lucide-react";
+import { Crosshair, Building2, Coffee, Spade } from "lucide-react";
+import { GiTennisRacket, GiSquare } from "react-icons/gi";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
-import squashImage from "@assets/stock_images/professional_squash__c4dca43a.jpg";
+import squashImage from "@assets/stock_images/indoor_squash_court__c97e350b.jpg";
 import airRifleImage from "@assets/stock_images/air_rifle_shooting_r_931e6002.jpg";
-import hallImage from "@assets/stock_images/multipurpose_event_h_e7c6ac62.jpg";
-import bridgeImage from "@assets/stock_images/bridge_card_game_clu_6f83cf65.jpg";
-import cafeImage from "@assets/stock_images/modern_cafe_interior_c554b982.jpg";
+import hallImage from "@assets/stock_images/large_event_hall_int_39cfb773.jpg";
+import bridgeImage from "@assets/stock_images/elegant_card_game_ro_26fec1dc.jpg";
+import cafeImage from "@assets/stock_images/modern_cafe_bar_inte_bc2874c0.jpg";
 
 const facilities = [
   {
     id: "padel",
     name: "Padel Tennis",
-    icon: Target,
+    icon: GiTennisRacket,
     category: "Indoor Court",
     status: "soon",
     statusLabel: "Opening Soon",
@@ -24,7 +25,7 @@ const facilities = [
   {
     id: "squash",
     name: "Squash Court",
-    icon: Dumbbell,
+    icon: GiSquare,
     category: "Indoor Court",
     status: "soon",
     statusLabel: "Opening Soon",
@@ -46,7 +47,7 @@ const facilities = [
   {
     id: "hall",
     name: "Multipurpose Hall",
-    icon: Users,
+    icon: Building2,
     category: "Indoor Space",
     status: "planned",
     statusLabel: "Planned",
@@ -57,7 +58,7 @@ const facilities = [
   {
     id: "bridge",
     name: "Bridge Room",
-    icon: Users,
+    icon: Spade,
     category: "Mind Sport",
     status: "planned",
     statusLabel: "Planned",

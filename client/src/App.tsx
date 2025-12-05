@@ -8,7 +8,16 @@ import Booking from "@/pages/Booking";
 import Profile from "@/pages/Profile";
 import Events from "@/pages/Events";
 import Leaderboard from "@/pages/Leaderboard";
+import Gallery from "@/pages/Gallery";
 import NotFound from "@/pages/not-found";
+import AdminDashboard from "@/pages/admin/Dashboard";
+import HomepageManagement from "@/pages/admin/HomepageManagement";
+import FacilitiesManagement from "@/pages/admin/FacilitiesManagement";
+import PricingManagement from "@/pages/admin/PricingManagement";
+import AnnouncementsManagement from "@/pages/admin/AnnouncementsManagement";
+import CareersManagement from "@/pages/admin/CareersManagement";
+import RulesManagement from "@/pages/admin/RulesManagement";
+import GalleryManagement from "@/pages/admin/GalleryManagement";
 
 function Router() {
   return (
@@ -18,6 +27,15 @@ function Router() {
       <Route path="/profile" component={Profile} />
       <Route path="/events" component={Events} />
       <Route path="/leaderboard" component={Leaderboard} />
+      <Route path="/gallery" component={Gallery} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/homepage" component={HomepageManagement} />
+      <Route path="/admin/facilities" component={FacilitiesManagement} />
+      <Route path="/admin/pricing" component={PricingManagement} />
+      <Route path="/admin/announcements" component={AnnouncementsManagement} />
+      <Route path="/admin/careers" component={CareersManagement} />
+      <Route path="/admin/rules" component={RulesManagement} />
+      <Route path="/admin/gallery" component={GalleryManagement} />
       <Route component={NotFound} />
     </Switch>
   );
