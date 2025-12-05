@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Calendar, Users, Clock, Trophy, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Clock, Trophy, Check, Loader2, LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Event } from "@shared/schema";
@@ -33,6 +33,7 @@ export default function Events() {
   const { toast } = useToast();
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationFormSchema),
@@ -121,13 +122,14 @@ export default function Events() {
   };
 
   const openRegistrationDialog = (event: Event) => {
-    // Redirect to login if not authenticated
+    setSelectedEvent(event);
+    
+    // Show login prompt if not authenticated
     if (!user) {
-      window.location.href = '/api/login';
+      setShowLoginPrompt(true);
       return;
     }
     
-    setSelectedEvent(event);
     // Pre-fill form with user data
     form.setValue("fullName", user.firstName && user.lastName 
       ? `${user.firstName} ${user.lastName}` 
@@ -250,7 +252,7 @@ export default function Events() {
                           disabled={isFull}
                           data-testid={`button-register-event-${event.id}`}
                         >
-                          {isFull ? 'Full' : user ? 'Register' : 'Sign in to Register'}
+                          {isFull ? 'Full' : 'Register'}
                         </Button>
                       )}
                     </div>
@@ -414,6 +416,55 @@ export default function Events() {
               </div>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Login Prompt Dialog */}
+      <Dialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2" data-testid="text-login-prompt-title">
+              <LogIn className="w-5 h-5" />
+              Sign In Required
+            </DialogTitle>
+            <DialogDescription>
+              Please sign in to register for this event.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {selectedEvent && (
+              <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-lg mb-4">
+                <h4 className="font-semibold">{selectedEvent.title}</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {selectedEvent.scheduleDay} {selectedEvent.scheduleTime || ''}
+                </p>
+                <p className="text-sm font-medium text-sky-600 mt-2">
+                  PKR {selectedEvent.price?.toLocaleString() || 'Free'}
+                </p>
+              </div>
+            )}
+            
+            <p className="text-sm text-muted-foreground mb-4">
+              Create an account or sign in to complete your registration. Your membership will be set up automatically.
+            </p>
+          </div>
+          
+          <div className="flex flex-col gap-3">
+            <a href="/api/login" className="w-full">
+              <Button className="w-full" data-testid="button-login-to-register">
+                <LogIn className="w-4 h-4 mr-2" />
+                Sign In with Replit
+              </Button>
+            </a>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowLoginPrompt(false)}
+              data-testid="button-cancel-login-prompt"
+            >
+              Maybe Later
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

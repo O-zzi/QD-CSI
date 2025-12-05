@@ -1003,9 +1003,22 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         {/* EVENTS VIEW */}
         {currentView === 'events' && (
           <div className="max-w-6xl mx-auto space-y-10 animate-qd-fade-in">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-extrabold" data-testid="text-events-title">Events & Academy</h2>
-              <p className="text-muted-foreground mt-2 text-sm">Classes, tournaments and social events.</p>
+            <div className="flex items-center gap-4 mb-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBackToHome}
+                className="rounded-full"
+                data-testid="button-events-back-home"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
+              </Button>
+              <div className="flex-1 text-center">
+                <h2 className="text-3xl font-extrabold" data-testid="text-events-title">Events & Academy</h2>
+                <p className="text-muted-foreground mt-2 text-sm">Classes, tournaments and social events.</p>
+              </div>
+              <div className="w-16" /> {/* Spacer for balance */}
             </div>
             {FACILITIES.map((fac) => {
               const FacIcon = fac.icon;
@@ -1059,11 +1072,24 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         {/* LEADERBOARD VIEW */}
         {currentView === 'leaderboard' && (
           <div className="max-w-4xl mx-auto space-y-8 animate-qd-fade-in">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-extrabold" data-testid="text-leaderboard-title">
-                {currentLeaderboardType === 'cumulative' ? 'Global Arena Leaderboard' : `${FACILITIES.find(f => f.id === currentLeaderboardType)?.label || ''} Top Scorers`}
-              </h2>
-              <p className="text-muted-foreground mt-2 text-sm">Top performers across all facilities.</p>
+            <div className="flex items-center gap-4 mb-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBackToHome}
+                className="rounded-full"
+                data-testid="button-leaderboard-back-home"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
+              </Button>
+              <div className="flex-1 text-center">
+                <h2 className="text-3xl font-extrabold" data-testid="text-leaderboard-title">
+                  {currentLeaderboardType === 'cumulative' ? 'Global Arena Leaderboard' : `${FACILITIES.find(f => f.id === currentLeaderboardType)?.label || ''} Top Scorers`}
+                </h2>
+                <p className="text-muted-foreground mt-2 text-sm">Top performers across all facilities.</p>
+              </div>
+              <div className="w-16" /> {/* Spacer for balance */}
             </div>
 
             {/* Filter Tabs */}
@@ -1144,9 +1170,22 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         {/* PROFILE VIEW */}
         {currentView === 'profile' && (
           <div className="max-w-2xl mx-auto space-y-8 animate-qd-fade-in">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-extrabold" data-testid="text-profile-title">My Profile</h2>
-              <p className="text-muted-foreground mt-2 text-sm">Your membership details and stats.</p>
+            <div className="flex items-center gap-4 mb-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBackToHome}
+                className="rounded-full"
+                data-testid="button-profile-back-home"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Back
+              </Button>
+              <div className="flex-1 text-center">
+                <h2 className="text-3xl font-extrabold" data-testid="text-profile-title">My Profile</h2>
+                <p className="text-muted-foreground mt-2 text-sm">Your membership details and stats.</p>
+              </div>
+              <div className="w-16" /> {/* Spacer for balance */}
             </div>
 
             <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg">
