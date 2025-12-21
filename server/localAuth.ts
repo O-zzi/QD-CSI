@@ -512,3 +512,39 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 
   next();
 };
+
+export const sessionHeartbeat = async (req: Request, res: Response) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  const user = req.user as any;
+  
+  try {
+    await storage.updateUserActivity(user.id, null, new Date());
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('[auth] Failed to update session heartbeat:', error);
+    return res.status(500).json({ message: "Failed to update session" });
+  }
+};
+
+export const adminHeartbeat = async (req: Request, res: Response) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  const user = req.user as any;
+  
+  if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+    return res.status(403).json({ message: "Forbidden - Admin access required" });
+  }
+  
+  try {
+    await storage.updateUserActivity(user.id, null, new Date());
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('[auth] Failed to update admin heartbeat:', error);
+    return res.status(500).json({ message: "Failed to update session" });
+  }
+};

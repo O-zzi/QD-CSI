@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, isAdmin, sessionHeartbeat, adminHeartbeat } from "./replitAuth";
+import { setupAuth, isAuthenticated, isAdmin, sessionHeartbeat, adminHeartbeat } from "./localAuth";
 import {
   sendBookingCreatedEmail,
   sendPaymentVerifiedEmail,
@@ -85,7 +85,7 @@ export async function registerRoutes(
   // ========== AUTH ROUTES ==========
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any).id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -100,7 +100,7 @@ export async function registerRoutes(
   // ========== MEMBERSHIP ROUTES ==========
   app.get('/api/memberships/my', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any).id;
       const membership = await storage.getMembership(userId);
       if (!membership) {
         return res.status(404).json({ message: "No membership found" });
@@ -194,7 +194,7 @@ export async function registerRoutes(
       // Check if user is authenticated and has admin role
       const isAdminUser = req.user?.claims?.sub && 
         await (async () => {
-          const user = await storage.getUser(req.user.claims.sub);
+          const user = await storage.getUser((req.user as any).id);
           return user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
         })();
       
@@ -268,7 +268,7 @@ export async function registerRoutes(
 
   app.get('/api/bookings/my', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any).id;
       const bookings = await storage.getBookings(userId);
       res.json(bookings);
     } catch (error) {
@@ -301,7 +301,7 @@ export async function registerRoutes(
 
   app.post('/api/bookings', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any).id;
       const result = createBookingSchema.safeParse(req.body);
       
       if (!result.success) {
@@ -390,7 +390,7 @@ export async function registerRoutes(
   app.patch('/api/bookings/:id/cancel', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any).id;
       const booking = await storage.updateBookingStatus(id, 'CANCELLED');
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
@@ -1342,7 +1342,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
       }
 
-      const adminUserId = req.user.claims.sub;
+      const adminUserId = (req.user as any).id;
       const updateData: any = { ...result.data };
       
       // If verifying payment, set verification details
@@ -1467,7 +1467,7 @@ export async function registerRoutes(
 
   app.get('/api/user/event-registrations', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any).id;
       const registrations = await storage.getUserEventRegistrations(userId);
       res.json(registrations);
     } catch (error) {
@@ -1478,7 +1478,7 @@ export async function registerRoutes(
 
   app.get('/api/events/:eventId/registration-status', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any).id;
       const { eventId } = req.params;
       const isRegistered = await storage.isUserRegisteredForEvent(userId, eventId);
       res.json({ isRegistered });
@@ -1490,7 +1490,7 @@ export async function registerRoutes(
 
   app.delete('/api/events/:eventId/register', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = (req.user as any).id;
       const { eventId } = req.params;
       
       const registrations = await storage.getUserEventRegistrations(userId);
