@@ -37,6 +37,7 @@ import {
   type Facility,
   type InsertFacility,
   type FacilityAddOn,
+  type InsertFacilityAddOn,
   type Booking,
   type InsertBooking,
   type Event,
@@ -105,6 +106,9 @@ export interface IStorage {
   getFacility(id: string): Promise<Facility | undefined>;
   getFacilityBySlug(slug: string): Promise<Facility | undefined>;
   getFacilityAddOns(facilityId: string): Promise<FacilityAddOn[]>;
+  createFacilityAddOn(data: InsertFacilityAddOn): Promise<FacilityAddOn>;
+  updateFacilityAddOn(id: string, data: Partial<InsertFacilityAddOn>): Promise<FacilityAddOn | undefined>;
+  deleteFacilityAddOn(id: string): Promise<void>;
 
   // Booking operations
   getBookings(userId: string): Promise<Booking[]>;
@@ -444,6 +448,24 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(facilityAddOns)
       .where(eq(facilityAddOns.facilityId, facilityId));
+  }
+
+  async createFacilityAddOn(data: InsertFacilityAddOn): Promise<FacilityAddOn> {
+    const [created] = await db.insert(facilityAddOns).values(data).returning();
+    return created;
+  }
+
+  async updateFacilityAddOn(id: string, data: Partial<InsertFacilityAddOn>): Promise<FacilityAddOn | undefined> {
+    const [updated] = await db
+      .update(facilityAddOns)
+      .set(data)
+      .where(eq(facilityAddOns.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteFacilityAddOn(id: string): Promise<void> {
+    await db.delete(facilityAddOns).where(eq(facilityAddOns.id, id));
   }
 
   // Booking operations

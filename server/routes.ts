@@ -22,6 +22,7 @@ import {
   insertCareerSchema,
   insertRuleSchema,
   insertFacilitySchema,
+  insertFacilityAddOnSchema,
   insertVenueSchema,
   insertConstructionPhaseSchema,
   insertCmsFieldSchema,
@@ -1155,6 +1156,62 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting facility:", error);
       res.status(500).json({ message: "Failed to delete facility" });
+    }
+  });
+
+  // Admin Facility Add-ons routes
+  app.get('/api/admin/facilities/:facilityId/addons', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const addons = await storage.getFacilityAddOns(req.params.facilityId);
+      res.json(addons);
+    } catch (error) {
+      console.error("Error fetching facility addons:", error);
+      res.status(500).json({ message: "Failed to fetch facility addons" });
+    }
+  });
+
+  app.post('/api/admin/facilities/:facilityId/addons', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertFacilityAddOnSchema.safeParse({
+        ...req.body,
+        facilityId: req.params.facilityId
+      });
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const addon = await storage.createFacilityAddOn(result.data);
+      res.status(201).json(addon);
+    } catch (error) {
+      console.error("Error creating facility addon:", error);
+      res.status(500).json({ message: "Failed to create facility addon" });
+    }
+  });
+
+  app.patch('/api/admin/facility-addons/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertFacilityAddOnSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateFacilityAddOn(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Add-on not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating facility addon:", error);
+      res.status(500).json({ message: "Failed to update facility addon" });
+    }
+  });
+
+  app.delete('/api/admin/facility-addons/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteFacilityAddOn(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting facility addon:", error);
+      res.status(500).json({ message: "Failed to delete facility addon" });
     }
   });
 

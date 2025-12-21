@@ -809,6 +809,11 @@ export const insertAdminAuditLogSchema = createInsertSchema(adminAuditLogs).omit
   createdAt: true,
 });
 
+export const insertFacilityAddOnSchema = createInsertSchema(facilityAddOns).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -821,6 +826,7 @@ export type Facility = typeof facilities.$inferSelect;
 export type InsertFacility = z.infer<typeof insertFacilitySchema>;
 
 export type FacilityAddOn = typeof facilityAddOns.$inferSelect;
+export type InsertFacilityAddOn = z.infer<typeof insertFacilityAddOnSchema>;
 
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
