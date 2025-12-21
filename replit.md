@@ -106,7 +106,7 @@ API Endpoints:
 
 **Email Notifications:**
 - Resend API integration for transactional emails
-- Email templates for: Booking confirmation, Payment verified/rejected, Booking cancelled, Event registration, Welcome email, Contact form, Career applications
+- Email templates for: Booking confirmation, Payment verified/rejected, Booking cancelled, Event registration, Welcome email, Contact form, Career applications, Email verification, Password reset, Membership approved/rejected, Renewal reminders (7/3/1 day warnings)
 
 **Email Configuration (for testing):**
 To enable email notifications:
@@ -132,3 +132,37 @@ Membership discounts are applied **ONLY during off-peak hours (10 AM - 5 PM)**:
 - **Guest/Non-members:** No discount
 
 Peak hours (before 10 AM or after 5 PM) do not receive any discount regardless of membership tier.
+
+## Member Dashboard & Notifications (Batch 4)
+
+### Notifications System
+- **Database**: `notifications` table with userId, type, title, message, isRead, link, data (JSON), createdAt
+- **Types**: booking, event, membership, system, payment
+- **API Endpoints**:
+  - `GET /api/notifications` - List user's notifications (newest first)
+  - `GET /api/notifications/unread-count` - Get unread count
+  - `POST /api/notifications/:id/read` - Mark single notification as read (ownership enforced)
+  - `POST /api/notifications/read-all` - Mark all user's notifications as read
+  - `DELETE /api/notifications/:id` - Delete notification (ownership enforced)
+- **NotificationBell Component**: Header bell icon with unread count badge, popover dropdown with preview, deep link to profile notifications tab
+
+### Enhanced Profile Page
+- **Tabs**: Account, Bookings, Notifications, Membership
+- **Account Tab**: Profile photo upload with avatar overlay (camera icon on hover), user info display
+- **Bookings Tab**: Sub-tabs for Upcoming and Past bookings with status badges
+- **Notifications Tab**: Full notification management with mark read, mark all read, delete actions
+- **Membership Tab**: Membership card display with tier, status, expiry date
+
+### Profile Photo Upload
+- Endpoint: `POST /api/user/profile-photo`
+- Max file size: 5MB
+- Accepted types: image/*
+- Storage: `/uploads/` directory with multer
+- Updates `user.profileImageUrl` field
+
+Key files:
+- `shared/schema.ts`: notifications table schema
+- `server/storage.ts`: notification CRUD methods with ownership validation
+- `server/routes.ts`: notification API endpoints
+- `client/src/components/NotificationBell.tsx`: Header notification component
+- `client/src/pages/Profile.tsx`: Enhanced profile page with tabs
