@@ -158,7 +158,11 @@ export async function registerRoutes(
   app.post('/api/notifications/:id/read', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      await storage.markNotificationRead(id);
+      const userId = (req.user as any).id;
+      const updated = await storage.markNotificationRead(id, userId);
+      if (!updated) {
+        return res.status(403).json({ message: "Not authorized to modify this notification" });
+      }
       res.json({ success: true });
     } catch (error) {
       console.error("Error marking notification as read:", error);
