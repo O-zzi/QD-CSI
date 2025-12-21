@@ -5,6 +5,7 @@ import { createServer } from "http";
 import path from "path";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { runStartupMigrations } from "./migrations";
 
 const app = express();
 const httpServer = createServer(app);
@@ -89,6 +90,9 @@ export function log(message: string, source = "express") {
   );
 
   app.use(express.urlencoded({ extended: false }));
+
+  // Run database migrations before starting the app
+  await runStartupMigrations();
 
   app.use((req, res, next) => {
     const start = Date.now();

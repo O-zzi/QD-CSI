@@ -35,6 +35,7 @@ import FacilitiesManagement from "@/pages/admin/FacilitiesManagement";
 import RoadmapManagement from "@/pages/admin/RoadmapManagement";
 import EventsManagement from "@/pages/admin/EventsManagement";
 import PricingManagement from "@/pages/admin/PricingManagement";
+import MembershipTierManagement from "@/pages/admin/MembershipTierManagement";
 import AnnouncementsManagement from "@/pages/admin/AnnouncementsManagement";
 import CareersManagement from "@/pages/admin/CareersManagement";
 import RulesManagement from "@/pages/admin/RulesManagement";
@@ -65,6 +66,7 @@ function AdminRoutes() {
       <Route path={`${base}/roadmap`} component={RoadmapManagement} />
       <Route path={`${base}/events`} component={EventsManagement} />
       <Route path={`${base}/pricing`} component={PricingManagement} />
+      <Route path={`${base}/membership-tiers`} component={MembershipTierManagement} />
       <Route path={`${base}/announcements`} component={AnnouncementsManagement} />
       <Route path={`${base}/careers`} component={CareersManagement} />
       <Route path={`${base}/rules`} component={RulesManagement} />

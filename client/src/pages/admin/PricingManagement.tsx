@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Pencil, Trash2, Save, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, Star, Settings } from "lucide-react";
+import { Link } from "wouter";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { PricingTier } from "@shared/schema";
+import type { PricingTier, MembershipTierDefinition } from "@shared/schema";
 
 export default function PricingManagement() {
   const { toast } = useToast();
@@ -47,6 +48,11 @@ export default function PricingManagement() {
 
   const { data: pricingTiers, isLoading } = useQuery<PricingTier[]>({
     queryKey: ["/api/admin/pricing-tiers"],
+  });
+
+  // Fetch membership tier definitions for dynamic tier options
+  const { data: tierDefinitions } = useQuery<MembershipTierDefinition[]>({
+    queryKey: ["/api/admin/membership-tiers"],
   });
 
   // Helper to invalidate all pricing-related queries (admin + public)
@@ -176,10 +182,17 @@ export default function PricingManagement() {
   return (
     <AdminLayout title="Pricing Tiers">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <p className="text-muted-foreground">
-            Manage membership pricing tiers and their benefits.
-          </p>
+        <div className="flex justify-between items-center flex-wrap gap-4">
+          <div className="space-y-1">
+            <p className="text-muted-foreground">
+              Manage membership pricing tiers and their benefits.
+            </p>
+            <Link href={`/${import.meta.env.VITE_ADMIN_PATH || 'admin'}/membership-tiers`}>
+              <Button variant="link" size="sm" className="p-0 h-auto text-primary" data-testid="link-manage-tiers">
+                <Settings className="w-3 h-3 mr-1" /> Manage Tier Definitions
+              </Button>
+            </Link>
+          </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
             if (!open) {
@@ -218,10 +231,23 @@ export default function PricingManagement() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="FOUNDING">Founding</SelectItem>
-                        <SelectItem value="GOLD">Gold</SelectItem>
-                        <SelectItem value="SILVER">Silver</SelectItem>
-                        <SelectItem value="GUEST">Guest</SelectItem>
+                        {tierDefinitions?.filter(t => t.isActive).map((tier) => (
+                          <SelectItem 
+                            key={tier.id} 
+                            value={tier.slug.toUpperCase()}
+                            data-testid={`select-tier-${tier.slug}`}
+                          >
+                            {tier.displayName}
+                          </SelectItem>
+                        ))}
+                        {(!tierDefinitions || tierDefinitions.length === 0) && (
+                          <>
+                            <SelectItem value="FOUNDING">Founding</SelectItem>
+                            <SelectItem value="GOLD">Gold</SelectItem>
+                            <SelectItem value="SILVER">Silver</SelectItem>
+                            <SelectItem value="GUEST">Guest</SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
