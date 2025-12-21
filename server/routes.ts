@@ -97,6 +97,35 @@ export async function registerRoutes(
   // Session heartbeat for all authenticated users - uses isAuthenticated for OIDC token refresh and timeout enforcement
   app.post('/api/session/heartbeat', isAuthenticated, sessionHeartbeat);
 
+  // Profile photo upload
+  app.post('/api/user/profile-photo', isAuthenticated, (req: any, res, next) => {
+    upload.single('photo')(req, res, (err: any) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+        }
+        return res.status(400).json({ message: err.message || "File upload failed" });
+      }
+      
+      (async () => {
+        try {
+          if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+          }
+          
+          const userId = (req.user as any).id;
+          const imageUrl = `/uploads/${req.file.filename}`;
+          const updatedUser = await storage.updateUserProfileImage(userId, imageUrl);
+          
+          res.json({ imageUrl, user: updatedUser });
+        } catch (error: any) {
+          console.error("Error uploading profile photo:", error);
+          res.status(500).json({ message: error.message || "Failed to upload profile photo" });
+        }
+      })();
+    });
+  });
+
   // Admin config endpoint - returns masked admin path only to authenticated admins
   app.get('/api/admin/config', isAdmin, async (_req, res) => {
     const adminPath = process.env.ADMIN_PATH || 'admin';

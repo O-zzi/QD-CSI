@@ -123,6 +123,7 @@ export interface IStorage {
   createUser(userData: InsertUser): Promise<User>;
   updateUserLoginAttempts(userId: string, attempts: number, lockoutUntil: Date | null): Promise<void>;
   updateUserActivity(userId: string, lastAuthenticatedAt: Date | null, lastActivityAt: Date | null): Promise<void>;
+  updateUserProfileImage(userId: string, imageUrl: string): Promise<User | undefined>;
   getUserByEmailVerificationToken(token: string): Promise<User | undefined>;
   verifyUserEmail(userId: string): Promise<void>;
   updateEmailVerificationToken(userId: string, token: string, expires: Date): Promise<void>;
@@ -313,6 +314,15 @@ export class DatabaseStorage implements IStorage {
     if (lastAuthenticatedAt !== null) updateData.lastAuthenticatedAt = lastAuthenticatedAt;
     if (lastActivityAt !== null) updateData.lastActivityAt = lastActivityAt;
     await db.update(users).set(updateData).where(eq(users.id, userId));
+  }
+
+  async updateUserProfileImage(userId: string, imageUrl: string): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ profileImageUrl: imageUrl, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {

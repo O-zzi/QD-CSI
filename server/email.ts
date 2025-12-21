@@ -723,4 +723,186 @@ export async function sendPasswordResetEmail(user: { email: string; firstName: s
   );
 }
 
+export async function sendMembershipApprovedEmail(user: { email: string; firstName: string; membershipNumber: string; tier: string; expiresAt: string }): Promise<boolean> {
+  const html = emailWrapper(`
+    <div class="header">
+      <h1>Membership Approved</h1>
+      <p>Welcome to The Quarterdeck Family!</p>
+    </div>
+    <div class="content">
+      <h2>Congratulations ${user.firstName}!</h2>
+      
+      <div class="success">
+        <strong>Your membership has been approved!</strong><br>
+        You now have access to all our world-class facilities and exclusive member benefits.
+      </div>
+      
+      <div class="info-box">
+        <div class="info-row">
+          <span class="info-label">Membership Number</span>
+          <span class="info-value">${user.membershipNumber}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Tier</span>
+          <span class="info-value">${user.tier}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Valid Until</span>
+          <span class="info-value">${user.expiresAt}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Status</span>
+          <span class="info-value"><span class="status-badge status-confirmed">Active</span></span>
+        </div>
+      </div>
+      
+      <div class="highlight">
+        <strong>Member Benefits Include:</strong>
+        <ul style="margin: 10px 0;">
+          <li>Discounted facility bookings during off-peak hours</li>
+          <li>Priority access to events and academies</li>
+          <li>Exclusive member-only tournaments</li>
+          <li>Guest privileges for family and friends</li>
+        </ul>
+      </div>
+      
+      <p style="text-align: center;">
+        <a href="https://thequarterdeck.pk/booking" class="button">Book a Facility Now</a>
+      </p>
+      
+      <p>Welcome aboard!</p>
+      <p>Best regards,<br><strong>The Quarterdeck Team</strong></p>
+    </div>
+    <div class="footer">
+      <p>The Quarterdeck Sports & Recreation Complex</p>
+      <p>F-7/4, Islamabad, Pakistan | +92 51 1234567</p>
+      <p>info@thequarterdeck.pk</p>
+    </div>
+  `);
+  
+  return emailService.sendEmail(
+    user.email,
+    `Membership Approved - Welcome to The Quarterdeck!`,
+    html
+  );
+}
+
+export async function sendMembershipRejectedEmail(user: { email: string; firstName: string; reason?: string }): Promise<boolean> {
+  const html = emailWrapper(`
+    <div class="header" style="background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);">
+      <h1>Membership Application Update</h1>
+      <p>The Quarterdeck</p>
+    </div>
+    <div class="content">
+      <h2>Hello ${user.firstName},</h2>
+      
+      <div class="warning" style="background: #fee2e2; border-left-color: #dc2626;">
+        <strong>Membership Application Not Approved</strong><br>
+        We regret to inform you that your membership application could not be approved at this time.
+      </div>
+      
+      ${user.reason ? `
+      <div class="info-box">
+        <div class="info-row">
+          <span class="info-label">Reason</span>
+          <span class="info-value">${user.reason}</span>
+        </div>
+      </div>
+      ` : ''}
+      
+      <div class="highlight">
+        <strong>Next Steps:</strong>
+        <ul style="margin: 10px 0;">
+          <li>Review your application details</li>
+          <li>Contact our membership team for clarification</li>
+          <li>Reapply once you've addressed any issues</li>
+        </ul>
+      </div>
+      
+      <p>If you have any questions, please contact our membership team.</p>
+      
+      <p>Best regards,<br><strong>The Quarterdeck Membership Team</strong></p>
+    </div>
+    <div class="footer">
+      <p>The Quarterdeck Sports & Recreation Complex</p>
+      <p>F-7/4, Islamabad, Pakistan | +92 51 1234567</p>
+      <p>membership@thequarterdeck.pk</p>
+    </div>
+  `);
+  
+  return emailService.sendEmail(
+    user.email,
+    `Membership Application Update | The Quarterdeck`,
+    html
+  );
+}
+
+export async function sendMembershipRenewalReminderEmail(user: { email: string; firstName: string; membershipNumber: string; tier: string; expiresAt: string; daysRemaining: number }): Promise<boolean> {
+  const urgencyColor = user.daysRemaining <= 1 ? '#dc2626' : user.daysRemaining <= 3 ? '#f59e0b' : '#2563eb';
+  const urgencyText = user.daysRemaining <= 1 ? 'Expires Tomorrow!' : user.daysRemaining <= 3 ? 'Expiring Soon!' : 'Renewal Reminder';
+  
+  const html = emailWrapper(`
+    <div class="header" style="background: linear-gradient(135deg, ${urgencyColor} 0%, ${urgencyColor}dd 100%);">
+      <h1>${urgencyText}</h1>
+      <p>Your membership renewal is due</p>
+    </div>
+    <div class="content">
+      <h2>Hello ${user.firstName},</h2>
+      
+      <div class="${user.daysRemaining <= 3 ? 'warning' : 'highlight'}" style="${user.daysRemaining <= 1 ? 'background: #fee2e2; border-left-color: #dc2626;' : ''}">
+        <strong>Your membership expires in ${user.daysRemaining} day${user.daysRemaining === 1 ? '' : 's'}!</strong><br>
+        Renew now to continue enjoying your member benefits without interruption.
+      </div>
+      
+      <div class="info-box">
+        <div class="info-row">
+          <span class="info-label">Membership Number</span>
+          <span class="info-value">${user.membershipNumber}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Current Tier</span>
+          <span class="info-value">${user.tier}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Expires On</span>
+          <span class="info-value">${user.expiresAt}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Days Remaining</span>
+          <span class="info-value"><span class="status-badge ${user.daysRemaining <= 1 ? 'status-cancelled' : user.daysRemaining <= 3 ? 'status-pending' : 'status-confirmed'}">${user.daysRemaining} day${user.daysRemaining === 1 ? '' : 's'}</span></span>
+        </div>
+      </div>
+      
+      <div class="highlight">
+        <strong>Don't Lose Your Benefits:</strong>
+        <ul style="margin: 10px 0;">
+          <li>Discounted facility bookings</li>
+          <li>Priority event registration</li>
+          <li>Leaderboard participation</li>
+          <li>Guest privileges</li>
+        </ul>
+      </div>
+      
+      <p style="text-align: center;">
+        <a href="https://thequarterdeck.pk/profile" class="button">Renew Membership</a>
+      </p>
+      
+      <p>If you have any questions about renewal, please contact our membership team.</p>
+      
+      <p>Best regards,<br><strong>The Quarterdeck Team</strong></p>
+    </div>
+    <div class="footer">
+      <p>The Quarterdeck Sports & Recreation Complex</p>
+      <p>F-7/4, Islamabad, Pakistan | +92 51 1234567</p>
+      <p>membership@thequarterdeck.pk</p>
+    </div>
+  `);
+  
+  return emailService.sendEmail(
+    user.email,
+    `${urgencyText} - ${user.daysRemaining} Day${user.daysRemaining === 1 ? '' : 's'} Left | The Quarterdeck`,
+    html
+  );
+}
+
 export { emailService };
