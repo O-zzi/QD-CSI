@@ -6,6 +6,16 @@ import footerBg from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
 export function Footer() {
   const { data: siteSettings, isLoading } = useQuery<Record<string, string>>({
     queryKey: ["/api/site-settings"],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/site-settings');
+        if (!res.ok) return {};
+        const data = await res.json();
+        return data && typeof data === 'object' && !data.message ? data : {};
+      } catch {
+        return {};
+      }
+    },
     staleTime: 1000 * 60 * 5,
   });
 

@@ -39,10 +39,30 @@ export function Navbar({ onScrollTo }: NavbarProps) {
 
   const { data: siteSettings } = useQuery<Record<string, string>>({
     queryKey: ['/api/site-settings'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/site-settings');
+        if (!res.ok) return {};
+        const data = await res.json();
+        return data && typeof data === 'object' && !data.message ? data : {};
+      } catch {
+        return {};
+      }
+    },
   });
 
   const { data: navbarItems } = useQuery<NavbarItem[]>({
     queryKey: ['/api/navbar-items'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/navbar-items');
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
   });
 
   const scrollToSection = (id: string) => {

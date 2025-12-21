@@ -123,6 +123,16 @@ export function MembershipSection() {
 
   const { data: apiTiers, isLoading } = useQuery<PricingTier[]>({
     queryKey: ['/api/pricing-tiers'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/pricing-tiers');
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
     staleTime: 1000 * 60 * 5,
   });
 

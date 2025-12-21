@@ -82,15 +82,38 @@ const FACILITY_ADD_ONS: Record<string, AddOn[]> = {
   ],
 };
 
-const VENUES = ['Islamabad', 'Karachi', 'Lahore', 'Rawalpindi'];
-const TIME_SLOTS = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
+// Default fallback values (only used if API fails)
+const DEFAULT_VENUES = ['Islamabad', 'Karachi', 'Lahore', 'Rawalpindi'];
+const DEFAULT_TIME_SLOTS = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
 const MOCK_MEMBERSHIP_NUMBERS = ['QD-0001', 'QD-0002', 'QD-0003', 'QD-0004', 'QD-0005'];
 
-const HALL_ACTIVITIES = [
+const DEFAULT_HALL_ACTIVITIES = [
   { value: 'Training', label: 'Team Training' },
   { value: 'Event', label: 'Private Event/Party' },
   { value: 'General', label: 'General Practice' },
 ];
+
+interface VenueData {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+}
+
+interface HallActivityData {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
+interface FacilityAddOnData {
+  id: string;
+  facilityId: string;
+  label: string;
+  price: number;
+  icon: string | null;
+  imageUrl: string | null;
+}
 
 const MOCK_EVENTS = [
   { id: 'e1', type: 'Academy', facility: 'padel-tennis', title: 'Junior Padel Academy (U-18)', instructor: 'Coach Faraz', day: 'Mon/Wed', time: '4:00 PM', pricePKR: 20000, description: 'Elite two-session per week coaching focusing on technique and match play.' },
@@ -234,7 +257,187 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   // Fetch facilities from API to map IDs to slugs
   const { data: apiFacilities = [] } = useQuery<Facility[]>({
     queryKey: ['/api/facilities'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/facilities');
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
   });
+
+  // Fetch venues from API
+  const { data: apiVenues = [] } = useQuery<VenueData[]>({
+    queryKey: ['/api/venues'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/venues');
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  // Fetch hall activities from API
+  const { data: apiHallActivities = [] } = useQuery<HallActivityData[]>({
+    queryKey: ['/api/hall-activities'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/hall-activities');
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  // Transform venues to simple city list
+  const VENUES = useMemo(() => {
+    if (apiVenues.length === 0) return DEFAULT_VENUES;
+    return apiVenues.map(v => v.city);
+  }, [apiVenues]);
+
+  // Transform hall activities
+  const HALL_ACTIVITIES = useMemo(() => {
+    if (apiHallActivities.length === 0) return DEFAULT_HALL_ACTIVITIES;
+    return apiHallActivities.map(a => ({
+      value: a.name,
+      label: a.name,
+    }));
+  }, [apiHallActivities]);
+
+  // Fetch operating hours for selected date's day of week and facility
+  // selectedDate is an ISO string like "2025-12-21", need to parse it to get day of week
+  const selectedDayOfWeek = useMemo(() => {
+    const date = new Date(selectedDate + 'T12:00:00'); // Use noon to avoid timezone issues
+    return date.getDay();
+  }, [selectedDate]);
+  
+  interface OperatingHoursData {
+    id: string;
+    venueId: string | null;
+    facilityId: string | null;
+    dayOfWeek: number;
+    openTime: string;
+    closeTime: string;
+    slotDurationMinutes: number | null;
+    isHoliday: boolean | null;
+    isClosed: boolean | null;
+  }
+  
+  // Get the database facility ID for the selected facility slug
+  const selectedFacilityDbId = useMemo(() => {
+    const facility = apiFacilities.find(f => f.slug === selectedFacility.id);
+    return facility?.id || null;
+  }, [apiFacilities, selectedFacility.id]);
+  
+  // Get the venue ID for the selected city/venue
+  const selectedVenueDbId = useMemo(() => {
+    const venue = apiVenues.find(v => v.city === selectedVenue);
+    return venue?.id || null;
+  }, [apiVenues, selectedVenue]);
+  
+  // Fetch ALL operating hours for the day (no facility/venue filter) to allow client-side priority selection
+  const { data: apiOperatingHours = [] } = useQuery<OperatingHoursData[]>({
+    queryKey: ['/api/operating-hours', selectedDayOfWeek],
+    queryFn: async () => {
+      try {
+        const res = await fetch(`/api/operating-hours?dayOfWeek=${selectedDayOfWeek}`);
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
+  });
+  
+  // Generate time slots dynamically from operating hours or use defaults
+  const TIME_SLOTS = useMemo(() => {
+    // Priority: 1) facility-specific hours (only if we have a facility ID), 2) venue-specific hours, 3) generic day hours, 4) defaults
+    const facilityHours = selectedFacilityDbId 
+      ? apiOperatingHours.find(h => !h.isClosed && !h.isHoliday && h.facilityId === selectedFacilityDbId)
+      : null;
+    const venueHours = selectedVenueDbId
+      ? apiOperatingHours.find(h => !h.isClosed && !h.isHoliday && h.venueId === selectedVenueDbId && !h.facilityId)
+      : null;
+    const genericHours = apiOperatingHours.find(h => 
+      !h.isClosed && !h.isHoliday && !h.facilityId && !h.venueId
+    );
+    const relevantHours = facilityHours || venueHours || genericHours;
+    
+    if (!relevantHours) {
+      return DEFAULT_TIME_SLOTS;
+    }
+    
+    const slots: string[] = [];
+    const slotDuration = relevantHours.slotDurationMinutes || 60;
+    const [openHour, openMinute] = relevantHours.openTime.split(':').map(Number);
+    const [closeHour, closeMinute] = relevantHours.closeTime.split(':').map(Number);
+    
+    let currentMinutes = openHour * 60 + openMinute;
+    const closeMinutes = closeHour * 60 + closeMinute;
+    
+    while (currentMinutes < closeMinutes) {
+      const hour = Math.floor(currentMinutes / 60);
+      const minute = currentMinutes % 60;
+      slots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
+      currentMinutes += slotDuration;
+    }
+    
+    return slots.length > 0 ? slots : DEFAULT_TIME_SLOTS;
+  }, [apiOperatingHours, selectedDayOfWeek, selectedFacilityDbId, selectedVenueDbId]);
+
+  // Fetch facility add-ons from API for selected facility
+  const { data: apiAddOns = [] } = useQuery<FacilityAddOnData[]>({
+    queryKey: ['/api/facilities', selectedFacility.id, 'addons'],
+    queryFn: async () => {
+      try {
+        const res = await fetch(`/api/facilities/${selectedFacility.id}/addons`);
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!selectedFacility.id,
+  });
+
+  // Icon mapping for add-ons
+  const ADD_ON_ICON_MAP: Record<string, typeof Target> = {
+    'Target': Target,
+    'CircleDot': CircleDot,
+    'Droplets': Droplets,
+    'ShieldCheck': ShieldCheck,
+    'Headphones': Headphones,
+    'Glasses': Glasses,
+    'Coffee': Coffee,
+    'Speaker': Speaker,
+  };
+
+  // Transform API add-ons to component format, falling back to hardcoded if API is empty
+  const currentFacilityAddOns = useMemo(() => {
+    if (apiAddOns.length > 0) {
+      return apiAddOns.map(a => ({
+        id: a.id,
+        label: a.label,
+        price: a.price,
+        icon: a.icon ? (ADD_ON_ICON_MAP[a.icon] || Target) : Target,
+        image: a.imageUrl || mineralWaterImg,
+      }));
+    }
+    // Fallback to hardcoded add-ons if API returns empty
+    return FACILITY_ADD_ONS[selectedFacility.id] || [];
+  }, [apiAddOns, selectedFacility.id]);
 
   // Create a map from facility ID to slug
   const facilityIdToSlug = useMemo(() => {
@@ -286,6 +489,14 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       }
     }
   }, [FACILITIES, selectedFacility.id]);
+
+  // Update selected venue when VENUES changes - sync with database
+  useEffect(() => {
+    if (VENUES.length > 0 && !VENUES.includes(selectedVenue)) {
+      // Selected venue not in loaded list, switch to first available
+      setSelectedVenue(VENUES[0]);
+    }
+  }, [VENUES, selectedVenue]);
   
   const { data: apiEvents = [] } = useQuery<EventData[]>({
     queryKey: ['/api/events'],
@@ -420,10 +631,9 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     }
     // Guest tier and peak hours get no discount
     
-    const addOnList = FACILITY_ADD_ONS[fac.id] || [];
     let addOnTotal = 0;
     selectedAddOns.forEach((id) => {
-      const item = addOnList.find((a) => a.id === id);
+      const item = currentFacilityAddOns.find((a) => a.id === id);
       if (item) {
         const qty = addOnQuantities[id] ?? 1;
         addOnTotal += item.price * qty;
@@ -440,7 +650,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       startTime: selectedStartTime,
       endTime: calculateEndTime(selectedStartTime, selectedDuration),
     };
-  }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate, userProfile.membershipTier]);
+  }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate, userProfile.membershipTier, currentFacilityAddOns]);
 
   const toggleAddOn = (item: { id: string }) => {
     const newSet = new Set(selectedAddOns);
@@ -959,7 +1169,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                       <div className="mb-6">
                         <h4 className="text-xs font-bold text-muted-foreground uppercase mb-2">Add-ons</h4>
                         <div className="space-y-2">
-                          {(FACILITY_ADD_ONS[selectedFacility.id] || []).map((item) => {
+                          {currentFacilityAddOns.map((item) => {
                             const selected = selectedAddOns.has(item.id);
                             const qty = addOnQuantities[item.id] ?? 1;
                             return (
