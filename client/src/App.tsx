@@ -20,6 +20,11 @@ import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import ComingSoon from "@/pages/ComingSoon";
 import NotFound from "@/pages/not-found";
+import Login from "@/pages/auth/Login";
+import Signup from "@/pages/auth/Signup";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
+import VerifyEmail from "@/pages/auth/VerifyEmail";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import HomepageManagement from "@/pages/admin/HomepageManagement";
 import ComingSoonManagement from "@/pages/admin/ComingSoonManagement";
@@ -54,6 +59,11 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/coming-soon" component={ComingSoon} />
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/homepage" component={HomepageManagement} />
       <Route path="/admin/coming-soon" component={ComingSoonManagement} />

@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import type { Express, Request, Response, NextFunction } from "express";
 import connectPg from "connect-pg-simple";
+import createMemoryStore from "memorystore";
 import { storage } from "./storage";
 import { sendWelcomeEmail, sendPasswordResetEmail, sendEmailVerificationEmail } from "./email";
 
@@ -19,13 +20,31 @@ const SESSION_INACTIVITY_TIMEOUT_MS = 2 * 60 * 1000;
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000;
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+  
+  let sessionStore: session.Store;
+  
+  const usePgStore = process.env.USE_PG_SESSION_STORE === 'true' && process.env.DATABASE_URL;
+  
+  if (usePgStore) {
+    const pgStore = connectPg(session);
+    sessionStore = new pgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: false,
+      ttl: sessionTtl,
+      tableName: "sessions",
+      errorLog: (error: Error) => {
+        console.error('[auth] PostgreSQL session store error:', error.message);
+      },
+    });
+    console.log('[auth] Using PostgreSQL session store');
+  } else {
+    console.log('[auth] Using memory session store (set USE_PG_SESSION_STORE=true to use PostgreSQL)');
+    const MemoryStore = createMemoryStore(session);
+    sessionStore = new MemoryStore({
+      checkPeriod: 86400000,
+    });
+  }
+  
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
