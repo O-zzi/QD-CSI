@@ -4,7 +4,7 @@
 **Target:** Hostinger Shared VPS with Passenger + Supabase PostgreSQL  
 **Authentication:** Passport.js (Local Strategy)  
 **Created:** December 21, 2025  
-**Status:** Batch 3 Complete
+**Status:** Batch 4 Complete
 
 ---
 
@@ -15,7 +15,7 @@
 | Batch 1 | CMS Dynamism + Database Prep | 4-5 hours | DONE |
 | Batch 2 | Membership & Auth System | 4-5 hours | DONE |
 | Batch 3 | Booking Portal Fixes | 3-4 hours | DONE |
-| Batch 4 | Member Dashboard & Notifications | 3-4 hours | Pending |
+| Batch 4 | Member Dashboard & Notifications | 3-4 hours | DONE |
 | Batch 5 | Security & UX Hardening | 2-3 hours | Pending |
 | Batch 6 | Deployment Preparation | 3-4 hours | Pending |
 
@@ -152,24 +152,46 @@ Create comprehensive member experience with notifications.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 4.1 | Create member profile page | Pending | Photo, info, membership |
-| 4.2 | Add booking history view | Pending | Past and upcoming |
-| 4.3 | Build in-app notification center | Pending | Bell icon, list |
-| 4.4 | Create email templates (Resend) | Pending | See list below |
-| 4.5 | Add renewal reminder system | Pending | 7, 3, 1 days |
+| 4.1 | Add notifications table to schema | DONE | userId, type, title, message, isRead, data, createdAt |
+| 4.2 | Build notification API endpoints | DONE | GET, POST, mark read, delete with ownership enforcement |
+| 4.3 | Create NotificationBell component | DONE | Header bell with unread count badge, popover dropdown |
+| 4.4 | Create email templates (Resend) | DONE | See list below |
+| 4.5 | Enhance Profile page with tabs | DONE | Account, Bookings (upcoming/past), Notifications, Membership |
+| 4.6 | Add profile photo upload | DONE | Avatar with camera overlay, 5MB limit |
 
-### Email Templates Required
-- [ ] Welcome email (after signup)
-- [ ] Email verification
-- [ ] Membership approved
-- [ ] Membership rejected
-- [ ] Booking confirmation
-- [ ] Booking cancellation
-- [ ] Payment verified
-- [ ] Renewal reminder (7 days)
-- [ ] Renewal reminder (3 days)
-- [ ] Renewal reminder (1 day)
-- [ ] Membership expired
+### Notification System
+- **Database**: `notifications` table with proper ownership validation
+- **API Endpoints**:
+  - `GET /api/notifications` - List user's notifications
+  - `GET /api/notifications/unread-count` - Unread count for badge
+  - `POST /api/notifications/:id/read` - Mark read (ownership enforced)
+  - `POST /api/notifications/read-all` - Mark all read
+  - `DELETE /api/notifications/:id` - Delete (ownership enforced, returns 403 if not owner)
+- **Types**: booking, event, membership, system, payment
+- **NotificationBell**: Header component with badge, popover, deep link to profile
+
+### Profile Page Tabs
+- **Account**: Profile photo upload, user info display
+- **Bookings**: Upcoming and Past sub-tabs with status badges
+- **Notifications**: Full management (mark read, mark all, delete)
+- **Membership**: Membership card with tier, status, expiry
+
+### Email Templates (All Implemented)
+- [x] Welcome email (after signup)
+- [x] Email verification
+- [x] Membership approved
+- [x] Membership rejected
+- [x] Booking confirmation
+- [x] Booking cancellation
+- [x] Payment verified
+- [x] Payment rejected
+- [x] Renewal reminder (7 days)
+- [x] Renewal reminder (3 days)
+- [x] Renewal reminder (1 day)
+- [x] Event registration confirmation
+- [x] Contact form submission
+- [x] Career application received
+- [x] Password reset
 
 ---
 
@@ -182,20 +204,21 @@ Production-ready security and polished user experience.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 5.1 | Implement configurable ADMIN_BASE_PATH | Pending | Mask admin route |
-| 5.2 | Add server-side admin protection | Pending | Redirect non-admins |
+| 5.1 | Implement configurable ADMIN_PATH | DONE | Admin routes masked via ADMIN_PATH secret |
+| 5.2 | Add server-side admin protection | DONE | isAdmin middleware, role-based access |
 | 5.3 | Add Helmet security headers | Pending | XSS, CSRF, etc. |
 | 5.4 | Add rate limiting | Pending | Login, API endpoints |
 | 5.5 | Implement admin audit logging | Pending | Track admin actions |
-| 5.6 | Build route registry | Pending | Ghost-link prevention |
-| 5.7 | Add WhatsApp floating button | Pending | CMS-configurable |
+| 5.6 | Add Cloudflare Turnstile CAPTCHA | Pending | Deferred from Batch 2 |
+| 5.7 | Add WhatsApp floating button | DONE | CMS-configurable via site_settings |
 | 5.8 | Add 404 page with helpful redirects | Pending | User-friendly errors |
 
-### Admin Path Security
+### Admin Path Security (IMPLEMENTED)
 ```
-Current: /admin (exposed)
-Target: /${ADMIN_BASE_PATH} (configurable via env)
-Example: /manage-qd2025-secure
+Configuration: ADMIN_PATH secret (e.g., "secure-manage-2025")
+Access: /${ADMIN_PATH}/dashboard, /${ADMIN_PATH}/cms, etc.
+Frontend: Uses useAdminPath() hook to dynamically build admin URLs
+Protection: isAdmin middleware validates role before access
 ```
 
 ---
@@ -292,9 +315,21 @@ PORT=5000
 - [x] Batch 1: CMS Dynamism (COMPLETE)
 - [x] Batch 2: Membership & Auth (COMPLETE)
 - [x] Batch 3: Booking Portal (COMPLETE)
-- [ ] Batch 4: Dashboard & Notifications
-- [ ] Batch 5: Security & UX
+- [x] Batch 4: Dashboard & Notifications (COMPLETE)
+- [ ] Batch 5: Security & UX (3/8 tasks done)
 - [ ] Batch 6: Deployment Prep
+
+### Key Files Reference
+| Component | File Path |
+|-----------|-----------|
+| Notifications Schema | `shared/schema.ts` (notifications table) |
+| Notification Storage | `server/storage.ts` (CRUD with ownership) |
+| Notification API | `server/routes.ts` (/api/notifications/*) |
+| NotificationBell | `client/src/components/NotificationBell.tsx` |
+| Profile Page | `client/src/pages/Profile.tsx` |
+| Email Templates | `server/email.ts` |
+| Admin Path Hook | `client/src/hooks/useAdminPath.ts` |
+| Admin Seeding | `scripts/seed-admin.ts` |
 
 ---
 
