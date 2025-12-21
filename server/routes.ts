@@ -192,9 +192,9 @@ export async function registerRoutes(
       const careers = await storage.getActiveCarers();
       
       // Check if user is authenticated and has admin role
-      const isAdminUser = req.user?.claims?.sub && 
+      const isAdminUser = req.user?.id && 
         await (async () => {
-          const user = await storage.getUser((req.user as any).id);
+          const user = await storage.getUser(req.user.id);
           return user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
         })();
       
@@ -1415,7 +1415,7 @@ export async function registerRoutes(
   // Event Registration Routes
   app.post('/api/events/:eventId/register', async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub || null;
+      const userId = req.user?.id || null;
       const { eventId } = req.params;
       const { fullName, email, phone, guestCount, notes } = req.body;
       
