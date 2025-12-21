@@ -25,6 +25,9 @@ import {
   siteSettings,
   siteImages,
   navbarItems,
+  operatingHours,
+  peakWindows,
+  hallActivities,
   type User,
   type UpsertUser,
   type Membership,
@@ -69,6 +72,12 @@ import {
   type InsertSiteImage,
   type NavbarItem,
   type InsertNavbarItem,
+  type OperatingHours,
+  type InsertOperatingHours,
+  type PeakWindow,
+  type InsertPeakWindow,
+  type HallActivity,
+  type InsertHallActivity,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
@@ -224,6 +233,25 @@ export interface IStorage {
   createNavbarItem(data: InsertNavbarItem): Promise<NavbarItem>;
   updateNavbarItem(id: string, data: Partial<InsertNavbarItem>): Promise<NavbarItem | undefined>;
   deleteNavbarItem(id: string): Promise<void>;
+  
+  // Operating Hours operations
+  getOperatingHours(venueId?: string, facilityId?: string): Promise<OperatingHours[]>;
+  createOperatingHours(data: InsertOperatingHours): Promise<OperatingHours>;
+  updateOperatingHours(id: string, data: Partial<InsertOperatingHours>): Promise<OperatingHours | undefined>;
+  deleteOperatingHours(id: string): Promise<void>;
+  
+  // Peak Windows operations
+  getPeakWindows(venueId?: string, facilityId?: string): Promise<PeakWindow[]>;
+  createPeakWindow(data: InsertPeakWindow): Promise<PeakWindow>;
+  updatePeakWindow(id: string, data: Partial<InsertPeakWindow>): Promise<PeakWindow | undefined>;
+  deletePeakWindow(id: string): Promise<void>;
+  
+  // Hall Activities operations
+  getHallActivities(facilityId?: string): Promise<HallActivity[]>;
+  getHallActivity(id: string): Promise<HallActivity | undefined>;
+  createHallActivity(data: InsertHallActivity): Promise<HallActivity>;
+  updateHallActivity(id: string, data: Partial<InsertHallActivity>): Promise<HallActivity | undefined>;
+  deleteHallActivity(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -969,6 +997,115 @@ export class DatabaseStorage implements IStorage {
 
   async deleteNavbarItem(id: string): Promise<void> {
     await db.delete(navbarItems).where(eq(navbarItems.id, id));
+  }
+
+  // Operating Hours operations
+  async getOperatingHours(venueId?: string, facilityId?: string): Promise<OperatingHours[]> {
+    if (venueId && facilityId) {
+      return await db.select().from(operatingHours)
+        .where(and(eq(operatingHours.venueId, venueId), eq(operatingHours.facilityId, facilityId)))
+        .orderBy(asc(operatingHours.dayOfWeek));
+    }
+    if (venueId) {
+      return await db.select().from(operatingHours)
+        .where(eq(operatingHours.venueId, venueId))
+        .orderBy(asc(operatingHours.dayOfWeek));
+    }
+    if (facilityId) {
+      return await db.select().from(operatingHours)
+        .where(eq(operatingHours.facilityId, facilityId))
+        .orderBy(asc(operatingHours.dayOfWeek));
+    }
+    return await db.select().from(operatingHours).orderBy(asc(operatingHours.dayOfWeek));
+  }
+
+  async createOperatingHours(data: InsertOperatingHours): Promise<OperatingHours> {
+    const [created] = await db.insert(operatingHours).values(data).returning();
+    return created;
+  }
+
+  async updateOperatingHours(id: string, data: Partial<InsertOperatingHours>): Promise<OperatingHours | undefined> {
+    const [updated] = await db
+      .update(operatingHours)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(operatingHours.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteOperatingHours(id: string): Promise<void> {
+    await db.delete(operatingHours).where(eq(operatingHours.id, id));
+  }
+
+  // Peak Windows operations
+  async getPeakWindows(venueId?: string, facilityId?: string): Promise<PeakWindow[]> {
+    if (venueId && facilityId) {
+      return await db.select().from(peakWindows)
+        .where(and(eq(peakWindows.venueId, venueId), eq(peakWindows.facilityId, facilityId), eq(peakWindows.isActive, true)))
+        .orderBy(asc(peakWindows.sortOrder));
+    }
+    if (venueId) {
+      return await db.select().from(peakWindows)
+        .where(and(eq(peakWindows.venueId, venueId), eq(peakWindows.isActive, true)))
+        .orderBy(asc(peakWindows.sortOrder));
+    }
+    if (facilityId) {
+      return await db.select().from(peakWindows)
+        .where(and(eq(peakWindows.facilityId, facilityId), eq(peakWindows.isActive, true)))
+        .orderBy(asc(peakWindows.sortOrder));
+    }
+    return await db.select().from(peakWindows).where(eq(peakWindows.isActive, true)).orderBy(asc(peakWindows.sortOrder));
+  }
+
+  async createPeakWindow(data: InsertPeakWindow): Promise<PeakWindow> {
+    const [created] = await db.insert(peakWindows).values(data).returning();
+    return created;
+  }
+
+  async updatePeakWindow(id: string, data: Partial<InsertPeakWindow>): Promise<PeakWindow | undefined> {
+    const [updated] = await db
+      .update(peakWindows)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(peakWindows.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePeakWindow(id: string): Promise<void> {
+    await db.delete(peakWindows).where(eq(peakWindows.id, id));
+  }
+
+  // Hall Activities operations
+  async getHallActivities(facilityId?: string): Promise<HallActivity[]> {
+    if (facilityId) {
+      return await db.select().from(hallActivities)
+        .where(and(eq(hallActivities.facilityId, facilityId), eq(hallActivities.isActive, true)))
+        .orderBy(asc(hallActivities.sortOrder));
+    }
+    return await db.select().from(hallActivities).where(eq(hallActivities.isActive, true)).orderBy(asc(hallActivities.sortOrder));
+  }
+
+  async getHallActivity(id: string): Promise<HallActivity | undefined> {
+    const [activity] = await db.select().from(hallActivities).where(eq(hallActivities.id, id));
+    return activity;
+  }
+
+  async createHallActivity(data: InsertHallActivity): Promise<HallActivity> {
+    const [created] = await db.insert(hallActivities).values(data).returning();
+    return created;
+  }
+
+  async updateHallActivity(id: string, data: Partial<InsertHallActivity>): Promise<HallActivity | undefined> {
+    const [updated] = await db
+      .update(hallActivities)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(hallActivities.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteHallActivity(id: string): Promise<void> {
+    await db.delete(hallActivities).where(eq(hallActivities.id, id));
   }
 }
 

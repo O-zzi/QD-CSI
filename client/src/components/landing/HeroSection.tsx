@@ -28,21 +28,36 @@ export function HeroSection() {
 
   const { data: cmsContent = [] } = useQuery<CmsContent[]>({
     queryKey: ['/api/cms/bulk'],
+    queryFn: async () => {
+      const res = await fetch('/api/cms/bulk');
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: phases = [], isLoading: phasesLoading } = useQuery<ConstructionPhase[]>({
     queryKey: ['/api/construction-phases'],
+    queryFn: async () => {
+      const res = await fetch('/api/construction-phases');
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: siteImages = [] } = useQuery<SiteImage[]>({
     queryKey: ['/api/site-images', 'landing'],
-    queryFn: () => fetch('/api/site-images?page=landing').then(res => res.json()),
+    queryFn: async () => {
+      const res = await fetch('/api/site-images?page=landing');
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
     staleTime: 1000 * 60 * 5,
   });
 
   const heroBackground = useMemo(() => {
+    if (!Array.isArray(siteImages)) return heroBackgroundDefault;
     const heroImage = siteImages.find(img => img.section === 'hero' && img.isActive);
     return heroImage?.imageUrl || heroBackgroundDefault;
   }, [siteImages]);

@@ -385,6 +385,78 @@ export const facilityVenues = pgTable("facility_venues", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Operating Hours table (for venue-specific time slots)
+// Uniqueness enforced via (venueId, facilityId, dayOfWeek) - at least one of venueId/facilityId must be set
+export const operatingHours = pgTable("operating_hours", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  venueId: varchar("venue_id").references(() => venues.id, { onDelete: 'cascade' }),
+  facilityId: varchar("facility_id").references(() => facilities.id, { onDelete: 'cascade' }),
+  dayOfWeek: integer("day_of_week").notNull(), // 0=Sunday, 1=Monday, etc.
+  openTime: varchar("open_time").notNull(), // "10:00"
+  closeTime: varchar("close_time").notNull(), // "22:00"
+  slotDurationMinutes: integer("slot_duration_minutes").default(60),
+  isHoliday: boolean("is_holiday").default(false),
+  isClosed: boolean("is_closed").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_operating_hours_venue_day").on(table.venueId, table.dayOfWeek),
+  index("idx_operating_hours_facility_day").on(table.facilityId, table.dayOfWeek),
+]);
+
+// Peak Windows table (flexible peak/off-peak time segments for pricing)
+export const peakWindows = pgTable("peak_windows", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  venueId: varchar("venue_id").references(() => venues.id, { onDelete: 'cascade' }),
+  facilityId: varchar("facility_id").references(() => facilities.id, { onDelete: 'cascade' }),
+  name: varchar("name").notNull(), // "Morning Peak", "Evening Peak", "Off-Peak"
+  dayOfWeek: integer("day_of_week"), // null = applies to all days
+  startTime: varchar("start_time").notNull(), // "17:00"
+  endTime: varchar("end_time").notNull(), // "22:00"
+  isPeak: boolean("is_peak").default(true), // true = peak, false = off-peak
+  discountDisabled: boolean("discount_disabled").default(false), // true = no tier discounts apply
+  // Tier-based discount percentages (only apply during off-peak unless explicitly allowed)
+  foundingDiscount: integer("founding_discount").default(25), // 25% for Founding members
+  goldDiscount: integer("gold_discount").default(20), // 20% for Gold members
+  silverDiscount: integer("silver_discount").default(10), // 10% for Silver members
+  guestDiscount: integer("guest_discount").default(0), // 0% for Guests/non-members
+  // Tier-based booking windows (days in advance)
+  foundingBookingWindow: integer("founding_booking_window").default(14),
+  goldBookingWindow: integer("gold_booking_window").default(7),
+  silverBookingWindow: integer("silver_booking_window").default(5),
+  guestBookingWindow: integer("guest_booking_window").default(2),
+  seasonStart: timestamp("season_start"), // null = no seasonal restriction
+  seasonEnd: timestamp("season_end"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Multipurpose Hall Activities table (linked to facility)
+export const hallActivities = pgTable("hall_activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  facilityId: varchar("facility_id").references(() => facilities.id, { onDelete: 'cascade' }),
+  name: varchar("name").notNull(),
+  slug: varchar("slug").unique().notNull(),
+  description: text("description"),
+  icon: varchar("icon"),
+  basePrice: integer("base_price").default(0),
+  pricePerHour: integer("price_per_hour").default(0),
+  minHours: integer("min_hours").default(1),
+  maxHours: integer("max_hours").default(8),
+  maxCapacity: integer("max_capacity"),
+  minCapacity: integer("min_capacity").default(1),
+  resourcesRequired: integer("resources_required").default(1), // how many hall resources needed
+  requiresApproval: boolean("requires_approval").default(false),
+  requiresDeposit: boolean("requires_deposit").default(false),
+  depositAmount: integer("deposit_amount").default(0),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Construction Phases table
 export const constructionPhases = pgTable("construction_phases", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -594,6 +666,24 @@ export const insertFacilityVenueSchema = createInsertSchema(facilityVenues).omit
   createdAt: true,
 });
 
+export const insertOperatingHoursSchema = createInsertSchema(operatingHours).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPeakWindowSchema = createInsertSchema(peakWindows).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertHallActivitySchema = createInsertSchema(hallActivities).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertConstructionPhaseSchema = createInsertSchema(constructionPhases).omit({
   id: true,
   createdAt: true,
@@ -695,6 +785,15 @@ export type InsertVenue = z.infer<typeof insertVenueSchema>;
 
 export type FacilityVenue = typeof facilityVenues.$inferSelect;
 export type InsertFacilityVenue = z.infer<typeof insertFacilityVenueSchema>;
+
+export type OperatingHours = typeof operatingHours.$inferSelect;
+export type InsertOperatingHours = z.infer<typeof insertOperatingHoursSchema>;
+
+export type PeakWindow = typeof peakWindows.$inferSelect;
+export type InsertPeakWindow = z.infer<typeof insertPeakWindowSchema>;
+
+export type HallActivity = typeof hallActivities.$inferSelect;
+export type InsertHallActivity = z.infer<typeof insertHallActivitySchema>;
 
 export type ConstructionPhase = typeof constructionPhases.$inferSelect;
 export type InsertConstructionPhase = z.infer<typeof insertConstructionPhaseSchema>;

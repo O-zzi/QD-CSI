@@ -31,6 +31,9 @@ import {
   insertSiteSettingSchema,
   insertSiteImageSchema,
   insertNavbarItemSchema,
+  insertOperatingHoursSchema,
+  insertPeakWindowSchema,
+  insertHallActivitySchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
@@ -1686,6 +1689,172 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error updating submission status:", error);
       res.status(500).json({ message: "Failed to update submission status" });
+    }
+  });
+
+  // ========== OPERATING HOURS ROUTES ==========
+  app.get('/api/operating-hours', async (req, res) => {
+    try {
+      const { venueId, facilityId } = req.query;
+      const hours = await storage.getOperatingHours(
+        venueId as string | undefined,
+        facilityId as string | undefined
+      );
+      res.json(hours);
+    } catch (error) {
+      console.error("Error fetching operating hours:", error);
+      res.status(500).json({ message: "Failed to fetch operating hours" });
+    }
+  });
+
+  app.post('/api/admin/operating-hours', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertOperatingHoursSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const hours = await storage.createOperatingHours(result.data);
+      res.status(201).json(hours);
+    } catch (error) {
+      console.error("Error creating operating hours:", error);
+      res.status(500).json({ message: "Failed to create operating hours" });
+    }
+  });
+
+  app.patch('/api/admin/operating-hours/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const hours = await storage.updateOperatingHours(req.params.id, req.body);
+      if (!hours) {
+        return res.status(404).json({ message: "Operating hours not found" });
+      }
+      res.json(hours);
+    } catch (error) {
+      console.error("Error updating operating hours:", error);
+      res.status(500).json({ message: "Failed to update operating hours" });
+    }
+  });
+
+  app.delete('/api/admin/operating-hours/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteOperatingHours(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting operating hours:", error);
+      res.status(500).json({ message: "Failed to delete operating hours" });
+    }
+  });
+
+  // ========== PEAK WINDOWS ROUTES ==========
+  app.get('/api/peak-windows', async (req, res) => {
+    try {
+      const { venueId, facilityId } = req.query;
+      const windows = await storage.getPeakWindows(
+        venueId as string | undefined,
+        facilityId as string | undefined
+      );
+      res.json(windows);
+    } catch (error) {
+      console.error("Error fetching peak windows:", error);
+      res.status(500).json({ message: "Failed to fetch peak windows" });
+    }
+  });
+
+  app.post('/api/admin/peak-windows', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertPeakWindowSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const window = await storage.createPeakWindow(result.data);
+      res.status(201).json(window);
+    } catch (error) {
+      console.error("Error creating peak window:", error);
+      res.status(500).json({ message: "Failed to create peak window" });
+    }
+  });
+
+  app.patch('/api/admin/peak-windows/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const window = await storage.updatePeakWindow(req.params.id, req.body);
+      if (!window) {
+        return res.status(404).json({ message: "Peak window not found" });
+      }
+      res.json(window);
+    } catch (error) {
+      console.error("Error updating peak window:", error);
+      res.status(500).json({ message: "Failed to update peak window" });
+    }
+  });
+
+  app.delete('/api/admin/peak-windows/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deletePeakWindow(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting peak window:", error);
+      res.status(500).json({ message: "Failed to delete peak window" });
+    }
+  });
+
+  // ========== HALL ACTIVITIES ROUTES ==========
+  app.get('/api/hall-activities', async (req, res) => {
+    try {
+      const { facilityId } = req.query;
+      const activities = await storage.getHallActivities(facilityId as string | undefined);
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching hall activities:", error);
+      res.status(500).json({ message: "Failed to fetch hall activities" });
+    }
+  });
+
+  app.get('/api/hall-activities/:id', async (req, res) => {
+    try {
+      const activity = await storage.getHallActivity(req.params.id);
+      if (!activity) {
+        return res.status(404).json({ message: "Hall activity not found" });
+      }
+      res.json(activity);
+    } catch (error) {
+      console.error("Error fetching hall activity:", error);
+      res.status(500).json({ message: "Failed to fetch hall activity" });
+    }
+  });
+
+  app.post('/api/admin/hall-activities', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertHallActivitySchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const activity = await storage.createHallActivity(result.data);
+      res.status(201).json(activity);
+    } catch (error) {
+      console.error("Error creating hall activity:", error);
+      res.status(500).json({ message: "Failed to create hall activity" });
+    }
+  });
+
+  app.patch('/api/admin/hall-activities/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const activity = await storage.updateHallActivity(req.params.id, req.body);
+      if (!activity) {
+        return res.status(404).json({ message: "Hall activity not found" });
+      }
+      res.json(activity);
+    } catch (error) {
+      console.error("Error updating hall activity:", error);
+      res.status(500).json({ message: "Failed to update hall activity" });
+    }
+  });
+
+  app.delete('/api/admin/hall-activities/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteHallActivity(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting hall activity:", error);
+      res.status(500).json({ message: "Failed to delete hall activity" });
     }
   });
 

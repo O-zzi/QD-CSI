@@ -202,4 +202,78 @@ export const CMS_DEFAULTS: Record<string, string> = {
   site_name: 'The Quarterdeck',
   site_tagline: 'Sports & Recreation Complex',
   site_launch_status: 'pre-launch',
+  
+  // Navbar Button Labels
+  navbar_book_now: 'Book Now',
+  navbar_login: 'Log In',
+  navbar_signup: 'Sign Up',
+  navbar_profile: 'Profile',
+  navbar_logout: 'Log Out',
+  navbar_admin: 'Admin',
+  navbar_dashboard: 'Dashboard',
+  
+  // Footer Content
+  footer_about_title: 'About The Quarterdeck',
+  footer_about_text: 'Pakistan\'s premier indoor sports and recreation complex, featuring world-class Padel Tennis, Squash, Air Rifle Range, and more.',
+  footer_newsletter_title: 'Stay Updated',
+  footer_newsletter_placeholder: 'Enter your email',
+  footer_newsletter_button: 'Subscribe',
+  footer_address_title: 'Visit Us',
+  footer_hours_title: 'Opening Hours',
+  footer_hours_weekday: 'Mon-Fri: 10:00 AM - 10:00 PM',
+  footer_hours_weekend: 'Sat-Sun: 9:00 AM - 11:00 PM',
+  footer_privacy_link: 'Privacy Policy',
+  footer_terms_link: 'Terms of Service',
+  footer_refund_link: 'Refund Policy',
+  
+  // Booking Console Labels
+  booking_title: 'Book a Court',
+  booking_subtitle: 'Select your facility, date, and time slot',
+  booking_select_venue: 'Select Venue',
+  booking_select_facility: 'Select Facility',
+  booking_select_date: 'Select Date',
+  booking_select_time: 'Select Time',
+  booking_select_court: 'Select Court',
+  booking_duration_label: 'Duration',
+  booking_addons_title: 'Add-ons',
+  booking_summary_title: 'Booking Summary',
+  booking_confirm_button: 'Confirm Booking',
+  booking_cancel_button: 'Cancel',
+  booking_payment_title: 'Payment Method',
+  booking_no_slots: 'No available slots for this date',
+  booking_login_required: 'Please log in to book',
+  
+  // Countdown Labels
+  countdown_days: 'Days',
+  countdown_hours: 'Hours',
+  countdown_minutes: 'Minutes',
+  countdown_seconds: 'Seconds',
+  
+  // Common Button Labels
+  btn_learn_more: 'Learn More',
+  btn_view_all: 'View All',
+  btn_submit: 'Submit',
+  btn_cancel: 'Cancel',
+  btn_save: 'Save Changes',
+  btn_close: 'Close',
+  btn_back: 'Go Back',
+  btn_next: 'Next',
+  btn_previous: 'Previous',
+  
+  // WhatsApp Integration
+  whatsapp_phone: '+923001234567',
+  whatsapp_button_text: 'Chat on WhatsApp',
+  whatsapp_button_visible: 'true',
+  whatsapp_default_message: 'Hello, I have a question about The Quarterdeck.',
+  
+  // Empty States
+  empty_bookings: 'You have no bookings yet.',
+  empty_events: 'No events scheduled at this time.',
+  empty_leaderboard: 'Leaderboard will be available after launch.',
+  
+  // Error Messages
+  error_generic: 'Something went wrong. Please try again.',
+  error_network: 'Unable to connect. Please check your internet connection.',
+  error_auth_required: 'Please log in to continue.',
+  error_permission_denied: 'You do not have permission to access this.',
 };
