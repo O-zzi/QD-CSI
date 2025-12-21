@@ -14,7 +14,7 @@
 |-------|-------|-----------|--------|
 | Batch 1 | CMS Dynamism + Database Prep | 4-5 hours | DONE |
 | Batch 2 | Membership & Auth System | 4-5 hours | DONE |
-| Batch 3 | Booking Portal Fixes | 3-4 hours | Pending |
+| Batch 3 | Booking Portal Fixes | 3-4 hours | DONE |
 | Batch 4 | Member Dashboard & Notifications | 3-4 hours | Pending |
 | Batch 5 | Security & UX Hardening | 2-3 hours | Pending |
 | Batch 6 | Deployment Preparation | 3-4 hours | Pending |
@@ -122,14 +122,14 @@ Make booking portal fully dynamic and respect real user membership data.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 3.1 | Fetch real user membership data | Pending | Tier, status, expiry from DB |
-| 3.2 | Block discounts if status ≠ ACTIVE | Pending | Security check |
-| 3.3 | Enforce booking window limits | Pending | 14/7/5/2 days by tier |
-| 3.4 | Make add-ons database-driven | Pending | Use facility_add_ons table |
-| 3.5 | Make venues database-driven | Pending | Use venues table |
-| 3.6 | Fetch real leaderboard | Pending | From leaderboard table |
-| 3.7 | Make time slots configurable | Pending | CMS settings |
-| 3.8 | Remove ALL MOCK data | Pending | Clean up hardcoded arrays |
+| 3.1 | Fetch real user membership data | DONE | useQuery to /api/memberships/my |
+| 3.2 | Block discounts if status ≠ ACTIVE | DONE | isActiveMember check in bookingSummary |
+| 3.3 | Enforce booking window limits | DONE | maxBookingDate calculated by tier |
+| 3.4 | Make add-ons database-driven | DONE | Already fetching from /api/facilities/:slug/addons |
+| 3.5 | Make venues database-driven | DONE | Already fetching from /api/venues |
+| 3.6 | Fetch real leaderboard | DONE | useQuery to /api/leaderboard |
+| 3.7 | Make time slots configurable | DONE | Using operating_hours table |
+| 3.8 | Remove ALL MOCK data | DONE | MOCK_USER_PROFILE, LEADERBOARD_DATA, MOCK_EVENTS, MOCK_MEMBERSHIP_NUMBERS removed |
 
 ### Booking Windows by Tier
 | Tier | Advance Booking | Off-Peak Discount |
@@ -289,7 +289,7 @@ PORT=5000
 ### Completed Batches
 - [x] Batch 1: CMS Dynamism (COMPLETE)
 - [x] Batch 2: Membership & Auth (COMPLETE)
-- [ ] Batch 3: Booking Portal
+- [x] Batch 3: Booking Portal (COMPLETE)
 - [ ] Batch 4: Dashboard & Notifications
 - [ ] Batch 5: Security & UX
 - [ ] Batch 6: Deployment Prep

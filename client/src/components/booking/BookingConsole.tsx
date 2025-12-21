@@ -42,56 +42,16 @@ const FACILITY_ICONS: Record<string, typeof GiTennisRacket> = {
   'multipurpose-hall': Building2,
 };
 
-// Default fallback facilities (only used if API fails)
-const DEFAULT_FACILITIES = [
-  { id: 'padel-tennis', label: 'Padel Tennis', count: 3, basePrice: 6000, minPlayers: 4, icon: GiTennisRacket, requiresCert: false },
-  { id: 'squash', label: 'Squash Courts', count: 2, basePrice: 4000, minPlayers: 2, icon: GiSquare, requiresCert: false },
-  { id: 'air-rifle-range', label: 'Air Rifle Range', count: 6, basePrice: 6000, minPlayers: 1, icon: Crosshair, requiresCert: true },
-  { id: 'bridge-room', label: 'Bridge Room', count: 5, basePrice: 0, minPlayers: 4, icon: Spade, restricted: true, requiresCert: false },
-  { id: 'multipurpose-hall', label: 'Multipurpose Hall', count: 1, basePrice: 6000, minPlayers: 10, icon: Building2, requiresCert: false },
-];
+// Icon mapping for add-ons (from database icon field)
 
-type AddOn = { id: string; label: string; price: number; icon: typeof Target; image: string };
-const FACILITY_ADD_ONS: Record<string, AddOn[]> = {
-  'padel-tennis': [
-    { id: 'racket', label: 'Rent Racket', price: 500, icon: Target, image: padelRacketImg },
-    { id: 'balls', label: 'Sleeve of Balls', price: 1500, icon: CircleDot, image: sportsBallsImg },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets, image: mineralWaterImg },
-    { id: 'towel', label: 'Fresh Towel', price: 300, icon: ShieldCheck, image: freshTowelImg },
-  ],
-  'squash': [
-    { id: 'sq_racket', label: 'Squash Racket Rental', price: 500, icon: Target, image: squashRacketImg },
-    { id: 'sq_balls', label: 'Squash Balls (Tube)', price: 1200, icon: CircleDot, image: sportsBallsImg },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets, image: mineralWaterImg },
-    { id: 'towel', label: 'Fresh Towel', price: 300, icon: ShieldCheck, image: freshTowelImg },
-  ],
-  'air-rifle-range': [
-    { id: 'ear_protection', label: 'Ear Protection', price: 300, icon: Headphones, image: earProtectionImg },
-    { id: 'safety_glasses', label: 'Safety Glasses', price: 400, icon: Glasses, image: safetyGlassesImg },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets, image: mineralWaterImg },
-  ],
-  'bridge-room': [
-    { id: 'tea_coffee', label: 'Tea / Coffee Service', price: 300, icon: Coffee, image: teaCoffeeImg },
-    { id: 'snacks', label: 'Snacks Platter', price: 800, icon: ShieldCheck, image: snacksPlatterImg },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets, image: mineralWaterImg },
-  ],
-  'multipurpose-hall': [
-    { id: 'mats', label: 'Floor Mats', price: 500, icon: ShieldCheck, image: floorMatsImg },
-    { id: 'speaker', label: 'Speaker & Mic Setup', price: 1500, icon: Speaker, image: speakerMicImg },
-    { id: 'water', label: 'Mineral Water', price: 100, icon: Droplets, image: mineralWaterImg },
-  ],
+// Booking window limits by tier (in days)
+const BOOKING_WINDOW_DAYS: Record<string, number> = {
+  'FOUNDING': 14,
+  'GOLD': 7,
+  'SILVER': 5,
+  'GUEST': 2,
 };
 
-// Default fallback values (only used if API fails)
-const DEFAULT_VENUES = ['Islamabad', 'Karachi', 'Lahore', 'Rawalpindi'];
-const DEFAULT_TIME_SLOTS = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
-const MOCK_MEMBERSHIP_NUMBERS = ['QD-0001', 'QD-0002', 'QD-0003', 'QD-0004', 'QD-0005'];
-
-const DEFAULT_HALL_ACTIVITIES = [
-  { value: 'Training', label: 'Team Training' },
-  { value: 'Event', label: 'Private Event/Party' },
-  { value: 'General', label: 'General Practice' },
-];
 
 interface VenueData {
   id: string;
@@ -115,64 +75,52 @@ interface FacilityAddOnData {
   imageUrl: string | null;
 }
 
-const MOCK_EVENTS = [
-  { id: 'e1', type: 'Academy', facility: 'padel-tennis', title: 'Junior Padel Academy (U-18)', instructor: 'Coach Faraz', day: 'Mon/Wed', time: '4:00 PM', pricePKR: 20000, description: 'Elite two-session per week coaching focusing on technique and match play.' },
-  { id: 'e2', type: 'Tournament', facility: 'padel-tennis', title: 'Padel Doubles Clash', instructor: 'Event Team', day: 'Sat', time: '10:00 AM', pricePKR: 5000, description: 'Monthly open doubles tournament for all Gold/Founding members.' },
-  { id: 'e3', type: 'Class', facility: 'squash', title: 'Squash Conditioning Drills', instructor: 'Coach Adil', day: 'Tue', time: '7:00 PM', pricePKR: 1500, description: 'High-intensity drills focused on footwork and stamina for intermediate players.' },
-  { id: 'e4', type: 'Social', facility: 'squash', title: 'Squash Mixer Night', instructor: 'Social Host', day: 'Fri', time: '8:00 PM', pricePKR: 500, description: 'Casual, rotating partner sessions. Great for meeting new opponents.' },
-  { id: 'e5', type: 'Academy', facility: 'air-rifle-range', title: 'Marksman Certification', instructor: 'Sgt. Retired', day: 'Mon/Thurs', time: '5:00 PM', pricePKR: 2000, description: 'Mandatory 30-minute safety and proficiency certification class.' },
-  { id: 'e6', type: 'Tournament', facility: 'air-rifle-range', title: 'Precision Challenge', instructor: 'Range Master', day: 'Sun', time: '2:00 PM', pricePKR: 3000, description: 'Monthly competition for the highest grouping score. Prizes for the top 3.' },
-  { id: 'e7', type: 'Class', facility: 'bridge-room', title: 'Beginner Bridge Workshop', instructor: 'Ms. Saadia', day: 'Wed', time: '11:00 AM', pricePKR: 500, description: 'Learn the basics of bidding and conventions in a friendly group setting.' },
-  { id: 'e8', type: 'Social', facility: 'bridge-room', title: 'Contract Bridge Social', instructor: 'Social Host', day: 'Sat', time: '3:00 PM', pricePKR: 0, description: 'Open table social for Founders and Referrals. Free to attend.' },
-  { id: 'e9', type: 'Class', facility: 'multipurpose-hall', title: 'Morning Aerobics', instructor: 'Ms. Sara', day: 'Mon/Wed/Fri', time: '10:00 AM', pricePKR: 1500, description: 'High-energy fitness class suitable for all levels.' },
-  { id: 'e10', type: 'Academy', facility: 'multipurpose-hall', title: 'PR/Corporate Event Booking', instructor: 'Management', day: 'Any', time: 'Any', pricePKR: 150000, description: 'Book the entire hall for private corporate functions, product launches, or large group training.' },
-];
+interface MembershipData {
+  id: string;
+  userId: string;
+  membershipNumber: string;
+  tier: 'FOUNDING' | 'GOLD' | 'SILVER' | 'GUEST';
+  validFrom: string;
+  validTo: string;
+  status: 'PENDING_PAYMENT' | 'PENDING_VERIFICATION' | 'ACTIVE' | 'EXPIRED' | 'SUSPENDED';
+  guestPasses: number;
+}
 
-const LEADERBOARD_DATA: Record<string, Array<{ name: string; points: number; tier: string; facility?: string }>> = {
-  cumulative: [
-    { name: 'Major Hamza', points: 1240, tier: 'Founding' },
-    { name: 'Sarah Khan', points: 980, tier: 'Gold' },
-    { name: 'Ali Raza', points: 850, tier: 'Silver' },
-    { name: 'TechSol Team', points: 720, tier: 'Corporate' },
-    { name: 'Asif Nadeem', points: 610, tier: 'Silver' },
-  ],
-  'padel-tennis': [
-    { name: 'Sarah Khan', points: 450, tier: 'Gold', facility: 'padel-tennis' },
-    { name: 'Ali Raza', points: 310, tier: 'Silver', facility: 'padel-tennis' },
-    { name: 'Major Hamza', points: 290, tier: 'Founding', facility: 'padel-tennis' },
-    { name: 'Waseem Akram', points: 200, tier: 'Silver', facility: 'padel-tennis' },
-  ],
-  'squash': [
-    { name: 'Asif Nadeem', points: 300, tier: 'Silver', facility: 'squash' },
-    { name: 'Major Hamza', points: 150, tier: 'Founding', facility: 'squash' },
-    { name: 'Kamran Ali', points: 110, tier: 'Corporate', facility: 'squash' },
-  ],
-  'air-rifle-range': [
-    { name: 'Major Hamza', points: 500, tier: 'Founding', facility: 'air-rifle-range' },
-    { name: 'TechSol Team', points: 300, tier: 'Corporate', facility: 'air-rifle-range' },
-    { name: 'Sarah Khan', points: 280, tier: 'Gold', facility: 'air-rifle-range' },
-  ],
-};
-
-const MOCK_USER_PROFILE = {
-  creditBalance: 150000,
-  totalHoursPlayed: 45,
-  guestPasses: 5,
-  membershipTier: 'Founding',
-  isSafetyCertified: true,
-  hasSignedWaiver: true,
-};
+interface LeaderboardEntry {
+  id: string;
+  userId: string;
+  facilityId: string | null;
+  score: number;
+  wins: number;
+  losses: number;
+  rankingPoints: number;
+  playerName: string;
+  profileImageUrl: string | null;
+  winRate: number;
+}
 
 interface BookingConsoleProps {
   initialView?: 'booking' | 'events' | 'leaderboard' | 'profile';
 }
+
+// Facility sort order for consistent display
+const FACILITY_SORT_ORDER = ['padel-tennis', 'squash', 'air-rifle-range', 'bridge-room', 'multipurpose-hall'];
 
 export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps) {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   
   const [currentView, setCurrentView] = useState(initialView);
-  const [selectedFacility, setSelectedFacility] = useState(DEFAULT_FACILITIES[0]);
+  const [selectedFacility, setSelectedFacility] = useState<{
+    id: string;
+    label: string;
+    count: number;
+    basePrice: number;
+    minPlayers: number;
+    icon: typeof GiTennisRacket;
+    requiresCert: boolean;
+    restricted?: boolean;
+  } | null>(null);
   const [selectedVenue, setSelectedVenue] = useState('Islamabad');
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [selectedDuration, setSelectedDuration] = useState(60);
@@ -190,12 +138,78 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   const [currentGroupSize, setCurrentGroupSize] = useState(1);
   const [selectedHallActivity, setSelectedHallActivity] = useState<string | null>(null);
   const [currentLeaderboardType, setCurrentLeaderboardType] = useState('cumulative');
+  const [validatingMembership, setValidatingMembership] = useState(false);
 
-  const userProfile = isAuthenticated && user ? {
-    ...MOCK_USER_PROFILE,
-    name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Member',
-    email: user.email || '',
-  } : MOCK_USER_PROFILE;
+  // Fetch user's membership data from database
+  const { data: membershipData } = useQuery<MembershipData | null>({
+    queryKey: ['/api/memberships/my'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/memberships/my', { credentials: 'include' });
+        if (res.status === 404) return null;
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      }
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Fetch leaderboard data from database
+  const { data: apiLeaderboard = [] } = useQuery<LeaderboardEntry[]>({
+    queryKey: ['/api/leaderboard', currentLeaderboardType === 'cumulative' ? undefined : currentLeaderboardType],
+    queryFn: async () => {
+      try {
+        const facilityParam = currentLeaderboardType === 'cumulative' ? '' : `?facilityId=${currentLeaderboardType}`;
+        const res = await fetch(`/api/leaderboard${facilityParam}`);
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  // Build user profile from real data - NO MOCK DATA
+  const userProfile = useMemo(() => {
+    const tier = membershipData?.tier || 'GUEST';
+    const status = membershipData?.status || 'PENDING_PAYMENT';
+    const isActive = status === 'ACTIVE';
+    
+    return {
+      name: isAuthenticated && user 
+        ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Member'
+        : 'Guest',
+      email: user?.email || '',
+      creditBalance: user?.creditBalance || 0,
+      totalHoursPlayed: user?.totalHoursPlayed || 0,
+      guestPasses: membershipData?.guestPasses || 0,
+      membershipTier: tier,
+      membershipStatus: status,
+      membershipNumber: membershipData?.membershipNumber || null,
+      membershipExpiry: membershipData?.validTo || null,
+      isSafetyCertified: user?.isSafetyCertified || false,
+      hasSignedWaiver: user?.hasSignedWaiver || false,
+      isActiveMember: isActive,
+    };
+  }, [user, isAuthenticated, membershipData]);
+
+  // Calculate maximum booking date based on membership tier
+  const maxBookingDate = useMemo(() => {
+    const tier = userProfile.membershipTier;
+    const isActive = userProfile.isActiveMember;
+    const days = isActive ? (BOOKING_WINDOW_DAYS[tier] || 2) : 2;
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + days);
+    return maxDate.toISOString().split('T')[0];
+  }, [userProfile.membershipTier, userProfile.isActiveMember]);
+
+  // Validate selected date is within booking window
+  const isDateWithinBookingWindow = useMemo(() => {
+    return selectedDate <= maxBookingDate;
+  }, [selectedDate, maxBookingDate]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -236,7 +250,8 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   }, [toast]);
 
   const { data: existingBookings = [] } = useQuery<Booking[]>({
-    queryKey: ['/api/bookings', selectedFacility.id, selectedDate],
+    queryKey: ['/api/bookings', selectedFacility?.id, selectedDate],
+    enabled: !!selectedFacility,
   });
 
   // Fetch events from API
@@ -299,15 +314,15 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     },
   });
 
-  // Transform venues to simple city list
+  // Transform venues to simple city list - no fallback, show loading if empty
   const VENUES = useMemo(() => {
-    if (apiVenues.length === 0) return DEFAULT_VENUES;
+    if (apiVenues.length === 0) return [];
     return apiVenues.map(v => v.city);
   }, [apiVenues]);
 
-  // Transform hall activities
+  // Transform hall activities - no fallback, show loading if empty
   const HALL_ACTIVITIES = useMemo(() => {
-    if (apiHallActivities.length === 0) return DEFAULT_HALL_ACTIVITIES;
+    if (apiHallActivities.length === 0) return [];
     return apiHallActivities.map(a => ({
       value: a.name,
       label: a.name,
@@ -335,9 +350,10 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   
   // Get the database facility ID for the selected facility slug
   const selectedFacilityDbId = useMemo(() => {
+    if (!selectedFacility) return null;
     const facility = apiFacilities.find(f => f.slug === selectedFacility.id);
     return facility?.id || null;
-  }, [apiFacilities, selectedFacility.id]);
+  }, [apiFacilities, selectedFacility?.id]);
   
   // Get the venue ID for the selected city/venue
   const selectedVenueDbId = useMemo(() => {
@@ -360,9 +376,9 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     },
   });
   
-  // Generate time slots dynamically from operating hours or use defaults
+  // Generate time slots dynamically from operating hours - no fallback
   const TIME_SLOTS = useMemo(() => {
-    // Priority: 1) facility-specific hours (only if we have a facility ID), 2) venue-specific hours, 3) generic day hours, 4) defaults
+    // Priority: 1) facility-specific hours (only if we have a facility ID), 2) venue-specific hours, 3) generic day hours
     const facilityHours = selectedFacilityDbId 
       ? apiOperatingHours.find(h => !h.isClosed && !h.isHoliday && h.facilityId === selectedFacilityDbId)
       : null;
@@ -375,7 +391,8 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     const relevantHours = facilityHours || venueHours || genericHours;
     
     if (!relevantHours) {
-      return DEFAULT_TIME_SLOTS;
+      // Return empty array - UI will show loading state
+      return [];
     }
     
     const slots: string[] = [];
@@ -393,13 +410,14 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       currentMinutes += slotDuration;
     }
     
-    return slots.length > 0 ? slots : DEFAULT_TIME_SLOTS;
+    return slots;
   }, [apiOperatingHours, selectedDayOfWeek, selectedFacilityDbId, selectedVenueDbId]);
 
   // Fetch facility add-ons from API for selected facility
   const { data: apiAddOns = [] } = useQuery<FacilityAddOnData[]>({
-    queryKey: ['/api/facilities', selectedFacility.id, 'addons'],
+    queryKey: ['/api/facilities', selectedFacility?.id, 'addons'],
     queryFn: async () => {
+      if (!selectedFacility) return [];
       try {
         const res = await fetch(`/api/facilities/${selectedFacility.id}/addons`);
         if (!res.ok) return [];
@@ -409,7 +427,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         return [];
       }
     },
-    enabled: !!selectedFacility.id,
+    enabled: !!selectedFacility?.id,
   });
 
   // Icon mapping for add-ons
@@ -424,20 +442,16 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     'Speaker': Speaker,
   };
 
-  // Transform API add-ons to component format, falling back to hardcoded if API is empty
+  // Transform API add-ons to component format - no hardcoded fallback
   const currentFacilityAddOns = useMemo(() => {
-    if (apiAddOns.length > 0) {
-      return apiAddOns.map(a => ({
-        id: a.id,
-        label: a.label,
-        price: a.price,
-        icon: a.icon ? (ADD_ON_ICON_MAP[a.icon] || Target) : Target,
-        image: a.imageUrl || mineralWaterImg,
-      }));
-    }
-    // Fallback to hardcoded add-ons if API returns empty
-    return FACILITY_ADD_ONS[selectedFacility.id] || [];
-  }, [apiAddOns, selectedFacility.id]);
+    return apiAddOns.map(a => ({
+      id: a.id,
+      label: a.label,
+      price: a.price,
+      icon: a.icon ? (ADD_ON_ICON_MAP[a.icon] || Target) : Target,
+      image: a.imageUrl || mineralWaterImg,
+    }));
+  }, [apiAddOns]);
 
   // Create a map from facility ID to slug
   const facilityIdToSlug = useMemo(() => {
@@ -448,10 +462,10 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     return map;
   }, [apiFacilities]);
 
-  // Transform API facilities to the format used by the component
+  // Transform API facilities to the format used by the component - no hardcoded fallback
   const FACILITIES = useMemo(() => {
     if (apiFacilities.length === 0) {
-      return DEFAULT_FACILITIES;
+      return []; // Return empty array - UI will show loading state
     }
     
     return apiFacilities
@@ -467,28 +481,30 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         restricted: f.isRestricted || false,
       }))
       .sort((a, b) => {
-        // Sort by the order in DEFAULT_FACILITIES
-        const orderA = DEFAULT_FACILITIES.findIndex(df => df.id === a.id);
-        const orderB = DEFAULT_FACILITIES.findIndex(df => df.id === b.id);
+        // Sort by predefined order
+        const orderA = FACILITY_SORT_ORDER.indexOf(a.id);
+        const orderB = FACILITY_SORT_ORDER.indexOf(b.id);
         return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
       });
   }, [apiFacilities]);
 
   // Update selected facility when FACILITIES changes
   useEffect(() => {
-    if (FACILITIES.length > 0 && !FACILITIES.find(f => f.id === selectedFacility.id)) {
-      setSelectedFacility(FACILITIES[0]);
-    } else if (FACILITIES.length > 0) {
-      // Update selected facility data if it changed in the API
-      const updatedFacility = FACILITIES.find(f => f.id === selectedFacility.id);
-      if (updatedFacility && (
-        updatedFacility.count !== selectedFacility.count ||
-        updatedFacility.basePrice !== selectedFacility.basePrice
-      )) {
-        setSelectedFacility(updatedFacility);
+    if (FACILITIES.length > 0) {
+      if (!selectedFacility || !FACILITIES.find(f => f.id === selectedFacility.id)) {
+        setSelectedFacility(FACILITIES[0]);
+      } else {
+        // Update selected facility data if it changed in the API
+        const updatedFacility = FACILITIES.find(f => f.id === selectedFacility.id);
+        if (updatedFacility && (
+          updatedFacility.count !== selectedFacility.count ||
+          updatedFacility.basePrice !== selectedFacility.basePrice
+        )) {
+          setSelectedFacility(updatedFacility);
+        }
       }
     }
-  }, [FACILITIES, selectedFacility.id]);
+  }, [FACILITIES, selectedFacility?.id]);
 
   // Update selected venue when VENUES changes - sync with database
   useEffect(() => {
@@ -594,13 +610,35 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     );
   };
 
-  const handleMembershipNumberChange = (value: string) => {
+  const handleMembershipNumberChange = async (value: string) => {
     const trimmed = value.trim().toUpperCase();
     setPayerMembershipNumber(trimmed);
     if (!trimmed) {
       setPayerMembershipValid(null);
-    } else {
-      setPayerMembershipValid(MOCK_MEMBERSHIP_NUMBERS.includes(trimmed));
+      return;
+    }
+    
+    // Validate membership number format: QD-XXXX
+    const membershipNumberPattern = /^QD-\d{4}$/;
+    if (!membershipNumberPattern.test(trimmed)) {
+      setPayerMembershipValid(false);
+      return;
+    }
+    
+    // Validate against database API
+    setValidatingMembership(true);
+    try {
+      const res = await fetch(`/api/memberships/validate/${trimmed}`);
+      if (!res.ok) {
+        setPayerMembershipValid(false);
+        return;
+      }
+      const data = await res.json();
+      setPayerMembershipValid(data.valid === true);
+    } catch {
+      setPayerMembershipValid(false);
+    } finally {
+      setValidatingMembership(false);
     }
   };
 
@@ -611,25 +649,27 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     let base = perMinutePrice * selectedDuration;
     
     // Apply membership-based discounts (OFF-PEAK HOURS ONLY)
+    // CRITICAL: Discounts ONLY apply if membershipStatus === 'ACTIVE'
     // Founding: 25% off-peak only
     // Gold: 20% off-peak only  
     // Silver: 10% off-peak only
     // Guest: 0% (no discount)
     let discount = 0;
     const tier = userProfile.membershipTier;
+    const isActive = userProfile.isActiveMember;
     const offPeak = isOffPeak(selectedStartTime);
     
-    // All discounts only apply during off-peak hours (10 AM - 5 PM)
-    if (offPeak) {
-      if (tier === 'Founding') {
+    // All discounts only apply during off-peak hours (10 AM - 5 PM) AND status === ACTIVE
+    if (offPeak && isActive) {
+      if (tier === 'FOUNDING') {
         discount = base * 0.25;
-      } else if (tier === 'Gold') {
+      } else if (tier === 'GOLD') {
         discount = base * 0.20;
-      } else if (tier === 'Silver') {
+      } else if (tier === 'SILVER') {
         discount = base * 0.10;
       }
     }
-    // Guest tier and peak hours get no discount
+    // Guest tier, peak hours, and non-ACTIVE status get no discount
     
     let addOnTotal = 0;
     selectedAddOns.forEach((id) => {
@@ -640,17 +680,26 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       }
     });
     if (coachBooked) addOnTotal += 4000;
+    
+    // Build discount label only if discount applies
+    let discountLabel: string | null = null;
+    if (offPeak && isActive && discount > 0) {
+      if (tier === 'FOUNDING') discountLabel = '25% Founding (Off-Peak)';
+      else if (tier === 'GOLD') discountLabel = '20% Gold (Off-Peak)';
+      else if (tier === 'SILVER') discountLabel = '10% Silver (Off-Peak)';
+    }
+    
     return {
       basePrice: Math.round(base),
       discount: Math.round(discount),
-      discountLabel: offPeak ? (tier === 'Founding' ? '25% Founding (Off-Peak)' : tier === 'Gold' ? '20% Gold (Off-Peak)' : tier === 'Silver' ? '10% Silver (Off-Peak)' : null) : null,
+      discountLabel,
       addOnTotal,
       totalPrice: Math.round(base - discount + addOnTotal),
       date: selectedDate,
       startTime: selectedStartTime,
       endTime: calculateEndTime(selectedStartTime, selectedDuration),
     };
-  }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate, userProfile.membershipTier, currentFacilityAddOns]);
+  }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate, userProfile.membershipTier, userProfile.isActiveMember, currentFacilityAddOns]);
 
   const toggleAddOn = (item: { id: string }) => {
     const newSet = new Set(selectedAddOns);
@@ -675,7 +724,20 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   };
 
   const confirmBooking = async () => {
-    if (!bookingSummary || !selectedStartTime) return;
+    if (!bookingSummary || !selectedStartTime || !selectedFacility) return;
+    
+    // Validate booking window
+    if (!isDateWithinBookingWindow) {
+      const tier = userProfile.membershipTier;
+      const days = userProfile.isActiveMember ? (BOOKING_WINDOW_DAYS[tier] || 2) : 2;
+      toast({
+        title: "Date Out of Range",
+        description: `Your membership tier allows booking up to ${days} days in advance.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (selectedFacility.id === 'multipurpose-hall' && !selectedHallActivity) {
       toast({
         title: "Activity Required",
@@ -728,11 +790,30 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   };
 
   const leaderboardFacilities = FACILITIES.filter((f) => f.id !== 'bridge-room' && f.id !== 'multipurpose-hall');
-  const currentLeaderboard = LEADERBOARD_DATA[currentLeaderboardType] || [];
+  
+  // Transform API leaderboard data to display format
+  const currentLeaderboard = useMemo(() => {
+    return apiLeaderboard.map(entry => ({
+      name: entry.playerName || 'Member',
+      points: entry.rankingPoints,
+      tier: 'Member',
+      facility: entry.facilityId,
+    }));
+  }, [apiLeaderboard]);
 
   const handleBackToHome = () => {
     window.location.href = '/';
   };
+
+  // Show loading state while facilities are being fetched
+  if (FACILITIES.length === 0 || !selectedFacility) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[700px] bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-2xl">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4" />
+        <p className="text-muted-foreground text-lg">Loading facilities...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col md:flex-row border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden min-h-[700px] bg-white dark:bg-slate-800">
