@@ -49,12 +49,18 @@ export default function PricingManagement() {
     queryKey: ["/api/admin/pricing-tiers"],
   });
 
+  // Helper to invalidate all pricing-related queries (admin + public)
+  const invalidatePricingQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/admin/pricing-tiers"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/pricing-tiers"] });
+  };
+
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       return await apiRequest("POST", "/api/admin/pricing-tiers", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/pricing-tiers"] });
+      invalidatePricingQueries();
       toast({ title: "Pricing tier created successfully" });
       setIsDialogOpen(false);
       resetForm();
@@ -69,7 +75,7 @@ export default function PricingManagement() {
       return await apiRequest("PATCH", `/api/admin/pricing-tiers/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/pricing-tiers"] });
+      invalidatePricingQueries();
       toast({ title: "Pricing tier updated successfully" });
       setIsDialogOpen(false);
       setEditingTier(null);
@@ -85,7 +91,7 @@ export default function PricingManagement() {
       return await apiRequest("DELETE", `/api/admin/pricing-tiers/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/pricing-tiers"] });
+      invalidatePricingQueries();
       toast({ title: "Pricing tier deleted successfully" });
     },
     onError: () => {

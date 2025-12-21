@@ -19,6 +19,7 @@ import {
   insertAnnouncementSchema,
   insertGalleryImageSchema,
   insertPricingTierSchema,
+  insertMembershipTierDefinitionSchema,
   insertCareerSchema,
   insertRuleSchema,
   insertFacilitySchema,
@@ -944,6 +945,72 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting event:", error);
       res.status(500).json({ message: "Failed to delete event" });
+    }
+  });
+
+  // Admin Membership Tier Definitions routes
+  app.get('/api/admin/membership-tiers', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const tiers = await storage.getMembershipTierDefinitions();
+      res.json(tiers);
+    } catch (error) {
+      console.error("Error fetching membership tier definitions:", error);
+      res.status(500).json({ message: "Failed to fetch membership tier definitions" });
+    }
+  });
+
+  app.post('/api/admin/membership-tiers', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertMembershipTierDefinitionSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const tier = await storage.createMembershipTierDefinition(result.data);
+      res.status(201).json(tier);
+    } catch (error) {
+      console.error("Error creating membership tier definition:", error);
+      res.status(500).json({ message: "Failed to create membership tier definition" });
+    }
+  });
+
+  app.patch('/api/admin/membership-tiers/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertMembershipTierDefinitionSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateMembershipTierDefinition(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Membership tier definition not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating membership tier definition:", error);
+      res.status(500).json({ message: "Failed to update membership tier definition" });
+    }
+  });
+
+  app.delete('/api/admin/membership-tiers/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteMembershipTierDefinition(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting membership tier definition:", error);
+      res.status(500).json({ message: "Failed to delete membership tier definition" });
+    }
+  });
+
+  // Public Membership Tier Definitions route
+  app.get('/api/membership-tiers', async (req, res) => {
+    try {
+      const tiers = await storage.getMembershipTierDefinitions();
+      // Only return active tiers for public access
+      const activeTiers = tiers.filter(t => t.isActive);
+      res.json(activeTiers);
+    } catch (error) {
+      console.error("Error fetching public membership tier definitions:", error);
+      res.status(500).json({ message: "Failed to fetch membership tier definitions" });
     }
   });
 

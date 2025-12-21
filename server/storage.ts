@@ -13,6 +13,7 @@ import {
   galleryImages,
   timeSlotBlocks,
   pricingTiers,
+  membershipTierDefinitions,
   careers,
   rules,
   venues,
@@ -53,6 +54,8 @@ import {
   type InsertGalleryImage,
   type PricingTier,
   type InsertPricingTier,
+  type MembershipTierDefinition,
+  type InsertMembershipTierDefinition,
   type Career,
   type InsertCareer,
   type Rule,
@@ -166,6 +169,13 @@ export interface IStorage {
   createGalleryImage(data: InsertGalleryImage): Promise<GalleryImage>;
   updateGalleryImage(id: string, data: Partial<InsertGalleryImage>): Promise<GalleryImage | undefined>;
   deleteGalleryImage(id: string): Promise<void>;
+  
+  // Membership tier definitions operations
+  getMembershipTierDefinitions(): Promise<MembershipTierDefinition[]>;
+  getMembershipTierDefinitionBySlug(slug: string): Promise<MembershipTierDefinition | undefined>;
+  createMembershipTierDefinition(data: InsertMembershipTierDefinition): Promise<MembershipTierDefinition>;
+  updateMembershipTierDefinition(id: string, data: Partial<InsertMembershipTierDefinition>): Promise<MembershipTierDefinition | undefined>;
+  deleteMembershipTierDefinition(id: string): Promise<void>;
   
   // Pricing tiers operations
   getPricingTiers(): Promise<PricingTier[]>;
@@ -735,6 +745,34 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGalleryImage(id: string): Promise<void> {
     await db.delete(galleryImages).where(eq(galleryImages.id, id));
+  }
+
+  // Membership Tier Definitions operations
+  async getMembershipTierDefinitions(): Promise<MembershipTierDefinition[]> {
+    return await db.select().from(membershipTierDefinitions).orderBy(asc(membershipTierDefinitions.sortOrder));
+  }
+
+  async getMembershipTierDefinitionBySlug(slug: string): Promise<MembershipTierDefinition | undefined> {
+    const [tier] = await db.select().from(membershipTierDefinitions).where(eq(membershipTierDefinitions.slug, slug));
+    return tier;
+  }
+
+  async createMembershipTierDefinition(data: InsertMembershipTierDefinition): Promise<MembershipTierDefinition> {
+    const [tier] = await db.insert(membershipTierDefinitions).values(data).returning();
+    return tier;
+  }
+
+  async updateMembershipTierDefinition(id: string, data: Partial<InsertMembershipTierDefinition>): Promise<MembershipTierDefinition | undefined> {
+    const [updated] = await db
+      .update(membershipTierDefinitions)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(membershipTierDefinitions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteMembershipTierDefinition(id: string): Promise<void> {
+    await db.delete(membershipTierDefinitions).where(eq(membershipTierDefinitions.id, id));
   }
 
   // Pricing Tiers operations

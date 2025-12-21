@@ -274,6 +274,22 @@ export const timeSlotBlocks = pgTable("time_slot_blocks", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Membership Tier Definitions table - Dynamic tier types (replaces hardcoded enum)
+export const membershipTierDefinitions = pgTable("membership_tier_definitions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: varchar("slug").unique().notNull(), // e.g., 'founding', 'gold', 'silver', 'bronze', 'guest'
+  displayName: varchar("display_name").notNull(), // e.g., 'Founding Member', 'Gold', 'Silver'
+  description: text("description"),
+  color: varchar("color").default('#6B7280'), // Hex color for badges
+  discountPercent: integer("discount_percent").default(0), // Off-peak discount percentage
+  guestPassesIncluded: integer("guest_passes_included").default(0),
+  benefits: text("benefits").array(), // Array of benefit strings
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Pricing Tiers table
 export const pricingTiers = pgTable("pricing_tiers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -702,6 +718,12 @@ export const insertGalleryImageSchema = createInsertSchema(galleryImages).omit({
   createdAt: true,
 });
 
+export const insertMembershipTierDefinitionSchema = createInsertSchema(membershipTierDefinitions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertPricingTierSchema = createInsertSchema(pricingTiers).omit({
   id: true,
   createdAt: true,
@@ -851,6 +873,9 @@ export type GalleryImage = typeof galleryImages.$inferSelect;
 export type InsertGalleryImage = z.infer<typeof insertGalleryImageSchema>;
 
 export type TimeSlotBlock = typeof timeSlotBlocks.$inferSelect;
+
+export type MembershipTierDefinition = typeof membershipTierDefinitions.$inferSelect;
+export type InsertMembershipTierDefinition = z.infer<typeof insertMembershipTierDefinitionSchema>;
 
 export type PricingTier = typeof pricingTiers.$inferSelect;
 export type InsertPricingTier = z.infer<typeof insertPricingTierSchema>;
