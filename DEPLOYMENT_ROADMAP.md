@@ -4,7 +4,7 @@
 **Target:** Hostinger Shared VPS with Passenger + Supabase PostgreSQL  
 **Authentication:** Passport.js (Local Strategy)  
 **Created:** December 21, 2025  
-**Status:** Batch 1 In Progress
+**Status:** Batch 3 Complete
 
 ---
 
@@ -40,34 +40,34 @@ Ensure ALL content is database-driven and editable via admin panel. NO HARDCODED
 
 ### Hardcoded Content Inventory
 
-#### BookingConsole.tsx (CRITICAL)
-- [ ] `MOCK_USER_PROFILE` (lines 134-141) - User membership mock data
-- [ ] `LEADERBOARD_DATA` (lines 108-132) - Hardcoded leaderboard
-- [ ] `MOCK_EVENTS` (lines 95-106) - Hardcoded events
-- [ ] `VENUES` (line 85) - `['Islamabad', 'Karachi', 'Lahore', 'Rawalpindi']`
-- [ ] `TIME_SLOTS` (line 86) - Fixed time array
-- [ ] `FACILITY_ADD_ONS` (lines 55-83) - Hardcoded add-ons per facility
-- [ ] `DEFAULT_FACILITIES` (lines 46-52) - Fallback facilities
-- [ ] `HALL_ACTIVITIES` (lines 89-93) - Hardcoded activities
-- [ ] `MOCK_MEMBERSHIP_NUMBERS` (line 87) - Mock member numbers
+#### BookingConsole.tsx (CRITICAL) - ALL FIXED IN BATCH 3
+- [x] `MOCK_USER_PROFILE` - Now fetches real user membership data via /api/memberships/my
+- [x] `LEADERBOARD_DATA` - Now fetches from /api/leaderboard
+- [x] `MOCK_EVENTS` - Now fetches from /api/events
+- [x] `VENUES` - Now fetches from /api/venues (database-driven)
+- [x] `TIME_SLOTS` - Now uses operating_hours table
+- [x] `FACILITY_ADD_ONS` - Already fetching from /api/facilities/:slug/addons
+- [x] `DEFAULT_FACILITIES` - Removed, using database facilities only
+- [x] `HALL_ACTIVITIES` - Now database-driven via facility configuration
+- [x] `MOCK_MEMBERSHIP_NUMBERS` - Removed, using real membership validation
 
-#### Home.tsx
-- [ ] Hero section text and CTAs
-- [ ] Feature highlights
-- [ ] Membership benefits text
-- [ ] "Why Choose Us" content
+#### Home.tsx - ALL CMS DRIVEN
+- [x] Hero section text and CTAs - Uses cms_fields table
+- [x] Feature highlights - Uses cms_fields table
+- [x] Membership benefits text - Uses cms_fields table
+- [x] "Why Choose Us" content - Uses cms_fields table
 
-#### Navigation & Footer
-- [ ] Nav item labels
-- [ ] Footer links and text
-- [ ] Copyright text
-- [ ] Social media links
+#### Navigation & Footer - ALL CMS DRIVEN
+- [x] Nav item labels - Uses nav_items table
+- [x] Footer links and text - Uses cms_fields table
+- [x] Copyright text - Uses site_settings table
+- [x] Social media links - Uses site_settings table
 
-#### Other Pages
-- [ ] About page content
-- [ ] Contact page content
-- [ ] Facilities page descriptions
-- [ ] Page meta titles/descriptions
+#### Other Pages - ALL CMS DRIVEN
+- [x] About page content - Uses cms_fields table
+- [x] Contact page content - Uses site_settings table
+- [x] Facilities page descriptions - Uses facilities table
+- [x] Page meta titles/descriptions - Uses cms_fields table
 
 ---
 
@@ -130,6 +130,8 @@ Make booking portal fully dynamic and respect real user membership data.
 | 3.6 | Fetch real leaderboard | DONE | useQuery to /api/leaderboard |
 | 3.7 | Make time slots configurable | DONE | Using operating_hours table |
 | 3.8 | Remove ALL MOCK data | DONE | MOCK_USER_PROFILE, LEADERBOARD_DATA, MOCK_EVENTS, MOCK_MEMBERSHIP_NUMBERS removed |
+| 3.9 | Add WhatsApp floating button | DONE | Fetches settings from /api/site-settings |
+| 3.10 | Implement admin path masking | DONE | ADMIN_PATH secret masks admin routes for security |
 
 ### Booking Windows by Tier
 | Tier | Advance Booking | Off-Peak Discount |
