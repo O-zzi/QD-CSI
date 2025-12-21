@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -79,6 +79,14 @@ function AdminRoutes() {
 }
 
 function PublicRoutes() {
+  const { adminPath, isAuthorized } = useAdminPath();
+  const [location] = useLocation();
+  
+  // Don't render public routes (including 404) when on admin paths
+  if (isAuthorized && adminPath && location.startsWith(`/${adminPath}`)) {
+    return null;
+  }
+  
   return (
     <Switch>
       <Route path="/booking" component={Booking} />
