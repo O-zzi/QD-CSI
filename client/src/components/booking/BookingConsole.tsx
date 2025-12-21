@@ -1167,25 +1167,40 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   )}
                 </div>
 
-                {/* Time Slot Picker */}
+                {/* Date Selector */}
                 <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
-                  <div className="flex justify-between items-center mb-4 border-b pb-2 border-gray-100 dark:border-slate-700">
-                    <h4 className="font-bold text-muted-foreground text-sm">3. Select Time Slot</h4>
-                    <div>
-                      <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Date</label>
-                      <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => {
-                          setSelectedDate(e.target.value);
-                          setSelectedStartTime(null);
-                        }}
-                        className="p-1 border rounded-lg text-xs bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600"
-                        data-testid="input-date"
-                      />
-                    </div>
+                  <h4 className="font-bold text-muted-foreground border-b pb-2 text-sm border-gray-100 dark:border-slate-700 mb-4">
+                    3. Select Date
+                  </h4>
+                  <div className="flex items-center gap-4">
+                    <Calendar className="w-5 h-5 text-sky-500" />
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      min={new Date().toISOString().split('T')[0]}
+                      max={maxBookingDate}
+                      onChange={(e) => {
+                        setSelectedDate(e.target.value);
+                        setSelectedStartTime(null);
+                      }}
+                      className="flex-1 p-2 border rounded-lg text-sm bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600"
+                      data-testid="input-date"
+                    />
                   </div>
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  {!isDateWithinBookingWindow && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      Your {userProfile.membershipTier} tier allows booking up to {BOOKING_WINDOW_DAYS[userProfile.membershipTier] || 2} days ahead
+                    </p>
+                  )}
+                </div>
+
+                {/* Duration Selector */}
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
+                  <h4 className="font-bold text-muted-foreground border-b pb-2 text-sm border-gray-100 dark:border-slate-700 mb-4">
+                    4. Select Duration
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
                     {[60, 90, 120].map((duration) => (
                       <button
                         key={duration}
@@ -1193,17 +1208,31 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                           setSelectedDuration(duration);
                           setSelectedStartTime(null);
                         }}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
                           selectedDuration === duration
-                            ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                            ? 'bg-sky-600 text-white shadow-md'
                             : 'bg-gray-100 dark:bg-slate-700 text-muted-foreground hover:bg-gray-200 dark:hover:bg-slate-600'
                         }`}
                         data-testid={`button-duration-${duration}`}
                       >
+                        <Clock className="w-4 h-4" />
                         {duration} min
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Time Slot Picker */}
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
+                  <h4 className="font-bold text-muted-foreground border-b pb-2 text-sm border-gray-100 dark:border-slate-700 mb-4">
+                    5. Select Time Slot
+                  </h4>
+                  {TIME_SLOTS.length === 0 ? (
+                    <div className="text-center py-4">
+                      <Clock className="w-8 h-8 mx-auto text-muted-foreground mb-2 animate-pulse" />
+                      <p className="text-sm text-muted-foreground">Loading available time slots...</p>
+                    </div>
+                  ) : (
                   <div className="grid grid-cols-5 gap-3">
                     {TIME_SLOTS.map((time) => {
                       const taken = isSlotTaken(time);
@@ -1232,17 +1261,20 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                       );
                     })}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-3">
-                    <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full mr-1" />
-                    Green dot = Off-peak hours (10 AM - 5 PM) - All member tiers get discounts
-                  </p>
+                  )}
+                  {TIME_SLOTS.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-3">
+                      <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full mr-1" />
+                      Green dot = Off-peak hours (10 AM - 5 PM) - All member tiers get discounts
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* Summary & Payment Column */}
               <div className="md:col-span-1 space-y-6">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg border-t-4 border-sky-500">
-                  <h3 className="font-bold text-lg mb-4">4. Extras & Payment</h3>
+                  <h3 className="font-bold text-lg mb-4">6. Extras & Payment</h3>
                   
                   {bookingSummary ? (
                     <>
