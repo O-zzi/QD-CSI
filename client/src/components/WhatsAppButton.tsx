@@ -3,10 +3,23 @@ import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 
 type SiteSettings = { [key: string]: string };
+type AdminConfig = { adminPath?: string };
 
 export function WhatsAppButton() {
   const [location] = useLocation();
-  const adminPath = import.meta.env.VITE_ADMIN_PATH || 'admin';
+  
+  const { data: adminConfig } = useQuery<AdminConfig>({
+    queryKey: ['/api/admin/config'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/admin/config');
+        if (!res.ok) return {};
+        return await res.json();
+      } catch {
+        return {};
+      }
+    },
+  });
   
   const { data: siteSettings, isLoading } = useQuery<SiteSettings>({
     queryKey: ['/api/site-settings'],
@@ -27,7 +40,8 @@ export function WhatsAppButton() {
   const defaultMessage = siteSettings?.whatsapp_default_message || '';
   const buttonText = siteSettings?.whatsapp_button_text || 'Chat on WhatsApp';
   
-  const isAdminPage = location.startsWith(`/${adminPath}`);
+  const adminPath = adminConfig?.adminPath;
+  const isAdminPage = adminPath ? location.startsWith(`/${adminPath}`) : false;
   
   if (isLoading || !isVisible || !phone || isAdminPage) {
     return null;
