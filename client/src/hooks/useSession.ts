@@ -37,7 +37,7 @@ export function useSession(autoStart: boolean = false) {
     });
 
     setTimeout(() => {
-      setLocation("/api/login");
+      setLocation("/login");
     }, 1500);
   }, [toast, setLocation]);
 

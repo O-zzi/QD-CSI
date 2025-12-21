@@ -49,11 +49,11 @@ export default function Profile() {
             <p className="text-muted-foreground mb-6">
               Please log in to view your profile and booking history.
             </p>
-            <a href="/api/login">
+            <Link href="/login">
               <Button className="w-full" data-testid="button-login-prompt">
-                Sign In with Replit
+                Sign In
               </Button>
-            </a>
+            </Link>
           </CardContent>
         </Card>
       </div>

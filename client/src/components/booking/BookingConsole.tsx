@@ -530,7 +530,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         description: "Please log in to register for events.",
         variant: "destructive",
       });
-      window.location.href = '/api/login';
+      window.location.href = '/login';
       return;
     }
 
@@ -841,11 +841,11 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                 Please log in to access the booking system and make reservations.
               </p>
               <div className="space-y-3">
-                <a href="/api/login" className="block">
+                <Link href="/login" className="block">
                   <Button className="w-full" data-testid="button-login-booking">
                     Sign In to Continue
                   </Button>
-                </a>
+                </Link>
                 <Button 
                   variant="outline" 
                   className="w-full"
@@ -1639,7 +1639,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                 <div className="mt-8 p-4 rounded-xl bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
                   <p className="text-sm text-center mb-4">Sign in to access your full profile and booking history.</p>
                   <div className="flex justify-center">
-                    <Link href="/api/login">
+                    <Link href="/login">
                       <Button data-testid="button-sign-in">Sign In</Button>
                     </Link>
                   </div>

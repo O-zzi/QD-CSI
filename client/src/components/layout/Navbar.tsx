@@ -171,11 +171,11 @@ export function Navbar({ onScrollTo }: NavbarProps) {
               </>
             ) : (
               <>
-                <a href="/api/login">
+                <Link href="/login">
                   <Button variant="outline" className="rounded-full" data-testid="button-login">
                     Log In
                   </Button>
-                </a>
+                </Link>
                 <Link href="/booking">
                   <Button className="rounded-full" data-testid="button-book-now">
                     Book Now
@@ -239,11 +239,11 @@ export function Navbar({ onScrollTo }: NavbarProps) {
                 </>
               ) : (
                 <>
-                  <a href="/api/login">
+                  <Link href="/login">
                     <Button className="w-full rounded-full" data-testid="button-mobile-login">
                       Log In
                     </Button>
-                  </a>
+                  </Link>
                 </>
               )}
             </div>

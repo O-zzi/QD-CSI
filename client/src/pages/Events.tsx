@@ -451,12 +451,12 @@ export default function Events() {
           </div>
           
           <div className="flex flex-col gap-3">
-            <a href="/api/login" className="w-full">
+            <Link href="/login" className="w-full">
               <Button className="w-full" data-testid="button-login-to-register">
                 <LogIn className="w-4 h-4 mr-2" />
-                Sign In with Replit
+                Sign In
               </Button>
-            </a>
+            </Link>
             <Button 
               variant="outline" 
               onClick={() => setShowLoginPrompt(false)}

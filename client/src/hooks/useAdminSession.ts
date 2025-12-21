@@ -34,7 +34,7 @@ export function useAdminSession() {
     });
 
     setTimeout(() => {
-      setLocation("/api/login");
+      setLocation("/login");
     }, 1500);
   }, [toast, setLocation]);
 
