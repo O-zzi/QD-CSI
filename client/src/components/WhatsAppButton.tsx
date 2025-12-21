@@ -1,9 +1,13 @@
 import { MessageCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 
 type SiteSettings = { [key: string]: string };
 
 export function WhatsAppButton() {
+  const [location] = useLocation();
+  const adminPath = import.meta.env.VITE_ADMIN_PATH || 'admin';
+  
   const { data: siteSettings, isLoading } = useQuery<SiteSettings>({
     queryKey: ['/api/site-settings'],
     queryFn: async () => {
@@ -23,7 +27,9 @@ export function WhatsAppButton() {
   const defaultMessage = siteSettings?.whatsapp_default_message || '';
   const buttonText = siteSettings?.whatsapp_button_text || 'Chat on WhatsApp';
   
-  if (isLoading || !isVisible || !phone) {
+  const isAdminPage = location.startsWith(`/${adminPath}`);
+  
+  if (isLoading || !isVisible || !phone || isAdminPage) {
     return null;
   }
   
