@@ -1544,22 +1544,24 @@ export async function registerRoutes(
     }
   });
 
-  // Event Registration Routes
-  app.post('/api/events/:eventId/register', async (req: any, res) => {
+  // Event Registration Routes - requires authentication to prevent ghost entries
+  app.post('/api/events/:eventId/register', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user?.id || null;
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "You must be logged in to register for events" });
+      }
+      
       const { eventId } = req.params;
       const { fullName, email, phone, guestCount, notes } = req.body;
       
-      // Check if user is already registered (by userId or email)
-      if (userId) {
-        const isAlreadyRegistered = await storage.isUserRegisteredForEvent(userId, eventId);
-        if (isAlreadyRegistered) {
-          return res.status(400).json({ message: "You are already registered for this event" });
-        }
+      // Check if user is already registered
+      const isAlreadyRegistered = await storage.isUserRegisteredForEvent(userId, eventId);
+      if (isAlreadyRegistered) {
+        return res.status(400).json({ message: "You are already registered for this event" });
       }
       
-      // Check if email is already registered for this event
+      // Check if email is already registered for this event (prevent duplicates)
       const existingByEmail = await storage.isEmailRegisteredForEvent(email, eventId);
       if (existingByEmail) {
         return res.status(400).json({ message: "This email is already registered for this event" });
