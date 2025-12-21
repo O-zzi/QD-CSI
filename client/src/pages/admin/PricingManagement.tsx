@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Plus, Pencil, Trash2, Save, Star, Settings } from "lucide-react";
 import { Link } from "wouter";
+import { useAdminPath } from "@/hooks/useAdminPath";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ import type { PricingTier, MembershipTierDefinition } from "@shared/schema";
 
 export default function PricingManagement() {
   const { toast } = useToast();
+  const { adminPath } = useAdminPath();
   const [editingTier, setEditingTier] = useState<PricingTier | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -187,7 +189,7 @@ export default function PricingManagement() {
             <p className="text-muted-foreground">
               Manage membership pricing tiers and their benefits.
             </p>
-            <Link href={`/${import.meta.env.VITE_ADMIN_PATH || 'admin'}/membership-tiers`}>
+            <Link href={`/${adminPath}/membership-tiers`}>
               <Button variant="link" size="sm" className="p-0 h-auto text-primary" data-testid="link-manage-tiers">
                 <Settings className="w-3 h-3 mr-1" /> Manage Tier Definitions
               </Button>
