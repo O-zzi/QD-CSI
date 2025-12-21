@@ -42,8 +42,9 @@ export function WhatsAppButton() {
   
   const adminPath = adminConfig?.adminPath;
   const isAdminPage = adminPath ? location.startsWith(`/${adminPath}`) : false;
+  const isBookingConsole = location === '/booking' || location.startsWith('/booking/');
   
-  if (isLoading || !isVisible || !phone || isAdminPage) {
+  if (isLoading || !isVisible || !phone || isAdminPage || isBookingConsole) {
     return null;
   }
   
