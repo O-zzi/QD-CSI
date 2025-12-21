@@ -29,6 +29,7 @@ import {
   peakWindows,
   hallActivities,
   notifications,
+  adminAuditLogs,
   type User,
   type UpsertUser,
   type Membership,
@@ -81,6 +82,8 @@ import {
   type InsertHallActivity,
   type Notification,
   type InsertNotification,
+  type AdminAuditLog,
+  type InsertAdminAuditLog,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
@@ -276,6 +279,10 @@ export interface IStorage {
   markNotificationRead(id: string, userId: string): Promise<boolean>;
   markAllNotificationsRead(userId: string): Promise<void>;
   deleteNotification(id: string, userId: string): Promise<boolean>;
+  
+  // Admin Audit Log operations
+  createAuditLog(data: InsertAdminAuditLog): Promise<AdminAuditLog>;
+  getAuditLogs(limit?: number): Promise<AdminAuditLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1241,6 +1248,18 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(notifications.id, id), eq(notifications.userId, userId)))
       .returning();
     return result.length > 0;
+  }
+
+  // Admin Audit Log operations
+  async createAuditLog(data: InsertAdminAuditLog): Promise<AdminAuditLog> {
+    const [log] = await db.insert(adminAuditLogs).values(data).returning();
+    return log;
+  }
+
+  async getAuditLogs(limit: number = 100): Promise<AdminAuditLog[]> {
+    return await db.select().from(adminAuditLogs)
+      .orderBy(desc(adminAuditLogs.createdAt))
+      .limit(limit);
   }
 }
 

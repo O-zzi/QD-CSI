@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin, sessionHeartbeat, adminHeartbeat } from "./localAuth";
+import { logAdminAction } from "./auditLog";
 import {
   sendBookingCreatedEmail,
   sendPaymentVerifiedEmail,
@@ -1402,6 +1403,19 @@ export async function registerRoutes(
     }
   });
 
+  // ========== ADMIN AUDIT LOGS ROUTES ==========
+  
+  app.get('/api/admin/audit-logs', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const logs = await storage.getAuditLogs(limit);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching audit logs:", error);
+      res.status(500).json({ message: "Failed to fetch audit logs" });
+    }
+  });
+
   // ========== ADMIN BOOKING ROUTES ==========
   
   app.get('/api/admin/bookings', isAuthenticated, isAdmin, async (req, res) => {
@@ -1473,6 +1487,16 @@ export async function registerRoutes(
         }
       }
 
+      // Log admin action
+      logAdminAction({
+        req,
+        action: result.data.paymentStatus === 'VERIFIED' ? 'VERIFY_PAYMENT' : 
+                result.data.paymentStatus === 'REJECTED' ? 'REJECT_PAYMENT' : 'UPDATE_PAYMENT',
+        resource: 'booking',
+        resourceId: req.params.id,
+        details: { paymentStatus: result.data.paymentStatus, bookingId: booking.id }
+      });
+
       res.json(booking);
     } catch (error) {
       console.error("Error updating booking payment:", error);
@@ -1503,6 +1527,15 @@ export async function registerRoutes(
           });
         }
       }
+
+      // Log admin action
+      logAdminAction({
+        req,
+        action: status === 'CANCELLED' ? 'CANCEL_BOOKING' : 'UPDATE_BOOKING_STATUS',
+        resource: 'booking',
+        resourceId: req.params.id,
+        details: { status, cancelReason }
+      });
 
       res.json(booking);
     } catch (error) {

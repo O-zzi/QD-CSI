@@ -543,6 +543,24 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Admin Audit Logs table (track admin actions)
+export const adminAuditLogs = pgTable("admin_audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: varchar("admin_id").references(() => users.id, { onDelete: 'set null' }),
+  adminEmail: varchar("admin_email").notNull(),
+  action: varchar("action").notNull(), // 'CREATE', 'UPDATE', 'DELETE', 'VERIFY', 'REJECT', etc.
+  resource: varchar("resource").notNull(), // 'booking', 'membership', 'user', 'cms', etc.
+  resourceId: varchar("resource_id"),
+  details: jsonb("details"), // JSON with before/after states or relevant data
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_audit_admin").on(table.adminId),
+  index("idx_audit_resource").on(table.resource, table.resourceId),
+  index("idx_audit_created").on(table.createdAt),
+]);
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   membership: one(memberships, {
@@ -786,6 +804,11 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   createdAt: true,
 });
 
+export const insertAdminAuditLogSchema = createInsertSchema(adminAuditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -875,3 +898,6 @@ export type InsertNavbarItem = z.infer<typeof insertNavbarItemSchema>;
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
+export type InsertAdminAuditLog = z.infer<typeof insertAdminAuditLogSchema>;
