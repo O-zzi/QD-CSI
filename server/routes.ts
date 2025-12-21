@@ -180,7 +180,11 @@ export async function registerRoutes(
   app.delete('/api/notifications/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      await storage.deleteNotification(id);
+      const userId = (req.user as any).id;
+      const deleted = await storage.deleteNotification(id, userId);
+      if (!deleted) {
+        return res.status(403).json({ message: "Not authorized to delete this notification" });
+      }
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting notification:", error);

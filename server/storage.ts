@@ -275,7 +275,7 @@ export interface IStorage {
   createNotification(data: InsertNotification): Promise<Notification>;
   markNotificationRead(id: string): Promise<void>;
   markAllNotificationsRead(userId: string): Promise<void>;
-  deleteNotification(id: string): Promise<void>;
+  deleteNotification(id: string, userId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1232,8 +1232,11 @@ export class DatabaseStorage implements IStorage {
     await db.update(notifications).set({ isRead: true }).where(eq(notifications.userId, userId));
   }
 
-  async deleteNotification(id: string): Promise<void> {
-    await db.delete(notifications).where(eq(notifications.id, id));
+  async deleteNotification(id: string, userId: string): Promise<boolean> {
+    const result = await db.delete(notifications)
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)))
+      .returning();
+    return result.length > 0;
   }
 }
 

@@ -420,7 +420,11 @@ export default function Profile() {
                   disabled={markAllReadMutation.isPending}
                   data-testid="button-mark-all-notifications-read"
                 >
-                  <Check className="w-4 h-4 mr-2" />
+                  {markAllReadMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4 mr-2" />
+                  )}
                   Mark all read
                 </Button>
               )}
@@ -475,7 +479,11 @@ export default function Profile() {
                                   disabled={markReadMutation.isPending}
                                   data-testid={`button-mark-notification-read-${notification.id}`}
                                 >
-                                  <Check className="w-4 h-4" />
+                                  {markReadMutation.isPending ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Check className="w-4 h-4" />
+                                  )}
                                 </Button>
                               )}
                               <Button
@@ -486,7 +494,11 @@ export default function Profile() {
                                 disabled={deleteMutation.isPending}
                                 data-testid={`button-delete-notification-${notification.id}`}
                               >
-                                <Trash2 className="w-4 h-4" />
+                                {deleteMutation.isPending ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
                               </Button>
                             </div>
                           </div>
