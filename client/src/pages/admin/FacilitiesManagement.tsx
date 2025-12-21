@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Pencil, Trash2, Save, MapPin, Building } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, MapPin, Building, Package } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Facility, Venue, FacilityVenue } from "@shared/schema";
+import type { Facility, Venue, FacilityVenue, FacilityAddOn } from "@shared/schema";
 
 export default function FacilitiesManagement() {
   const { toast } = useToast();
@@ -56,6 +56,13 @@ export default function FacilitiesManagement() {
     priceOverride: "",
   });
 
+  const [addOnFormData, setAddOnFormData] = useState({
+    label: "",
+    price: 0,
+    icon: "",
+  });
+  const [editingAddOn, setEditingAddOn] = useState<FacilityAddOn | null>(null);
+
   const { data: facilities, isLoading } = useQuery<Facility[]>({
     queryKey: ["/api/admin/facilities"],
   });
@@ -69,6 +76,19 @@ export default function FacilitiesManagement() {
     queryFn: async () => {
       if (!editingFacility?.id) return [];
       const response = await fetch(`/api/admin/facilities/${editingFacility.id}/venues`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch');
+      return response.json();
+    },
+    enabled: !!editingFacility?.id,
+  });
+
+  const { data: facilityAddOns, refetch: refetchAddOns } = useQuery<FacilityAddOn[]>({
+    queryKey: ["/api/admin/facilities", editingFacility?.id, "addons"],
+    queryFn: async () => {
+      if (!editingFacility?.id) return [];
+      const response = await fetch(`/api/admin/facilities/${editingFacility.id}/addons`, {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch');
@@ -163,6 +183,47 @@ export default function FacilitiesManagement() {
     },
   });
 
+  const createAddOnMutation = useMutation({
+    mutationFn: async (data: { facilityId: string; label: string; price: number; icon: string }) => {
+      return await apiRequest("POST", `/api/admin/facilities/${data.facilityId}/addons`, data);
+    },
+    onSuccess: () => {
+      refetchAddOns();
+      toast({ title: "Add-on created successfully" });
+      resetAddOnForm();
+    },
+    onError: () => {
+      toast({ title: "Failed to create add-on", variant: "destructive" });
+    },
+  });
+
+  const updateAddOnMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { label?: string; price?: number; icon?: string } }) => {
+      return await apiRequest("PATCH", `/api/admin/facility-addons/${id}`, data);
+    },
+    onSuccess: () => {
+      refetchAddOns();
+      toast({ title: "Add-on updated successfully" });
+      resetAddOnForm();
+    },
+    onError: () => {
+      toast({ title: "Failed to update add-on", variant: "destructive" });
+    },
+  });
+
+  const deleteAddOnMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/admin/facility-addons/${id}`);
+    },
+    onSuccess: () => {
+      refetchAddOns();
+      toast({ title: "Add-on deleted successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete add-on", variant: "destructive" });
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       slug: "",
@@ -186,6 +247,39 @@ export default function FacilitiesManagement() {
       status: "PLANNED",
       resourceCount: 1,
       priceOverride: "",
+    });
+  };
+
+  const resetAddOnForm = () => {
+    setAddOnFormData({
+      label: "",
+      price: 0,
+      icon: "",
+    });
+    setEditingAddOn(null);
+  };
+
+  const handleAddOnSubmit = () => {
+    if (!editingFacility) return;
+    if (editingAddOn) {
+      updateAddOnMutation.mutate({
+        id: editingAddOn.id,
+        data: addOnFormData,
+      });
+    } else {
+      createAddOnMutation.mutate({
+        facilityId: editingFacility.id,
+        ...addOnFormData,
+      });
+    }
+  };
+
+  const handleEditAddOn = (addOn: FacilityAddOn) => {
+    setEditingAddOn(addOn);
+    setAddOnFormData({
+      label: addOn.label,
+      price: addOn.price,
+      icon: addOn.icon || "",
     });
   };
 
@@ -284,10 +378,10 @@ export default function FacilitiesManagement() {
               </DialogHeader>
               
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="details" className="flex items-center gap-2">
                     <Building className="w-4 h-4" />
-                    Facility Details
+                    Details
                   </TabsTrigger>
                   <TabsTrigger 
                     value="venues" 
@@ -295,7 +389,16 @@ export default function FacilitiesManagement() {
                     disabled={!editingFacility}
                   >
                     <MapPin className="w-4 h-4" />
-                    Venue Settings
+                    Venues
+                    {!editingFacility && <span className="text-xs text-muted-foreground">(Save first)</span>}
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="addons" 
+                    className="flex items-center gap-2"
+                    disabled={!editingFacility}
+                  >
+                    <Package className="w-4 h-4" />
+                    Add-ons
                     {!editingFacility && <span className="text-xs text-muted-foreground">(Save first)</span>}
                   </TabsTrigger>
                 </TabsList>
@@ -589,6 +692,112 @@ export default function FacilitiesManagement() {
                                         }
                                       }}
                                       data-testid={`button-remove-venue-${fv.id}`}
+                                    >
+                                      <Trash2 className="w-4 h-4 text-destructive" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="addons" className="space-y-4 py-4">
+                  {editingFacility && (
+                    <>
+                      <div className="bg-muted/50 rounded-lg p-4 space-y-4">
+                        <h4 className="font-medium">{editingAddOn ? "Edit Add-on" : "Add New Add-on"}</h4>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label>Label</Label>
+                            <Input
+                              value={addOnFormData.label}
+                              onChange={(e) => setAddOnFormData({ ...addOnFormData, label: e.target.value })}
+                              placeholder="e.g., Equipment Rental"
+                              data-testid="input-addon-label"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Price (PKR)</Label>
+                            <Input
+                              type="number"
+                              value={addOnFormData.price}
+                              onChange={(e) => setAddOnFormData({ ...addOnFormData, price: parseInt(e.target.value) || 0 })}
+                              placeholder="0"
+                              data-testid="input-addon-price"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Icon (optional)</Label>
+                            <Input
+                              value={addOnFormData.icon}
+                              onChange={(e) => setAddOnFormData({ ...addOnFormData, icon: e.target.value })}
+                              placeholder="e.g., Target, Coffee"
+                              data-testid="input-addon-icon"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={handleAddOnSubmit}
+                            disabled={!addOnFormData.label || createAddOnMutation.isPending || updateAddOnMutation.isPending}
+                            data-testid="button-save-addon"
+                          >
+                            <Save className="w-4 h-4 mr-2" />
+                            {editingAddOn ? "Update Add-on" : "Add Add-on"}
+                          </Button>
+                          {editingAddOn && (
+                            <Button variant="outline" onClick={resetAddOnForm}>
+                              Cancel
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border">
+                        <h4 className="font-medium p-4 border-b">Facility Add-ons</h4>
+                        {!facilityAddOns || facilityAddOns.length === 0 ? (
+                          <p className="text-center text-muted-foreground py-8">
+                            No add-ons configured for this facility yet.
+                          </p>
+                        ) : (
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Label</TableHead>
+                                <TableHead>Price</TableHead>
+                                <TableHead>Icon</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {facilityAddOns.map((addOn) => (
+                                <TableRow key={addOn.id} data-testid={`row-addon-${addOn.id}`}>
+                                  <TableCell className="font-medium">{addOn.label}</TableCell>
+                                  <TableCell>PKR {addOn.price.toLocaleString()}</TableCell>
+                                  <TableCell>{addOn.icon || "-"}</TableCell>
+                                  <TableCell className="text-right">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleEditAddOn(addOn)}
+                                      data-testid={`button-edit-addon-${addOn.id}`}
+                                    >
+                                      <Pencil className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => {
+                                        if (confirm("Delete this add-on?")) {
+                                          deleteAddOnMutation.mutate(addOn.id);
+                                        }
+                                      }}
+                                      data-testid={`button-delete-addon-${addOn.id}`}
                                     >
                                       <Trash2 className="w-4 h-4 text-destructive" />
                                     </Button>
