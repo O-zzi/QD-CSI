@@ -5,6 +5,7 @@ import { Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -158,6 +159,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
             <ThemeToggle />
             {isAuthenticated ? (
               <>
+                <NotificationBell />
                 <Link href="/booking">
                   <Button className="rounded-full" data-testid="button-book-now">
                     Book Now
@@ -226,6 +228,11 @@ export function Navbar({ onScrollTo }: NavbarProps) {
             <div className="flex flex-col gap-2 mt-4">
               {isAuthenticated ? (
                 <>
+                  <Link href="/profile?tab=notifications" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full rounded-full" data-testid="button-mobile-notifications">
+                      Notifications
+                    </Button>
+                  </Link>
                   <Link href="/booking">
                     <Button className="w-full rounded-full" data-testid="button-mobile-book">
                       Book Now
