@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Trophy, Medal, Target, Swords, User } from "lucide-react";
+import { Trophy, Medal, Target, Swords } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import type { LeaderboardEntry } from "@shared/schema";
 
 const FACILITIES = [
@@ -26,44 +28,6 @@ export default function Leaderboard() {
     queryKey: ['/api/leaderboard', selectedFacility !== 'all' ? selectedFacility : undefined],
     enabled: isAuthenticated,
   });
-
-  // Auth loading state
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-        <div className="qd-container py-8">
-          <Skeleton className="h-12 w-64 mb-8" />
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-20 rounded-xl" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Auth gate - require login
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
-        <Card className="max-w-md w-full mx-4">
-          <CardContent className="pt-6 text-center">
-            <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Sign In Required</h2>
-            <p className="text-muted-foreground mb-6">
-              Please log in to view the leaderboard and player rankings.
-            </p>
-            <Link href="/login">
-              <Button className="w-full" data-testid="button-login-prompt">
-                Sign In
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const getRankStyle = (rank: number) => {
     switch (rank) {
@@ -85,112 +49,159 @@ export default function Leaderboard() {
     return <span className="text-sm font-bold">{rank}</span>;
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-      <div className="sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
-        <div className="qd-container py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" data-testid="button-back-home">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <h1 className="text-xl font-bold" data-testid="text-leaderboard-title">Leaderboard</h1>
-              <p className="text-xs text-muted-foreground">Top players across all sports</p>
+  // Auth loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <main className="flex-1">
+          <div className="qd-container py-8">
+            <Skeleton className="h-12 w-64 mb-8" />
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-20 rounded-xl" />
+              ))}
             </div>
           </div>
-        </div>
+        </main>
+        <Footer />
       </div>
+    );
+  }
 
-      <div className="qd-container py-8">
-        <div className="flex flex-wrap gap-2 mb-6">
-          {FACILITIES.map((facility) => (
-            <Button
-              key={facility.id}
-              variant={selectedFacility === facility.id ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedFacility(facility.id)}
-              className="gap-2"
-              data-testid={`button-filter-${facility.id}`}
-            >
-              <facility.icon className="w-4 h-4" />
-              {facility.name}
-            </Button>
-          ))}
-        </div>
-
-        {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-20 rounded-xl" />
-            ))}
-          </div>
-        ) : entries.length > 0 ? (
-          <div className="space-y-3">
-            {entries.map((entry, index) => (
-              <Card 
-                key={entry.id} 
-                className={`overflow-hidden ${index < 3 ? 'border-2' : ''} ${
-                  index === 0 ? 'border-amber-400' : 
-                  index === 1 ? 'border-gray-400' : 
-                  index === 2 ? 'border-amber-600' : ''
-                }`}
-                data-testid={`leaderboard-entry-${entry.id}`}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getRankStyle(index + 1)}`}>
-                      {getRankIcon(index + 1)}
-                    </div>
-                    
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={entry.profileImageUrl || ''} />
-                      <AvatarFallback>
-                        {entry.playerName?.split(' ').map(n => n[0]).join('') || 'P'}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1">
-                      <div className="font-semibold">{entry.playerName || 'Anonymous Player'}</div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-2">
-                        <span>{entry.wins}W - {entry.losses}L</span>
-                        {entry.winRate && (
-                          <Badge variant="secondary" className="text-xs">
-                            {(entry.winRate * 100).toFixed(0)}% WR
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-sky-600">
-                        {entry.rankingPoints?.toLocaleString() || 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">points</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="py-16 text-center">
+  // Auth gate - require login
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <Card className="max-w-md w-full mx-4">
+            <CardContent className="pt-6 text-center">
               <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No Rankings Yet</h3>
+              <h2 className="text-2xl font-bold mb-2">Sign In Required</h2>
               <p className="text-muted-foreground mb-6">
-                Play matches to appear on the leaderboard!
+                Please log in to view the leaderboard and player rankings.
               </p>
-              <Link href="/booking">
-                <Button data-testid="button-book-now">
-                  Book a Court
+              <Link href="/login">
+                <Button className="w-full" data-testid="button-login-prompt">
+                  Sign In
                 </Button>
               </Link>
             </CardContent>
           </Card>
-        )}
+        </main>
+        <Footer />
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      
+      <main className="flex-1">
+        <div className="relative h-[30vh] min-h-[200px] bg-[#2a4060] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+            <Trophy className="w-12 h-12 mb-4" />
+            <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-leaderboard-title">Leaderboard</h1>
+            <p className="text-lg opacity-90 max-w-2xl">
+              Top players across all sports at The Quarterdeck
+            </p>
+          </div>
+        </div>
+
+        <div className="qd-container py-8">
+          <div className="flex flex-wrap gap-2 mb-6">
+            {FACILITIES.map((facility) => (
+              <Button
+                key={facility.id}
+                variant={selectedFacility === facility.id ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedFacility(facility.id)}
+                className="gap-2"
+                data-testid={`button-filter-${facility.id}`}
+              >
+                <facility.icon className="w-4 h-4" />
+                {facility.name}
+              </Button>
+            ))}
+          </div>
+
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-20 rounded-xl" />
+              ))}
+            </div>
+          ) : entries.length > 0 ? (
+            <div className="space-y-3">
+              {entries.map((entry, index) => (
+                <Card 
+                  key={entry.id} 
+                  className={`overflow-visible ${index < 3 ? 'border-2' : ''} ${
+                    index === 0 ? 'border-amber-400' : 
+                    index === 1 ? 'border-gray-400' : 
+                    index === 2 ? 'border-amber-600' : ''
+                  }`}
+                  data-testid={`leaderboard-entry-${entry.id}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getRankStyle(index + 1)}`}>
+                        {getRankIcon(index + 1)}
+                      </div>
+                      
+                      <Avatar className="w-12 h-12">
+                        <AvatarImage src={entry.profileImageUrl || ''} />
+                        <AvatarFallback>
+                          {entry.playerName?.split(' ').map(n => n[0]).join('') || 'P'}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1">
+                        <div className="font-semibold">{entry.playerName || 'Anonymous Player'}</div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                          <span>{entry.wins}W - {entry.losses}L</span>
+                          {entry.winRate && (
+                            <Badge variant="secondary" className="text-xs">
+                              {(entry.winRate * 100).toFixed(0)}% WR
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-sky-600">
+                          {entry.rankingPoints?.toLocaleString() || 0}
+                        </div>
+                        <div className="text-xs text-muted-foreground">points</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-16 text-center">
+                <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No Rankings Yet</h3>
+                <p className="text-muted-foreground mb-6">
+                  Play matches to appear on the leaderboard!
+                </p>
+                <Link href="/booking">
+                  <Button data-testid="button-book-now">
+                    Book a Court
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }

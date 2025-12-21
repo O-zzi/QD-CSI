@@ -1,9 +1,11 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Shield, Clock, Users, AlertTriangle, Shirt, Phone, Ban, Heart, Loader2 } from "lucide-react";
+import { Shield, Clock, Users, AlertTriangle, Shirt, Phone, Ban, Heart, Loader2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useQuery } from "@tanstack/react-query";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import type { Rule } from "@shared/schema";
 
 const categoryConfig: Record<string, { title: string; icon: any }> = {
@@ -34,115 +36,116 @@ export default function Rules() {
   const sortedCategories = categoryOrder.filter(cat => groupedRules[cat]?.length > 0);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="bg-[#2a4060] py-16">
-        <div className="container mx-auto px-6 text-center text-white">
-          <h1 className="text-4xl font-bold mb-4" data-testid="text-rules-title">Rules & Safety</h1>
-          <p className="text-lg opacity-90 max-w-2xl mx-auto">
-            For the safety and enjoyment of all members, please familiarize yourself with our facility rules
-          </p>
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      
+      <main className="flex-1">
+        <div className="relative h-[30vh] min-h-[200px] bg-[#2a4060] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-rules-title">Rules & Safety</h1>
+            <p className="text-lg opacity-90 max-w-2xl">
+              For the safety and enjoyment of all members, please familiarize yourself with our facility rules
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-6 py-12">
-        <Link href="/">
-          <Button variant="ghost" className="mb-8" data-testid="button-back-home">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Home
-          </Button>
-        </Link>
-
-        <div className="max-w-4xl mx-auto">
-          <Card className="mb-8 border-amber-500/50 bg-amber-500/5">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">Important Safety Notice</h3>
-                  <p className="text-muted-foreground">
-                    Certain facilities require mandatory safety certifications before use. 
-                    The Air Rifle Range requires completion of our safety course. Please contact 
-                    reception to schedule your certification session.
-                  </p>
+        <div className="container mx-auto px-6 py-12">
+          <div className="max-w-4xl mx-auto">
+            <Card className="mb-8 border-amber-500/50 bg-amber-500/5">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Important Safety Notice</h3>
+                    <p className="text-muted-foreground">
+                      Certain facilities require mandatory safety certifications before use. 
+                      The Air Rifle Range requires completion of our safety course. Please contact 
+                      reception to schedule your certification session.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : sortedCategories.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Shield className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Rules are being updated. Please check back soon.</p>
-            </div>
-          ) : (
-            <Accordion type="multiple" className="space-y-4">
-              {sortedCategories.map((categoryKey) => {
-                const config = categoryConfig[categoryKey] || { title: categoryKey, icon: Shield };
-                const Icon = config.icon;
-                const categoryRules = groupedRules[categoryKey] || [];
-                
-                return (
-                  <AccordionItem 
-                    key={categoryKey} 
-                    value={categoryKey} 
-                    className="border rounded-md px-4"
-                    data-testid={`accordion-${categoryKey}`}
-                  >
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-md bg-[#2a4060]/10 flex items-center justify-center">
-                          <Icon className="w-5 h-5 text-[#2a4060]" />
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : sortedCategories.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Shield className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Rules are being updated. Please check back soon.</p>
+              </div>
+            ) : (
+              <Accordion type="multiple" className="space-y-4">
+                {sortedCategories.map((categoryKey) => {
+                  const config = categoryConfig[categoryKey] || { title: categoryKey, icon: Shield };
+                  const Icon = config.icon;
+                  const categoryRules = groupedRules[categoryKey] || [];
+                  
+                  return (
+                    <AccordionItem 
+                      key={categoryKey} 
+                      value={categoryKey} 
+                      className="border rounded-md px-4"
+                      data-testid={`accordion-${categoryKey}`}
+                    >
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-md bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center">
+                            <Icon className="w-5 h-5 text-[#2a4060] dark:text-sky-400" />
+                          </div>
+                          <span className="font-semibold">{config.title}</span>
                         </div>
-                        <span className="font-semibold">{config.title}</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <ul className="space-y-3 pl-13 py-4">
-                        {categoryRules.map((rule, index) => (
-                          <li key={rule.id} className="flex items-start gap-3 text-muted-foreground">
-                            <span className="text-[#2a4060] font-bold">{index + 1}.</span>
-                            <div>
-                              {rule.title && <span className="font-medium text-foreground">{rule.title}: </span>}
-                              {rule.content}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
-          )}
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <ul className="space-y-3 pl-13 py-4">
+                          {categoryRules.map((rule, index) => (
+                            <li key={rule.id} className="flex items-start gap-3 text-muted-foreground">
+                              <span className="text-[#2a4060] dark:text-sky-400 font-bold">{index + 1}.</span>
+                              <div>
+                                {rule.title && <span className="font-medium text-foreground">{rule.title}: </span>}
+                                {rule.content}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            )}
 
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Questions About Our Rules?</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">
-                If you have any questions about our rules and policies, or need clarification 
-                on any point, please don't hesitate to contact us.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Link href="/#contact">
-                  <Button className="bg-[#2a4060] hover:bg-[#1e3048]" data-testid="button-contact-us">
-                    Contact Us
-                  </Button>
-                </Link>
-                <Link href="/terms">
-                  <Button variant="outline" data-testid="button-view-terms">
-                    View Terms & Conditions
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle>Questions About Our Rules?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  If you have any questions about our rules and policies, or need clarification 
+                  on any point, please don't hesitate to contact us.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <Link href="/#contact">
+                    <Button className="bg-[#2a4060] hover:bg-[#1e3048]" data-testid="button-contact-us">
+                      Contact Us
+                    </Button>
+                  </Link>
+                  <Link href="/terms">
+                    <Button variant="outline" data-testid="button-view-terms">
+                      View Terms & Conditions
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }

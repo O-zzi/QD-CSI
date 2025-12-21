@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Clock, Users, MapPin, Check, AlertTriangle, Calendar, Crosshair, Spade, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { GiTennisRacket, GiSquare } from "react-icons/gi";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import type { Facility, FacilityAddOn } from "@shared/schema";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
@@ -221,38 +223,41 @@ export default function FacilityDetail() {
   const facilityBgImage = facilityImages[slug || ""] || padelImage;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="relative h-[50vh] min-h-[400px] bg-[#2a4060] overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${facilityBgImage})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
-          <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur flex items-center justify-center mb-4">
-            <FacilityIcon className="w-8 h-8" />
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      
+      <main className="flex-1">
+        <div className="relative h-[50vh] min-h-[400px] bg-[#2a4060] overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${facilityBgImage})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur flex items-center justify-center mb-4">
+              <FacilityIcon className="w-8 h-8" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-facility-name">
+              {facility.name}
+            </h1>
+            {facility.requiresCertification && (
+              <Badge variant="destructive" className="mb-4">Safety Certification Required</Badge>
+            )}
+            {facility.restricted && (
+              <Badge className="bg-amber-500 mb-4">Founding & Forces Members Only</Badge>
+            )}
+            <p className="text-xl max-w-3xl opacity-90">{facility.description}</p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-facility-name">
-            {facility.name}
-          </h1>
-          {facility.requiresCertification && (
-            <Badge variant="destructive" className="mb-4">Safety Certification Required</Badge>
-          )}
-          {facility.restricted && (
-            <Badge className="bg-amber-500 mb-4">Founding & Forces Members Only</Badge>
-          )}
-          <p className="text-xl max-w-3xl opacity-90">{facility.description}</p>
         </div>
-      </div>
 
-      <div className="container mx-auto px-6 py-12">
-        <Link href="/facilities">
-          <Button variant="ghost" className="mb-8" data-testid="button-back-facilities">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Facilities
-          </Button>
-        </Link>
+        <div className="container mx-auto px-6 py-12">
+          <Link href="/facilities">
+            <Button variant="ghost" className="mb-8" data-testid="button-back-facilities">
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Facilities
+            </Button>
+          </Link>
 
-        <div className="max-w-5xl mx-auto">
+          <div className="max-w-5xl mx-auto">
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <section>
@@ -379,8 +384,11 @@ export default function FacilityDetail() {
               </Link>
             </div>
           </div>
+          </div>
         </div>
-      </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }

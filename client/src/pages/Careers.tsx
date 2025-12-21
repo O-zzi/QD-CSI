@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Clock, Briefcase, Mail, ChevronRight, Loader2, Send, Linkedin, FileText } from "lucide-react";
+import { MapPin, Clock, Briefcase, ChevronRight, Loader2, Send, Linkedin, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -15,6 +15,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import type { Career } from "@shared/schema";
 
 const applicationSchema = z.object({
@@ -194,27 +196,24 @@ export default function Careers() {
   const activeJobs = jobListings.filter(job => job.isActive);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="relative h-[40vh] min-h-[300px] bg-[#2a4060] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-careers-title">
-            Join Our Team
-          </h1>
-          <p className="text-xl max-w-3xl opacity-90">
-            Be part of Islamabad's premier sports and recreation destination
-          </p>
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      
+      <main className="flex-1">
+        <div className="relative h-[30vh] min-h-[200px] bg-[#2a4060] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-careers-title">
+              Join Our Team
+            </h1>
+            <p className="text-xl max-w-3xl opacity-90">
+              Be part of Islamabad's premier sports and recreation destination
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-6 py-12">
-        <Link href="/">
-          <Button variant="ghost" className="mb-8" data-testid="button-back-home">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Home
-          </Button>
-        </Link>
-
-        <div className="max-w-4xl mx-auto">
+        <div className="container mx-auto px-6 py-12">
+          <div className="max-w-4xl mx-auto">
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-[#2a4060] dark:text-sky-400 mb-4">Why Work at The Quarterdeck?</h2>
             <div className="grid md:grid-cols-3 gap-6">
@@ -328,8 +327,11 @@ export default function Careers() {
               </Button>
             </CardContent>
           </Card>
+          </div>
         </div>
-      </div>
+      </main>
+
+      <Footer />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">

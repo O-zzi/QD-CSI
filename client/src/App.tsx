@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SessionProvider } from "@/components/SessionProvider";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { useAdminPath } from "@/hooks/useAdminPath";
 import Home from "@/pages/Home";
 import Booking from "@/pages/Booking";
@@ -122,6 +123,7 @@ function App() {
           <Toaster />
           <Router />
           <WhatsAppButton />
+          <ScrollToTop />
         </SessionProvider>
       </TooltipProvider>
     </QueryClientProvider>
