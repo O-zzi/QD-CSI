@@ -44,15 +44,14 @@ import BrandingManagement from "@/pages/admin/BrandingManagement";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
       <Route path="/booking" component={Booking} />
       <Route path="/profile" component={Profile} />
       <Route path="/events" component={Events} />
       <Route path="/leaderboard" component={Leaderboard} />
       <Route path="/gallery" component={Gallery} />
       <Route path="/vision" component={Vision} />
-      <Route path="/facilities" component={Facilities} />
       <Route path="/facilities/:slug" component={FacilityDetail} />
+      <Route path="/facilities" component={Facilities} />
       <Route path="/roadmap" component={Roadmap} />
       <Route path="/rules" component={Rules} />
       <Route path="/careers" component={Careers} />
@@ -64,7 +63,6 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
       <Route path="/verify-email" component={VerifyEmail} />
-      <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/homepage" component={HomepageManagement} />
       <Route path="/admin/coming-soon" component={ComingSoonManagement} />
       <Route path="/admin/facilities" component={FacilitiesManagement} />
@@ -79,6 +77,8 @@ function Router() {
       <Route path="/admin/site-images" component={SiteImagesManagement} />
       <Route path="/admin/bookings" component={BookingsManagement} />
       <Route path="/admin/branding" component={BrandingManagement} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/" component={Home} />
       <Route component={NotFound} />
     </Switch>
   );
