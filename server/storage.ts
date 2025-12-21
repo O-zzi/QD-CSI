@@ -114,6 +114,18 @@ export interface IStorage {
   
   // User update
   updateUser(id: string, data: Partial<User>): Promise<User | undefined>;
+  
+  // Local auth operations
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(userData: InsertUser): Promise<User>;
+  updateUserLoginAttempts(userId: string, attempts: number, lockoutUntil: Date | null): Promise<void>;
+  updateUserActivity(userId: string, lastAuthenticatedAt: Date | null, lastActivityAt: Date | null): Promise<void>;
+  getUserByEmailVerificationToken(token: string): Promise<User | undefined>;
+  verifyUserEmail(userId: string): Promise<void>;
+  updateEmailVerificationToken(userId: string, token: string, expires: Date): Promise<void>;
+  getUserByPasswordResetToken(token: string): Promise<User | undefined>;
+  updatePasswordResetToken(userId: string, token: string, expires: Date): Promise<void>;
+  updateUserPassword(userId: string, passwordHash: string): Promise<void>;
 
   // Event operations
   getEvents(): Promise<Event[]>;
@@ -285,11 +297,75 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserActivity(userId: string): Promise<void> {
-    await db
-      .update(users)
-      .set({ lastActivityAt: new Date() })
-      .where(eq(users.id, userId));
+  async updateUserActivity(userId: string, lastAuthenticatedAt: Date | null, lastActivityAt: Date | null): Promise<void> {
+    const updateData: any = { updatedAt: new Date() };
+    if (lastAuthenticatedAt !== null) updateData.lastAuthenticatedAt = lastAuthenticatedAt;
+    if (lastActivityAt !== null) updateData.lastActivityAt = lastActivityAt;
+    await db.update(users).set(updateData).where(eq(users.id, userId));
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(userData).returning();
+    return user;
+  }
+
+  async updateUserLoginAttempts(userId: string, attempts: number, lockoutUntil: Date | null): Promise<void> {
+    await db.update(users).set({ 
+      failedLoginAttempts: attempts, 
+      lockoutUntil,
+      updatedAt: new Date() 
+    }).where(eq(users.id, userId));
+  }
+
+  async getUserByEmailVerificationToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.emailVerificationToken, token));
+    return user;
+  }
+
+  async verifyUserEmail(userId: string): Promise<void> {
+    await db.update(users).set({
+      emailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null,
+      updatedAt: new Date()
+    }).where(eq(users.id, userId));
+  }
+
+  async updateEmailVerificationToken(userId: string, token: string, expires: Date): Promise<void> {
+    await db.update(users).set({
+      emailVerificationToken: token,
+      emailVerificationExpires: expires,
+      updatedAt: new Date()
+    }).where(eq(users.id, userId));
+  }
+
+  async getUserByPasswordResetToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.passwordResetToken, token));
+    return user;
+  }
+
+  async updatePasswordResetToken(userId: string, token: string, expires: Date): Promise<void> {
+    await db.update(users).set({
+      passwordResetToken: token,
+      passwordResetExpires: expires,
+      updatedAt: new Date()
+    }).where(eq(users.id, userId));
+  }
+
+  async updateUserPassword(userId: string, passwordHash: string): Promise<void> {
+    await db.update(users).set({
+      passwordHash,
+      passwordResetToken: null,
+      passwordResetExpires: null,
+      failedLoginAttempts: 0,
+      lockoutUntil: null,
+      updatedAt: new Date()
+    }).where(eq(users.id, userId));
   }
 
   // Membership operations

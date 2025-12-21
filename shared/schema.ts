@@ -18,7 +18,7 @@ import { z } from "zod";
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['USER', 'ADMIN', 'SUPER_ADMIN']);
 export const membershipTierEnum = pgEnum('membership_tier', ['FOUNDING', 'GOLD', 'SILVER', 'GUEST']);
-export const membershipStatusEnum = pgEnum('membership_status', ['ACTIVE', 'EXPIRED', 'SUSPENDED']);
+export const membershipStatusEnum = pgEnum('membership_status', ['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'ACTIVE', 'EXPIRED', 'SUSPENDED']);
 export const bookingStatusEnum = pgEnum('booking_status', ['PENDING', 'CONFIRMED', 'CANCELLED']);
 export const payerTypeEnum = pgEnum('payer_type', ['SELF', 'MEMBER']);
 export const eventTypeEnum = pgEnum('event_type', ['ACADEMY', 'TOURNAMENT', 'CLASS', 'SOCIAL']);
@@ -38,10 +38,11 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// Users table - Required for Replit Auth
+// Users table - Local authentication with Passport.js
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
+  passwordHash: varchar("password_hash"),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
@@ -53,6 +54,24 @@ export const users = pgTable("users", {
   creditBalance: integer("credit_balance").default(0),
   totalHoursPlayed: integer("total_hours_played").default(0),
   stripeCustomerId: varchar("stripe_customer_id"),
+  
+  // Email verification
+  emailVerified: boolean("email_verified").default(false),
+  emailVerificationToken: varchar("email_verification_token"),
+  emailVerificationExpires: timestamp("email_verification_expires"),
+  
+  // Password reset
+  passwordResetToken: varchar("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires"),
+  
+  // Account lockout (after failed login attempts)
+  failedLoginAttempts: integer("failed_login_attempts").default(0),
+  lockoutUntil: timestamp("lockout_until"),
+  
+  // Terms & conditions acceptance
+  termsAcceptedAt: timestamp("terms_accepted_at"),
+  
+  // Session tracking
   lastAuthenticatedAt: timestamp("last_authenticated_at"),
   lastActivityAt: timestamp("last_activity_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -67,8 +86,16 @@ export const memberships = pgTable("memberships", {
   tier: membershipTierEnum("tier").default('GUEST').notNull(),
   validFrom: timestamp("valid_from").defaultNow().notNull(),
   validTo: timestamp("valid_to").notNull(),
-  status: membershipStatusEnum("status").default('ACTIVE').notNull(),
+  status: membershipStatusEnum("status").default('PENDING_PAYMENT').notNull(),
   guestPasses: integer("guest_passes").default(0),
+  
+  // Payment workflow tracking
+  paymentReference: varchar("payment_reference"),
+  paymentClaimedAt: timestamp("payment_claimed_at"),
+  paymentVerifiedAt: timestamp("payment_verified_at"),
+  paymentVerifiedBy: varchar("payment_verified_by").references(() => users.id),
+  paymentRejectedReason: text("payment_rejected_reason"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -643,4 +643,84 @@ export async function sendCareerApplicationEmail(application: { name: string; em
   );
 }
 
+export async function sendEmailVerificationEmail(user: { email: string; firstName: string; verificationToken: string }): Promise<boolean> {
+  const verificationUrl = `${process.env.APP_URL || 'https://thequarterdeck.pk'}/verify-email?token=${user.verificationToken}`;
+  
+  const html = emailWrapper(`
+    <div class="header">
+      <h1>Verify Your Email</h1>
+      <p>Welcome to The Quarterdeck</p>
+    </div>
+    <div class="content">
+      <p>Hello ${user.firstName},</p>
+      <p>Thank you for signing up! Please verify your email address to complete your registration and access all features.</p>
+      
+      <div class="highlight">
+        <p style="margin: 0;"><strong>This verification link will expire in 15 minutes.</strong></p>
+      </div>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verificationUrl}" class="button">Verify Email Address</a>
+      </div>
+      
+      <p style="font-size: 12px; color: #64748b;">If the button doesn't work, copy and paste this link into your browser:</p>
+      <p style="font-size: 12px; word-break: break-all; color: #2563eb;">${verificationUrl}</p>
+      
+      <div class="warning">
+        <p style="margin: 0;">If you did not create an account, please ignore this email.</p>
+      </div>
+    </div>
+    <div class="footer">
+      <p>The Quarterdeck Sports & Recreation Complex</p>
+      <p>Islamabad, Pakistan</p>
+    </div>
+  `);
+  
+  return emailService.sendEmail(
+    user.email,
+    `Verify Your Email | The Quarterdeck`,
+    html
+  );
+}
+
+export async function sendPasswordResetEmail(user: { email: string; firstName: string; resetToken: string }): Promise<boolean> {
+  const resetUrl = `${process.env.APP_URL || 'https://thequarterdeck.pk'}/reset-password?token=${user.resetToken}`;
+  
+  const html = emailWrapper(`
+    <div class="header">
+      <h1>Reset Your Password</h1>
+      <p>The Quarterdeck</p>
+    </div>
+    <div class="content">
+      <p>Hello ${user.firstName},</p>
+      <p>We received a request to reset your password. Click the button below to create a new password:</p>
+      
+      <div class="highlight">
+        <p style="margin: 0;"><strong>This link will expire in 60 minutes.</strong></p>
+      </div>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" class="button">Reset Password</a>
+      </div>
+      
+      <p style="font-size: 12px; color: #64748b;">If the button doesn't work, copy and paste this link into your browser:</p>
+      <p style="font-size: 12px; word-break: break-all; color: #2563eb;">${resetUrl}</p>
+      
+      <div class="warning">
+        <p style="margin: 0;">If you did not request a password reset, please ignore this email. Your password will remain unchanged.</p>
+      </div>
+    </div>
+    <div class="footer">
+      <p>The Quarterdeck Sports & Recreation Complex</p>
+      <p>Islamabad, Pakistan</p>
+    </div>
+  `);
+  
+  return emailService.sendEmail(
+    user.email,
+    `Reset Your Password | The Quarterdeck`,
+    html
+  );
+}
+
 export { emailService };
