@@ -36,6 +36,21 @@ The PostgreSQL database schema is managed with Drizzle ORM and Drizzle Kit, defi
 
 An `/admin` panel provides role-based access (ADMIN, SUPER_ADMIN) for managing CMS content, facilities, pricing, announcements, careers, rules, and gallery images. All admin API endpoints are protected and use Zod for validation.
 
+### Membership Tier Management
+
+Dynamic membership tier definitions stored in `membership_tier_definitions` table. Features include:
+- **Tier Properties**: slug, displayName, description, color (hex), discountPercent, guestPassesIncluded, benefits array
+- **Admin UI**: Full CRUD at `/qdadmin2026/membership-tiers` with color picker, benefit management, and active/inactive toggle
+- **Default Tiers**: founding (25% discount, 10 guests), gold (20%, 4 guests), silver (10%, 2 guests), guest (0%, 0 guests)
+- **Integration**: PricingManagement dropdown dynamically populated from tier definitions
+
+Key files:
+- `shared/schema.ts`: membershipTierDefinitions table and schemas
+- `server/migrations.ts`: Runtime table creation and seeding
+- `server/storage.ts`: CRUD methods for tier definitions
+- `server/routes.ts`: Admin API endpoints at `/api/admin/membership-tiers`
+- `client/src/pages/admin/MembershipTierManagement.tsx`: Admin UI component
+
 ### Security & Validation
 
 The system incorporates double-booking prevention, membership number format validation (e.g., QD-XXXX), payer validation for booking on behalf of others, and role-based access control for admin routes. Server-side validation with Zod is implemented across all critical endpoints, including payment processing.
