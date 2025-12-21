@@ -7,6 +7,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import connectPg from "connect-pg-simple";
 import createMemoryStore from "memorystore";
 import { storage } from "./storage";
+import { getDatabaseUrl } from "./db";
 import { sendWelcomeEmail, sendPasswordResetEmail, sendEmailVerificationEmail } from "./email";
 
 const SALT_ROUNDS = 12;
@@ -23,12 +24,17 @@ export function getSession() {
   
   let sessionStore: session.Store;
   
-  const usePgStore = process.env.USE_PG_SESSION_STORE === 'true' && process.env.DATABASE_URL;
+  let dbUrl: string | null = null;
+  try {
+    dbUrl = getDatabaseUrl();
+  } catch {}
+  
+  const usePgStore = process.env.USE_PG_SESSION_STORE === 'true' && dbUrl;
   
   if (usePgStore) {
     const pgStore = connectPg(session);
     sessionStore = new pgStore({
-      conString: process.env.DATABASE_URL,
+      conString: dbUrl,
       createTableIfMissing: false,
       ttl: sessionTtl,
       tableName: "sessions",
