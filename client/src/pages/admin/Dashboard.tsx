@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { useAdminPath } from "@/hooks/useAdminPath";
 import { 
   Building2, Users, Calendar, Bell, Briefcase, FileText, Image, DollarSign,
   TrendingUp, Clock, CheckCircle2, AlertCircle, Eye, ChevronRight
@@ -46,6 +47,9 @@ const BOOKING_COLORS = {
 };
 
 export default function AdminDashboard() {
+  const { adminPath } = useAdminPath();
+  const basePath = `/${adminPath}`;
+  
   const { data: facilities } = useQuery<Facility[]>({
     queryKey: ["/api/admin/facilities"],
   });
@@ -223,7 +227,7 @@ export default function AdminDashboard() {
                   Review and verify payments to confirm bookings.
                 </p>
               </div>
-              <Link href="/admin/bookings">
+              <Link href={`${basePath}/bookings`}>
                 <Button size="sm" variant="outline" data-testid="button-view-pending">
                   View Pending <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -355,7 +359,7 @@ export default function AdminDashboard() {
               <CardTitle className="text-lg">Recent Bookings</CardTitle>
               <CardDescription>Latest booking activity</CardDescription>
             </div>
-            <Link href="/admin/bookings">
+            <Link href={`${basePath}/bookings`}>
               <Button variant="outline" size="sm" data-testid="button-view-all-bookings">
                 View All <ChevronRight className="w-4 h-4 ml-1" />
               </Button>

@@ -97,6 +97,12 @@ export async function registerRoutes(
   // Session heartbeat for all authenticated users - uses isAuthenticated for OIDC token refresh and timeout enforcement
   app.post('/api/session/heartbeat', isAuthenticated, sessionHeartbeat);
 
+  // Admin config endpoint - returns masked admin path only to authenticated admins
+  app.get('/api/admin/config', isAdmin, async (_req, res) => {
+    const adminPath = process.env.ADMIN_PATH || 'admin';
+    res.json({ adminPath });
+  });
+
   // ========== MEMBERSHIP ROUTES ==========
   app.get('/api/memberships/my', isAuthenticated, async (req: any, res) => {
     try {

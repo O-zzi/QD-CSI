@@ -24,28 +24,31 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import type { User, Booking, Facility } from "@shared/schema";
 import { useAdminSession } from "@/hooks/useAdminSession";
+import { useAdminPath } from "@/hooks/useAdminPath";
 
-const navItems = [
-  { path: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/admin/branding", label: "Branding & Nav", icon: Palette },
-  { path: "/admin/homepage", label: "Site Content", icon: Home },
-  { path: "/admin/coming-soon", label: "Coming Soon", icon: Clock },
-  { path: "/admin/facilities", label: "Facilities", icon: Building2 },
-  { path: "/admin/bookings", label: "Bookings", icon: CreditCard },
-  { path: "/admin/roadmap", label: "Construction Status", icon: HardHat },
-  { path: "/admin/events", label: "Events & Academies", icon: Calendar },
-  { path: "/admin/pricing", label: "Pricing Tiers", icon: DollarSign },
-  { path: "/admin/announcements", label: "Announcements", icon: Bell },
-  { path: "/admin/careers", label: "Careers", icon: Briefcase },
-  { path: "/admin/rules", label: "Rules & Safety", icon: FileText },
-  { path: "/admin/policies", label: "Privacy & Terms", icon: ShieldCheck },
-  { path: "/admin/gallery", label: "Gallery", icon: Image },
-  { path: "/admin/site-images", label: "Site Images", icon: Image },
-];
+function getNavItems(basePath: string) {
+  return [
+    { path: basePath, label: "Dashboard", icon: LayoutDashboard },
+    { path: `${basePath}/branding`, label: "Branding & Nav", icon: Palette },
+    { path: `${basePath}/homepage`, label: "Site Content", icon: Home },
+    { path: `${basePath}/coming-soon`, label: "Coming Soon", icon: Clock },
+    { path: `${basePath}/facilities`, label: "Facilities", icon: Building2 },
+    { path: `${basePath}/bookings`, label: "Bookings", icon: CreditCard },
+    { path: `${basePath}/roadmap`, label: "Construction Status", icon: HardHat },
+    { path: `${basePath}/events`, label: "Events & Academies", icon: Calendar },
+    { path: `${basePath}/pricing`, label: "Pricing Tiers", icon: DollarSign },
+    { path: `${basePath}/announcements`, label: "Announcements", icon: Bell },
+    { path: `${basePath}/careers`, label: "Careers", icon: Briefcase },
+    { path: `${basePath}/rules`, label: "Rules & Safety", icon: FileText },
+    { path: `${basePath}/policies`, label: "Privacy & Terms", icon: ShieldCheck },
+    { path: `${basePath}/gallery`, label: "Gallery", icon: Image },
+    { path: `${basePath}/site-images`, label: "Site Images", icon: Image },
+  ];
+}
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -56,8 +59,12 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
   const [location, setLocation] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { adminPath } = useAdminPath();
   
   useAdminSession();
+  
+  const basePath = `/${adminPath}`;
+  const navItems = useMemo(() => getNavItems(basePath), [basePath]);
   
   const { data: user, isLoading: userLoading } = useQuery<User>({
     queryKey: ["/api/auth/user"],

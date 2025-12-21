@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SessionProvider } from "@/components/SessionProvider";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { useAdminPath } from "@/hooks/useAdminPath";
 import Home from "@/pages/Home";
 import Booking from "@/pages/Booking";
 import Profile from "@/pages/Profile";
@@ -42,7 +43,41 @@ import SiteImagesManagement from "@/pages/admin/SiteImagesManagement";
 import BookingsManagement from "@/pages/admin/BookingsManagement";
 import BrandingManagement from "@/pages/admin/BrandingManagement";
 
-function Router() {
+function AdminRoutes() {
+  const { adminPath, isAuthorized, isLoading } = useAdminPath();
+  
+  if (isLoading) {
+    return null;
+  }
+  
+  if (!isAuthorized) {
+    return null;
+  }
+  
+  const base = `/${adminPath}`;
+  
+  return (
+    <Switch>
+      <Route path={`${base}/homepage`} component={HomepageManagement} />
+      <Route path={`${base}/coming-soon`} component={ComingSoonManagement} />
+      <Route path={`${base}/facilities`} component={FacilitiesManagement} />
+      <Route path={`${base}/roadmap`} component={RoadmapManagement} />
+      <Route path={`${base}/events`} component={EventsManagement} />
+      <Route path={`${base}/pricing`} component={PricingManagement} />
+      <Route path={`${base}/announcements`} component={AnnouncementsManagement} />
+      <Route path={`${base}/careers`} component={CareersManagement} />
+      <Route path={`${base}/rules`} component={RulesManagement} />
+      <Route path={`${base}/policies`} component={PolicyManagement} />
+      <Route path={`${base}/gallery`} component={GalleryManagement} />
+      <Route path={`${base}/site-images`} component={SiteImagesManagement} />
+      <Route path={`${base}/bookings`} component={BookingsManagement} />
+      <Route path={`${base}/branding`} component={BrandingManagement} />
+      <Route path={base} component={AdminDashboard} />
+    </Switch>
+  );
+}
+
+function PublicRoutes() {
   return (
     <Switch>
       <Route path="/booking" component={Booking} />
@@ -64,24 +99,18 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
       <Route path="/verify-email" component={VerifyEmail} />
-      <Route path="/admin/homepage" component={HomepageManagement} />
-      <Route path="/admin/coming-soon" component={ComingSoonManagement} />
-      <Route path="/admin/facilities" component={FacilitiesManagement} />
-      <Route path="/admin/roadmap" component={RoadmapManagement} />
-      <Route path="/admin/events" component={EventsManagement} />
-      <Route path="/admin/pricing" component={PricingManagement} />
-      <Route path="/admin/announcements" component={AnnouncementsManagement} />
-      <Route path="/admin/careers" component={CareersManagement} />
-      <Route path="/admin/rules" component={RulesManagement} />
-      <Route path="/admin/policies" component={PolicyManagement} />
-      <Route path="/admin/gallery" component={GalleryManagement} />
-      <Route path="/admin/site-images" component={SiteImagesManagement} />
-      <Route path="/admin/bookings" component={BookingsManagement} />
-      <Route path="/admin/branding" component={BrandingManagement} />
-      <Route path="/admin" component={AdminDashboard} />
       <Route path="/" component={Home} />
       <Route component={NotFound} />
     </Switch>
+  );
+}
+
+function Router() {
+  return (
+    <>
+      <AdminRoutes />
+      <PublicRoutes />
+    </>
   );
 }
 
