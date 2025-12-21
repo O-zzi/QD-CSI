@@ -12,11 +12,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Calendar, Users, Clock, Trophy, Check, Loader2, LogIn } from "lucide-react";
+import { Calendar, Users, Clock, Trophy, Check, Loader2, LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Event } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 
 const registrationFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -148,24 +150,22 @@ export default function Events() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-      <div className="sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
-        <div className="qd-container py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" data-testid="button-back-home">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <h1 className="text-xl font-bold" data-testid="text-events-title">Events & Academies</h1>
-              <p className="text-xs text-muted-foreground">Tournaments, leagues, and training programs</p>
-            </div>
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
+      <Navbar />
+      <main className="flex-1">
+        <div className="relative h-[30vh] min-h-[200px] bg-[#2a4060] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2" data-testid="text-events-title">
+              Events & Academies
+            </h1>
+            <p className="text-lg max-w-2xl opacity-90">
+              Tournaments, leagues, and training programs
+            </p>
           </div>
         </div>
-      </div>
 
-      <div className="qd-container py-8">
+        <div className="qd-container py-8">
         {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
@@ -277,7 +277,10 @@ export default function Events() {
             </CardContent>
           </Card>
         )}
-      </div>
+        </div>
+      </main>
+
+      <Footer />
 
       {/* Registration Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

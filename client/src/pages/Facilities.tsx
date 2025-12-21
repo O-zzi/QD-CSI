@@ -2,9 +2,11 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ChevronRight, Users, Clock, Star, Crosshair, Spade, Building2 } from "lucide-react";
+import { ChevronRight, Users, Clock, Star, Crosshair, Spade, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { GiTennisRacket, GiSquare } from "react-icons/gi";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_d29f9aaf.jpg";
 import squashImage from "@assets/stock_images/professional_squash__c4dca43a.jpg";
@@ -148,25 +150,22 @@ export default function Facilities() {
   const activeFacilities = facilityList.filter(f => f.isActive);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="relative h-[40vh] min-h-[300px] bg-[#2a4060] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-facilities-title">
-            Our Facilities
-          </h1>
-          <p className="text-xl max-w-3xl opacity-90">
-            World-class sports and recreation facilities in Islamabad
-          </p>
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <main className="flex-1">
+        <div className="relative h-[30vh] min-h-[200px] bg-[#2a4060] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2" data-testid="text-facilities-title">
+              Our Facilities
+            </h1>
+            <p className="text-lg max-w-2xl opacity-90">
+              World-class sports and recreation facilities in Islamabad
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-6 py-12">
-        <Link href="/">
-          <Button variant="ghost" className="mb-8" data-testid="button-back-home">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Home
-          </Button>
-        </Link>
+        <div className="container mx-auto px-6 py-12">
 
         <div className="max-w-5xl mx-auto">
           <div className="grid gap-6">
@@ -261,7 +260,9 @@ export default function Facilities() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

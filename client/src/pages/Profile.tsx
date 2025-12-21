@@ -13,10 +13,12 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  ArrowLeft, User, Mail, Calendar, Award, 
+  User, Mail, Calendar, Award, 
   Clock, CreditCard, Shield, FileCheck, Users, Bell, Check, Trash2, History, CalendarDays, Camera, Loader2
 } from "lucide-react";
 import type { Booking, Membership, Notification } from "@shared/schema";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 
 export default function Profile() {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
@@ -121,35 +123,49 @@ export default function Profile() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-        <div className="qd-container py-8">
-          <Skeleton className="h-12 w-64 mb-8" />
-          <div className="grid md:grid-cols-2 gap-6">
-            <Skeleton className="h-64" />
-            <Skeleton className="h-64" />
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
+        <Navbar />
+        <main className="flex-1">
+          <div className="relative h-[20vh] min-h-[150px] bg-[#2a4060] overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+            <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+              <h1 className="text-3xl md:text-4xl font-bold">My Profile</h1>
+            </div>
           </div>
-        </div>
+          <div className="qd-container py-8">
+            <Skeleton className="h-12 w-64 mb-8" />
+            <div className="grid md:grid-cols-2 gap-6">
+              <Skeleton className="h-64" />
+              <Skeleton className="h-64" />
+            </div>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
-        <Card className="max-w-md w-full mx-4">
-          <CardContent className="pt-6 text-center">
-            <User className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Sign In Required</h2>
-            <p className="text-muted-foreground mb-6">
-              Please log in to view your profile and booking history.
-            </p>
-            <Link href="/login">
-              <Button className="w-full" data-testid="button-login-prompt">
-                Sign In
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <Card className="max-w-md w-full mx-4">
+            <CardContent className="pt-6 text-center">
+              <User className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Sign In Required</h2>
+              <p className="text-muted-foreground mb-6">
+                Please log in to view your profile and booking history.
+              </p>
+              <Link href="/login">
+                <Button className="w-full" data-testid="button-login-prompt">
+                  Sign In
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </main>
+        <Footer />
       </div>
     );
   }
@@ -195,29 +211,18 @@ export default function Profile() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-      <div className="sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
-        <div className="qd-container py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" data-testid="button-back-home">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <h1 className="text-xl font-bold" data-testid="text-profile-title">Member Profile</h1>
-              <p className="text-xs text-muted-foreground">Manage your account and view booking history</p>
-            </div>
-            {membership && (
-              <Badge className={tierColors[membership.tier] || tierColors.GUEST}>
-                {membership.tier} Member
-              </Badge>
-            )}
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
+      <Navbar />
+      <main className="flex-1">
+        <div className="relative h-[20vh] min-h-[150px] bg-[#2a4060] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+            <h1 className="text-3xl md:text-4xl font-bold" data-testid="text-profile-title">
+              My Profile
+            </h1>
           </div>
         </div>
-      </div>
-
-      <div className="qd-container py-6">
+        <div className="qd-container py-6">
         <Tabs defaultValue={defaultTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
             <TabsTrigger value="account" data-testid="tab-account">
@@ -565,7 +570,9 @@ export default function Profile() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

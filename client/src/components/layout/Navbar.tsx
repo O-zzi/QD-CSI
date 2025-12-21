@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, User, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -10,6 +10,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { NavbarItem } from "@shared/schema";
@@ -65,6 +66,13 @@ export function Navbar({ onScrollTo }: NavbarProps) {
       }
     },
   });
+
+  const { data: adminConfig } = useQuery<{ adminPath: string }>({
+    queryKey: ['/api/admin/config'],
+    enabled: isAuthenticated && (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'),
+  });
+
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
   const scrollToSection = (id: string) => {
     if (location !== "/") {
@@ -165,11 +173,41 @@ export function Navbar({ onScrollTo }: NavbarProps) {
                     Book Now
                   </Button>
                 </Link>
-                <Link href="/profile">
-                  <Button variant="outline" className="rounded-full" data-testid="button-profile">
-                    {user?.firstName || "Profile"}
-                  </Button>
-                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="rounded-full gap-2" data-testid="button-user-menu">
+                      <User className="w-4 h-4" />
+                      {user?.firstName || "Account"}
+                      <ChevronDown className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <Link href="/profile">
+                      <DropdownMenuItem className="cursor-pointer" data-testid="menu-item-profile">
+                        <User className="w-4 h-4 mr-2" />
+                        My Profile
+                      </DropdownMenuItem>
+                    </Link>
+                    {isAdmin && adminConfig?.adminPath && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <Link href={`/${adminConfig.adminPath}`}>
+                          <DropdownMenuItem className="cursor-pointer" data-testid="menu-item-admin">
+                            <Settings className="w-4 h-4 mr-2" />
+                            Admin Dashboard
+                          </DropdownMenuItem>
+                        </Link>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <a href="/api/logout">
+                      <DropdownMenuItem className="cursor-pointer text-destructive" data-testid="menu-item-logout">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Log Out
+                      </DropdownMenuItem>
+                    </a>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <>
@@ -228,18 +266,28 @@ export function Navbar({ onScrollTo }: NavbarProps) {
             <div className="flex flex-col gap-2 mt-4">
               {isAuthenticated ? (
                 <>
-                  <Link href="/profile?tab=notifications" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full rounded-full" data-testid="button-mobile-notifications">
-                      Notifications
+                  <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full rounded-full gap-2" data-testid="button-mobile-profile">
+                      <User className="w-4 h-4" />
+                      My Profile
                     </Button>
                   </Link>
-                  <Link href="/booking">
+                  {isAdmin && adminConfig?.adminPath && (
+                    <Link href={`/${adminConfig.adminPath}`} onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full rounded-full gap-2" data-testid="button-mobile-admin">
+                        <Settings className="w-4 h-4" />
+                        Admin Dashboard
+                      </Button>
+                    </Link>
+                  )}
+                  <Link href="/booking" onClick={() => setMobileMenuOpen(false)}>
                     <Button className="w-full rounded-full" data-testid="button-mobile-book">
                       Book Now
                     </Button>
                   </Link>
                   <a href="/api/logout">
-                    <Button variant="outline" className="w-full rounded-full" data-testid="button-mobile-logout">
+                    <Button variant="outline" className="w-full rounded-full gap-2 text-destructive" data-testid="button-mobile-logout">
+                      <LogOut className="w-4 h-4" />
                       Log Out
                     </Button>
                   </a>

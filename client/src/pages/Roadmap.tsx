@@ -4,8 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, CheckCircle2, Clock, Calendar, Building2, PartyPopper, Check, Hammer, HardHat, Rocket, Target } from "lucide-react";
+import { CheckCircle2, Clock, Calendar, Building2, PartyPopper, Check, Hammer, HardHat, Rocket, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 
 interface ConstructionPhase {
   id: string;
@@ -69,25 +71,22 @@ export default function Roadmap() {
   }, [sortedPhases]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="relative h-[40vh] min-h-[300px] bg-[#2a4060] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-roadmap-title">
-            Development Roadmap
-          </h1>
-          <p className="text-xl max-w-3xl opacity-90">
-            Follow our journey from groundbreaking to grand opening
-          </p>
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <main className="flex-1">
+        <div className="relative h-[30vh] min-h-[200px] bg-[#2a4060] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
+          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2" data-testid="text-roadmap-title">
+              Development Roadmap
+            </h1>
+            <p className="text-lg max-w-2xl opacity-90">
+              Follow our journey from groundbreaking to grand opening
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-6 py-12">
-        <Link href="/">
-          <Button variant="ghost" className="mb-8" data-testid="button-back-home">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Home
-          </Button>
-        </Link>
+        <div className="container mx-auto px-6 py-12">
 
         {/* Overall Progress Summary */}
         <div className="max-w-5xl mx-auto mb-12">
@@ -272,7 +271,9 @@ export default function Roadmap() {
             </Link>
           </div>
         </div>
-      </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

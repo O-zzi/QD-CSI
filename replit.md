@@ -166,3 +166,25 @@ Key files:
 - `server/routes.ts`: notification API endpoints
 - `client/src/components/NotificationBell.tsx`: Header notification component
 - `client/src/pages/Profile.tsx`: Enhanced profile page with tabs
+
+## Page Layout Standardization
+
+All major pages follow a consistent layout structure with unified headers and footers:
+
+### Layout Pattern
+- Wrapper: `min-h-screen flex flex-col bg-background`
+- Navbar: Shared `<Navbar />` component from `@/components/layout/Navbar`
+- Main: `<main className="flex-1">` wraps page content
+- Footer: Shared `<Footer />` component from `@/components/layout/Footer`
+
+### Hero Banner Heights
+- **Main Pages** (Facilities, Events, Roadmap): `h-[30vh] min-h-[200px]`
+- **Profile Page**: `h-[20vh] min-h-[150px]`
+
+### Key Files
+- `client/src/components/layout/Navbar.tsx`: Shared navigation with user dropdown, mobile menu
+- `client/src/components/layout/Footer.tsx`: Shared footer with contact info, social links
+- `client/src/pages/Events.tsx`: Events & Academies page with registration
+- `client/src/pages/Facilities.tsx`: Facilities listing page
+- `client/src/pages/Roadmap.tsx`: Construction roadmap page
+- `client/src/pages/Profile.tsx`: User profile with Navbar/Footer in all states (loading, unauthenticated, authenticated)
