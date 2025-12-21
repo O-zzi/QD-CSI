@@ -12,8 +12,8 @@
 
 | Batch | Focus | Est. Time | Status |
 |-------|-------|-----------|--------|
-| Batch 1 | CMS Dynamism + Database Prep | 4-5 hours | IN PROGRESS |
-| Batch 2 | Membership & Auth System | 4-5 hours | Pending |
+| Batch 1 | CMS Dynamism + Database Prep | 4-5 hours | DONE |
+| Batch 2 | Membership & Auth System | 4-5 hours | DONE |
 | Batch 3 | Booking Portal Fixes | 3-4 hours | Pending |
 | Batch 4 | Member Dashboard & Notifications | 3-4 hours | Pending |
 | Batch 5 | Security & UX Hardening | 2-3 hours | Pending |
@@ -33,10 +33,10 @@ Ensure ALL content is database-driven and editable via admin panel. NO HARDCODED
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 1.1 | Create DEPLOYMENT_ROADMAP.md | DONE | This document |
-| 1.2 | Audit all pages for hardcoded content | IN PROGRESS | See inventory below |
-| 1.3 | Extend CMS schema for page content | Pending | cms_fields, nav_items |
-| 1.4 | Add WhatsApp settings to site_settings | Pending | Phone, default message |
-| 1.5 | Verify admin CRUD for all sections | Pending | Full CRUD for all content |
+| 1.2 | Audit all pages for hardcoded content | DONE | See inventory below |
+| 1.3 | Extend CMS schema for page content | DONE | cms_fields, nav_items, siteImages tables exist |
+| 1.4 | Add WhatsApp settings to site_settings | DONE | Phone, default message added to DB |
+| 1.5 | Verify admin CRUD for all sections | DONE | Admin panel has CRUD for all content |
 
 ### Hardcoded Content Inventory
 
@@ -80,20 +80,20 @@ Replace Replit Auth with Passport.js, implement proper membership workflow.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 2.1 | Make membership tiers fully dynamic | Pending | Remove hardcoded enum |
-| 2.2 | Add membershipStatus field | Pending | See status flow below |
-| 2.3 | Add passwordHash column to users | Pending | bcrypt hashing |
-| 2.4 | Implement Passport.js local strategy | Pending | Login, session handling |
-| 2.5 | Build signup flow | Pending | Email verification, 15-min token |
-| 2.6 | Integrate Cloudflare Turnstile CAPTCHA | Pending | Signup + Contact forms |
-| 2.7 | Add terms acceptance tracking | Pending | T&C checkbox, date |
-| 2.8 | Implement admin approval workflow | Pending | Approve/Reject membership |
-| 2.9 | Add password reset flow | Pending | Secure token via email |
-| 2.10 | Add account lockout | Pending | After X failed attempts |
-| 2.11 | Implement membership expiry | Pending | Auto-downgrade to GUEST |
-| 2.12 | Add guest pass tracking | Pending | Limit per tier |
-| 2.13 | Add payment reference tracking | Pending | WhatsApp payment refs |
-| 2.14 | Create admin seeding script | Pending | Initial admin user |
+| 2.1 | Make membership tiers fully dynamic | DONE | Tiers from database |
+| 2.2 | Add membershipStatus field | DONE | See status flow below |
+| 2.3 | Add passwordHash column to users | DONE | bcrypt hashing implemented |
+| 2.4 | Implement Passport.js local strategy | DONE | Login, session with PostgreSQL store |
+| 2.5 | Build signup flow | DONE | Email verification with 15-min token |
+| 2.6 | Integrate Cloudflare Turnstile CAPTCHA | DEFERRED | Move to Batch 5 |
+| 2.7 | Add terms acceptance tracking | DONE | termsAcceptedAt field |
+| 2.8 | Implement admin approval workflow | DONE | Admin can approve/reject |
+| 2.9 | Add password reset flow | DONE | 60-min secure token via email |
+| 2.10 | Add account lockout | DONE | 5 attempts, 30-min lockout |
+| 2.11 | Implement membership expiry | DONE | Auto-downgrade logic ready |
+| 2.12 | Add guest pass tracking | DONE | guestPasses field exists |
+| 2.13 | Add payment reference tracking | DONE | Payment workflow integrated |
+| 2.14 | Create admin seeding script | DONE | scripts/seed-admin.ts |
 
 ### Membership Status Flow
 ```
@@ -287,8 +287,8 @@ PORT=5000
 ## Progress Tracking
 
 ### Completed Batches
-- [ ] Batch 1: CMS Dynamism
-- [ ] Batch 2: Membership & Auth
+- [x] Batch 1: CMS Dynamism (COMPLETE)
+- [x] Batch 2: Membership & Auth (COMPLETE)
 - [ ] Batch 3: Booking Portal
 - [ ] Batch 4: Dashboard & Notifications
 - [ ] Batch 5: Security & UX
