@@ -530,6 +530,19 @@ export const cmsFields = pgTable("cms_fields", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Notifications table (in-app notifications for users)
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar("type").notNull(), // 'booking', 'payment', 'membership', 'event', 'system'
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  link: varchar("link"), // optional link to relevant page
+  isRead: boolean("is_read").default(false),
+  metadata: jsonb("metadata"), // additional data like bookingId, eventId, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   membership: one(memberships, {
@@ -608,6 +621,13 @@ export const leaderboardRelations = relations(leaderboard, ({ one }) => ({
   facility: one(facilities, {
     fields: [leaderboard.facilityId],
     references: [facilities.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
   }),
 }));
 
@@ -761,6 +781,11 @@ export const insertNavbarItemSchema = createInsertSchema(navbarItems).omit({
   updatedAt: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -847,3 +872,6 @@ export type InsertSiteImage = z.infer<typeof insertSiteImageSchema>;
 
 export type NavbarItem = typeof navbarItems.$inferSelect;
 export type InsertNavbarItem = z.infer<typeof insertNavbarItemSchema>;
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
