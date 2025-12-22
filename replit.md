@@ -203,3 +203,39 @@ All major pages follow a consistent layout structure with unified headers and fo
 - `client/src/pages/Facilities.tsx`: Facilities listing page
 - `client/src/pages/Roadmap.tsx`: Construction roadmap page
 - `client/src/pages/Profile.tsx`: User profile with Navbar/Footer in all states (loading, unauthenticated, authenticated)
+
+## Deployment Infrastructure (Batch 6)
+
+### Logging System
+- **Winston Integration**: Structured logging with JSON format for production, console for development
+- **Log Levels**: debug, info, warn, error (configurable via LOG_LEVEL env var)
+- **Log Files**: `logs/combined.log` and `logs/error.log` in production
+- **Request Logging**: Express middleware logs all API requests with response times
+
+### Environment Validation
+- Validates required environment variables at startup
+- Fails fast with clear error messages if DATABASE_URL or SESSION_SECRET missing
+- Warnings for optional but recommended variables (RESEND_API_KEY, ADMIN_PATH)
+
+### Health Check Endpoint
+- **Path**: `GET /api/health`
+- **Response**: status, timestamp, uptime, database connection, environment, version
+- **Use**: Monitoring, load balancer health checks, deployment verification
+
+### Passenger Compatibility
+- `server.js`: Entry point for Hostinger VPS with Passenger
+- Imports compiled `dist/index.cjs` for production deployment
+- `.htaccess`: Apache configuration for Passenger, gzip, caching, security headers
+
+### Deployment Files
+- `deployment/schema.sql`: Complete PostgreSQL schema for Supabase
+- `deployment/seed.sql`: Initial data (tiers, venues, facilities, settings)
+- `deployment/DEPLOYMENT_CHECKLIST.md`: Step-by-step deployment guide
+- `.env.example`: Template for environment variables
+- `.htaccess`: Apache/Passenger configuration
+
+Key files:
+- `server/logger.ts`: Winston logger configuration
+- `server/envValidation.ts`: Startup environment validation
+- `server.js`: Passenger entry point
+- `server/routes.ts`: Health check endpoint at `/api/health`
