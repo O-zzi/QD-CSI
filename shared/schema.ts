@@ -111,7 +111,7 @@ export const facilities = pgTable("facilities", {
   basePrice: integer("base_price").default(0).notNull(),
   minPlayers: integer("min_players").default(1),
   resourceCount: integer("resource_count").default(1),
-  requiresCertification: boolean("requires_certification").default(false),
+  requiresCertification: boolean("require_certification").default(false),
   isRestricted: boolean("is_restricted").default(false),
   status: facilityStatusEnum("status").default('PLANNED'),
   imageUrl: varchar("image_url"),
