@@ -1,0 +1,37 @@
+pm2 logs quarterdeck --lines 30
+[PM2] Applying action stopProcessId on app [quarterdeck](ids: [ 0 ])
+[PM2] [quarterdeck](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ quarterdeck        │ fork     │ 0    │ stopped   │ 0%       │ 0b       │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[PM2] Starting /home/u805618386/domains/palegreen-heron-229617.hostingersite.com                                                                                                                                                             /public_html/server.cjs in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ quarterdeck        │ fork     │ 0    │ stopped   │ 0%       │ 0b       │
+│ 1  │ quarterdeck        │ fork     │ 0    │ online    │ 0%       │ 18.0mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+[TAILING] Tailing last 30 lines for [quarterdeck] process (change the value with                                                                                                                                                              --lines option)
+/home/u805618386/.pm2/logs/quarterdeck-out.log last 30 lines:
+/home/u805618386/.pm2/logs/quarterdeck-error.log last 30 lines:
+0|quarterd | ReferenceError: require is not defined in ES module scope, you can                                                                                                                                                              use import instead
+0|quarterd | This file is being treated as an ES module because it has a '.js' f                                                                                                                                                             ile extension and '/home/u805618386/domains/palegreen-heron-229617.hostingersite                                                                                                                                                             .com/public_html/package.json' contains "type": "module". To treat it as a Commo                                                                                                                                                             nJS script, rename it to use the '.cjs' file extension.
+0|quarterd |     at file:///home/u805618386/domains/palegreen-heron-229617.hosti                                                                                                                                                             ngersite.com/public_html/server.js:14:1
+0|quarterd |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|quarterd |     at async ModuleLoader.import (node:internal/modules/esm/loader:                                                                                                                                                             606:24)
+
+1|quarterdeck  | Error: DATABASE_URL must be set or PGHOST/PGUSER/PGPASSWORD/PGD                                                                                                                                                             ATABASE must be set. Did you forget to provision a database?
+1|quarterdeck  |     at dv (/home/u805618386/domains/palegreen-heron-229617.host                                                                                                                                                             ingersite.com/public_html/dist/index.cjs:94:119797)
+1|quarterdeck  |     at Object.<anonymous> (/home/u805618386/domains/palegreen-h                                                                                                                                                             eron-229617.hostingersite.com/public_html/dist/index.cjs:94:119934)
+1|quarterdeck  |     at Module._compile (node:internal/modules/cjs/loader:1521:1                                                                                                                                                             4)
+1|quarterdeck  |     at Module._extensions..js (node:internal/modules/cjs/loader                                                                                                                                                             :1623:10)
+1|quarterdeck  |     at Module.load (node:internal/modules/cjs/loader:1266:32)
+1|quarterdeck  |     at Module._load (node:internal/modules/cjs/loader:1091:12)
+1|quarterdeck  |     at Module.require (node:internal/modules/cjs/loader:1289:19                                                                                                                                                             )
+1|quarterdeck  |     at Hook._require.Module.require (/home/u805618386/.nvm/vers                                                                                                                                                             ions/node/v20.19.6/lib/node_modules/pm2/node_modules/require-in-the-middle/index                                                                                                                                                             .js:101:39)
+1|quarterdeck  |     at require (node:internal/modules/helpers:182:18)
+1|quarterdeck  |     at Object.<anonymous> (/home/u805618386/domains/palegreen-h                                                                                                                                                             eron-229617.hostingersite.com/public_html/server.cjs:14:1)
+
