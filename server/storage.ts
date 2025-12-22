@@ -217,7 +217,7 @@ export interface IStorage {
   deleteFacilityVenue(id: string): Promise<void>;
   
   // Construction Phase operations
-  getConstructionPhases(venueId?: string): Promise<ConstructionPhase[]>;
+  getConstructionPhases(): Promise<ConstructionPhase[]>;
   createConstructionPhase(data: InsertConstructionPhase): Promise<ConstructionPhase>;
   updateConstructionPhase(id: string, data: Partial<InsertConstructionPhase>): Promise<ConstructionPhase | undefined>;
   deleteConstructionPhase(id: string): Promise<void>;
@@ -930,10 +930,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Construction Phase operations
-  async getConstructionPhases(venueId?: string): Promise<ConstructionPhase[]> {
-    if (venueId) {
-      return await db.select().from(constructionPhases).where(eq(constructionPhases.venueId, venueId)).orderBy(asc(constructionPhases.sortOrder));
-    }
+  async getConstructionPhases(): Promise<ConstructionPhase[]> {
     return await db.select().from(constructionPhases).orderBy(asc(constructionPhases.sortOrder));
   }
 

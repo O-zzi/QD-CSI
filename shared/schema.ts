@@ -111,7 +111,7 @@ export const facilities = pgTable("facilities", {
   basePrice: integer("base_price").default(0).notNull(),
   minPlayers: integer("min_players").default(1),
   resourceCount: integer("resource_count").default(1),
-  requiresCertification: boolean("requires_certification").default(false),
+  requiresCertification: boolean("require_certification").default(false),
   isRestricted: boolean("is_restricted").default(false),
   status: facilityStatusEnum("status").default('PLANNED'),
   imageUrl: varchar("image_url"),
@@ -503,7 +503,6 @@ export const hallActivities = pgTable("hall_activities", {
 // Construction Phases table
 export const constructionPhases = pgTable("construction_phases", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  venueId: varchar("venue_id").references(() => venues.id, { onDelete: 'cascade' }),
   label: varchar("label").notNull(),
   title: varchar("title").notNull(),
   status: constructionPhaseStatusEnum("status").default('NOT_STARTED'),
