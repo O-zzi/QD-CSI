@@ -5,8 +5,13 @@
  * Ensure you have run `npm run build` before deploying.
  */
 
-// Load environment variables from .env file
-require('dotenv').config();
+// Load environment variables from .env file (if dotenv available)
+try {
+  require('dotenv').config();
+} catch (e) {
+  // dotenv not available, env vars should be set by hosting environment
+  console.log('dotenv not available, using system environment variables');
+}
 
 // Set production environment
 process.env.NODE_ENV = 'production';
