@@ -1,0 +1,66 @@
+
+[u805618386@my-kul-web2051 ~]$ # Check the working app's structure
+ls -la ~/domains/thesportscollective.org/public_html/
+
+# Check its .htaccess
+cat ~/domains/thesportscollective.org/public_html/.htaccess
+
+# Check if it has server.js or app.js
+ls -la ~/domains/thesportscollective.org/public_html/*.js
+
+# Check tmp folder
+ls -la ~/domains/thesportscollective.org/public_html/tmp/
+total 1148
+drwxr-xr-x  12 u805618386 o1007739533   4096 Dec 22 05:57 .
+drwxr-xr-x   3 u805618386 o1007739533   4096 Dec 22 05:57 ..
+drwxr-xr-x   3 u805618386 o1007739533   4096 Dec 22 05:57 attached_assets
+drwx------   5 u805618386 o1007739533   4096 Dec 21 12:53 .builds
+drwxr-xr-x   4 u805618386 o1007739533   4096 Dec 22 05:57 client
+-rw-r--r--   1 u805618386 o1007739533    459 Dec 22 05:57 components.json
+-rw-r--r--   1 u805618386 o1007739533   4181 Dec 22 05:57 DEPLOY.md
+-rw-r--r--   1 u805618386 o1007739533   5669 Dec 22 05:57 design_guidelines.md
+drwxr-xr-x   3 u805618386 o1007739533   4096 Dec 22 05:57 dist
+-rw-r--r--   1 u805618386 o1007739533    325 Dec 22 05:57 drizzle.config.ts
+-rw-r--r--   1 u805618386 o1007739533    232 Dec 22 05:57 .env
+drwxr-xr-x   8 u805618386 o1007739533   4096 Dec 22 05:57 .git
+-rw-r--r--   1 u805618386 o1007739533    100 Dec 22 05:57 .gitignore
+-rw-r--r--   1 u805618386 o1007739533    453 Dec 22 05:57 .htaccess
+drwxr-xr-x 366 u805618386 o1007739533  12288 Dec 22 05:57 node_modules
+-rw-r--r--   1 u805618386 o1007739533   3898 Dec 22 05:57 package.json
+-rw-r--r--   1 u805618386 o1007739533 318446 Dec 22 05:57 package-lock.json
+-rw-r--r--   1 u805618386 o1007739533     80 Dec 22 05:57 postcss.config.js
+-rw-r--r--   1 u805618386 o1007739533    845 Dec 22 05:57 .replit
+-rw-r--r--   1 u805618386 o1007739533  12228 Dec 22 05:57 replit.md
+drwxr-xr-x   2 u805618386 o1007739533   4096 Dec 22 05:57 script
+drwxr-xr-x   4 u805618386 o1007739533   4096 Dec 22 05:57 server
+-rw-r--r--   1 u805618386 o1007739533    345 Dec 22 05:57 server.js
+drwxr-xr-x   3 u805618386 o1007739533   4096 Dec 22 05:57 shared
+-rw-r--r--   1 u805618386 o1007739533 624420 Dec 22 05:57 stderr.log
+-rw-r--r--   1 u805618386 o1007739533  27490 Dec 22 05:57 supabase_athletes_update.sql
+-rw-r--r--   1 u805618386 o1007739533  34297 Dec 22 05:57 supabase_data_import.sql
+-rw-r--r--   1 u805618386 o1007739533   4050 Dec 22 05:57 tailwind.config.ts
+-rw-r--r--   1 u805618386 o1007739533    194 Dec 22 05:57 test-env.js
+drwxr-xr-x   2 u805618386 o1007739533   4096 Dec 22 05:57 tmp
+-rw-r--r--   1 u805618386 o1007739533    657 Dec 22 05:57 tsconfig.json
+-rw-r--r--   1 u805618386 o1007739533    549 Dec 22 05:57 vite.config.prod.ts
+-rw-r--r--   1 u805618386 o1007739533   1080 Dec 22 05:57 vite.config.ts
+PassengerAppRoot /home/u805618386/apps/the-sports-collective
+PassengerAppType node
+PassengerNodejs /opt/alt/alt-nodejs20/root/bin/node
+PassengerStartupFile server.js
+PassengerBaseURI /
+
+SetEnv DATABASE_URL postgresql://postgres.jjicxmwzvfzzasrexvml:9hvkLfNcGO6J4ImZ@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+SetEnv SESSION_SECRET Q6sCtt6IA7zVKj4pI6e9zFudV0Id5DoK9qhMgk3807U=
+SetEnv NODE_ENV production
+SetEnv PORT 5000
+SetEnv ADMIN_PATH manage
+-rw-r--r-- 1 u805618386 o1007739533  80 Dec 22 05:57 /home/u805618386/domains/thesportscollective.org/public_html/postcss.config.js
+-rw-r--r-- 1 u805618386 o1007739533 345 Dec 22 05:57 /home/u805618386/domains/thesportscollective.org/public_html/server.js
+-rw-r--r-- 1 u805618386 o1007739533 194 Dec 22 05:57 /home/u805618386/domains/thesportscollective.org/public_html/test-env.js
+total 8
+drwxr-xr-x  2 u805618386 o1007739533 4096 Dec 22 05:57 .
+drwxr-xr-x 12 u805618386 o1007739533 4096 Dec 22 05:57 ..
+-rw-r--r--  1 u805618386 o1007739533    0 Dec 22 05:57 restart.txt
+-rw-r--r--  1 u805618386 o1007739533    0 Dec 22 05:57 restart.txt#
+[u805618386@my-kul-web2051 ~]$
