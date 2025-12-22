@@ -62,8 +62,14 @@ SetEnv NODE_ENV production
   Deny from all
 </FilesMatch>
 
-# Deny access to node_modules and server directories
-<DirectoryMatch "^/.*(node_modules|server|dist|\.git)/">
+# Deny access to node_modules and server directories (but allow dist/public for static assets)
+<DirectoryMatch "^/.*(node_modules|server|\.git)/">
   Order allow,deny
   Deny from all
 </DirectoryMatch>
+
+# Protect dist/index.cjs but allow dist/public
+<FilesMatch "^index\.cjs$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
