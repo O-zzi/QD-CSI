@@ -6,6 +6,8 @@ import path from "path";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { runStartupMigrations } from "./migrations";
+import logger from "./logger";
+import { validateEnvironment, getEnvSummary } from "./envValidation";
 
 const app = express();
 const httpServer = createServer(app);
@@ -21,17 +23,17 @@ declare module "http" {
 }
 
 export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  console.log(`${formattedTime} [${source}] ${message}`);
+  logger.info(message, { source });
 }
 
 (async () => {
+  const envResult = validateEnvironment();
+  if (!envResult.valid) {
+    logger.error('Server cannot start due to missing environment variables', { source: 'startup' });
+    process.exit(1);
+  }
+  
+  logger.info('Environment summary', { source: 'startup', ...getEnvSummary() });
   log('Stripe disabled - using offline payment system for Pakistan market');
 
   // Security headers via Helmet
@@ -126,8 +128,15 @@ export function log(message: string, source = "express") {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    logger.error('Unhandled error', { 
+      error: err.message, 
+      stack: err.stack, 
+      status,
+      path: _req.path,
+      method: _req.method 
+    });
+
     res.status(status).json({ message });
-    throw err;
   });
 
   if (process.env.NODE_ENV === "production") {

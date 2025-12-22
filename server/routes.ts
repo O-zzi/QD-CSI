@@ -82,6 +82,28 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Health check endpoint (no auth required)
+  app.get('/api/health', async (_req, res) => {
+    try {
+      const dbCheck = await storage.healthCheck();
+      res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        database: dbCheck ? 'connected' : 'disconnected',
+        environment: process.env.NODE_ENV || 'development',
+        version: process.env.npm_package_version || '1.0.0',
+      });
+    } catch (error) {
+      res.status(503).json({
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        database: 'disconnected',
+        error: 'Health check failed',
+      });
+    }
+  });
+
   // Auth middleware
   await setupAuth(app);
 

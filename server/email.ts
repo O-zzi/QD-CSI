@@ -1,4 +1,5 @@
 import type { Booking, User, Event } from "@shared/schema";
+import logger from "./logger";
 
 interface EmailService {
   sendEmail(to: string, subject: string, html: string): Promise<boolean>;
@@ -14,15 +15,15 @@ class ResendEmailService implements EmailService {
   }
 
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
-    console.log('[email] Attempting to send email:');
-    console.log('[email] - API Key configured:', this.apiKey ? 'YES (length: ' + this.apiKey.length + ')' : 'NO');
-    console.log('[email] - From:', this.fromEmail);
-    console.log('[email] - To:', to);
-    console.log('[email] - Subject:', subject);
+    logger.debug('Attempting to send email', { 
+      source: 'email',
+      to, 
+      subject,
+      apiKeyConfigured: !!this.apiKey 
+    });
     
     if (!this.apiKey) {
-      console.log('[email] Resend API key not configured - email would be sent to:', to);
-      console.log('[email] Subject:', subject);
+      logger.warn('Resend API key not configured', { source: 'email', to, subject });
       return false;
     }
 
@@ -42,15 +43,15 @@ class ResendEmailService implements EmailService {
       });
 
       if (!response.ok) {
-        const error = await response.text();
-        console.error('[email] Failed to send email:', error);
+        const errorText = await response.text();
+        logger.error('Failed to send email', { source: 'email', to, error: errorText });
         return false;
       }
 
-      console.log('[email] Email sent successfully to:', to);
+      logger.info('Email sent successfully', { source: 'email', to, subject });
       return true;
     } catch (error) {
-      console.error('[email] Error sending email:', error);
+      logger.error('Error sending email', { source: 'email', to, error });
       return false;
     }
   }

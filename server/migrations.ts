@@ -1,7 +1,8 @@
 import { pool } from "./db";
+import logger from "./logger";
 
 export async function runStartupMigrations() {
-  console.log("[migrations] Running startup migrations...");
+  logger.info("Running startup migrations...", { source: "migrations" });
   
   try {
     // Create membership_tier_definitions table if not exists
@@ -21,7 +22,7 @@ export async function runStartupMigrations() {
         updated_at TIMESTAMP DEFAULT NOW()
       )
     `);
-    console.log("[migrations] membership_tier_definitions table created/verified");
+    logger.info("membership_tier_definitions table created/verified", { source: "migrations" });
 
     // Add metadata column to notifications if not exists
     await pool.query(`
@@ -42,12 +43,12 @@ export async function runStartupMigrations() {
           ('silver', 'Silver Member', 'Standard membership with core benefits', '#9CA3AF', 10, 2, ARRAY['5-day advance booking window', '10% discount on off-peak bookings', '2 guest passes per month'], 3, true),
           ('guest', 'Pay-to-Play', 'Access without membership commitment', '#6B7280', 0, 0, ARRAY['2-day advance booking window', 'Access after member priority', 'Equipment rental available'], 4, true)
       `);
-      console.log("[migrations] Seeded default tier definitions");
+      logger.info("Seeded default tier definitions", { source: "migrations" });
     }
     
-    console.log("[migrations] All startup migrations completed successfully");
+    logger.info("All startup migrations completed successfully", { source: "migrations" });
   } catch (error) {
-    console.error("[migrations] Error running startup migrations:", error);
+    logger.error("Error running startup migrations", { source: "migrations", error });
     // Don't throw - allow app to continue even if migrations fail
   }
 }

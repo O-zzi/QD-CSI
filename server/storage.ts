@@ -297,6 +297,9 @@ export interface IStorage {
   // Admin Audit Log operations
   createAuditLog(data: InsertAdminAuditLog): Promise<AdminAuditLog>;
   getAuditLogs(limit?: number): Promise<AdminAuditLog[]>;
+  
+  // Health check
+  healthCheck(): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1320,6 +1323,15 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(adminAuditLogs)
       .orderBy(desc(adminAuditLogs.createdAt))
       .limit(limit);
+  }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      await db.execute(sql`SELECT 1`);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 
