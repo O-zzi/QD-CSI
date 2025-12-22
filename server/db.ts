@@ -20,5 +20,18 @@ export function getDatabaseUrl(): string {
 }
 
 const databaseUrl = getDatabaseUrl();
-export const pool = new Pool({ connectionString: databaseUrl });
+
+// Configure SSL for Supabase direct connections
+const poolConfig: pg.PoolConfig = {
+  connectionString: databaseUrl,
+};
+
+// For Supabase direct connections, we need to handle SSL certificates
+if (databaseUrl.includes('supabase.co')) {
+  poolConfig.ssl = {
+    rejectUnauthorized: false
+  };
+}
+
+export const pool = new Pool(poolConfig);
 export const db = drizzle(pool, { schema });

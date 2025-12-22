@@ -1,0 +1,40 @@
+[u805618386@my-kul-web2051 public_html]$ # Check the DATABASE_URL is correct
+cat .env | grep DATABASE
+
+# Force full restart
+rm -rf tmp
+mkdir tmp
+touch tmp/restart.txt
+
+# Check the stderr log
+cat stderr.log | tail -20
+DATABASE_URL=postgresql://postgres:kKFYxZxNPc4KoxhV@db.ttnwtyixezjjubdcquhg.supa                                                                                                                                                             base.co:5432/postgres?sslmode=require
+    at async fv.getNavbarItems (/home/u805618386/domains/palegreen-heron-229617.                                                                                                                                                             hostingersite.com/public_html/dist/index.cjs:96:7852)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/p                                                                                                                                                             ublic_html/dist/index.cjs:577:66238 {
+  code: 'SELF_SIGNED_CERT_IN_CHAIN'
+}
+Error fetching construction phases: Error: self-signed certificate in certificat                                                                                                                                                             e chain
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_                                                                                                                                                             html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5                                                                                                                                                             )
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/p                                                                                                                                                             ublic_html/dist/index.cjs:94:116743
+    at async fv.getConstructionPhases (/home/u805618386/domains/palegreen-heron-                                                                                                                                                             229617.hostingersite.com/public_html/dist/index.cjs:96:4414)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/p                                                                                                                                                             ublic_html/dist/index.cjs:577:19847 {
+  code: 'SELF_SIGNED_CERT_IN_CHAIN'
+}
+Error fetching site settings: Error: self-signed certificate in certificate chai                                                                                                                                                             n
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_                                                                                                                                                             html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5                                                                                                                                                             )
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/p                                                                                                                                                             ublic_html/dist/index.cjs:94:116743
+    at async fv.getSiteSettings (/home/u805618386/domains/palegreen-heron-229617                                                                                                                                                             .hostingersite.com/public_html/dist/index.cjs:96:6848)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/p                                                                                                                                                             ublic_html/dist/index.cjs:577:63535 {
+  code: 'SELF_SIGNED_CERT_IN_CHAIN'
+}
+[u805618386@my-kul-web2051 public_html]$ curl https://palegreen-heron-229617.hos                                                                                                                                                             tingersite.com/api/rules | head -100
+curl https://palegreen-heron-229617.hostingersite.com/api/careers | head -100
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    35    0    35    0     0     35      0 --:--:-- --:--:-- --:--:--    35
+{"message":"Failed to fetch rules"}  % Total    % Received % Xferd  Average Spee                                                                                                                                                             d   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    37    0    37    0     0     22      0 --:--:--  0:00:01 --:--:--    22
+[u805618386@my-kul-web2051 public_html]$
