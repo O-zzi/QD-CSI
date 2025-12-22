@@ -45,3 +45,4 @@ integrations = ["javascript_log_in_with_replit:1.0.0", "javascript_database:1.0.
 
 [userenv.shared]
 USE_PG_SESSION_STORE = "true"
+VITE_USE_SUPABASE_AUTH = "true"
