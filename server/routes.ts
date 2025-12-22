@@ -44,39 +44,73 @@ import { sql } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { uploadToSupabase, isSupabaseConfigured } from "./supabaseStorage";
+import { logger } from "./logger";
 
-// Setup file upload directory
+// Setup file upload directory (fallback for local storage)
 const uploadDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configure multer for file uploads
-const multerStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `gallery-${uniqueSuffix}${ext}`);
-  }
-});
+// Configure multer - use memory storage for Supabase, disk for local fallback
+const useMemoryStorage = isSupabaseConfigured();
+const multerStorage = useMemoryStorage 
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (_req, _file, cb) => {
+        cb(null, uploadDir);
+      },
+      filename: (_req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, `upload-${uniqueSuffix}${ext}`);
+      }
+    });
 
 const upload = multer({
   storage: multerStorage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (_req, file, cb) => {
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.'));
+      cb(new Error('Invalid file type. Only JPEG, PNG, WebP, and PDF are allowed.'));
     }
   }
 });
+
+// Helper function to handle file upload (Supabase or local)
+async function handleFileUpload(file: Express.Multer.File, folder: string = 'general'): Promise<string> {
+  if (isSupabaseConfigured() && file.buffer) {
+    const supabaseUrl = await uploadToSupabase(
+      file.buffer,
+      `${folder}-${file.originalname}`,
+      'uploads',
+      file.mimetype
+    );
+    if (supabaseUrl) {
+      return supabaseUrl;
+    }
+    logger.warn('Supabase upload failed, falling back to local storage');
+  }
+  
+  // Fallback: save locally if buffer exists (memory storage) or return existing path
+  if (file.buffer) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const filename = `${folder}-${uniqueSuffix}${ext}`;
+    const filePath = path.join(uploadDir, filename);
+    fs.writeFileSync(filePath, file.buffer);
+    return `/uploads/${filename}`;
+  }
+  
+  // Disk storage - file already saved
+  return `/uploads/${file.filename}`;
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -127,7 +161,7 @@ export async function registerRoutes(
     upload.single('photo')(req, res, (err: any) => {
       if (err) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+          return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
         }
         return res.status(400).json({ message: err.message || "File upload failed" });
       }
@@ -139,12 +173,13 @@ export async function registerRoutes(
           }
           
           const userId = (req.user as any).id;
-          const imageUrl = `/uploads/${req.file.filename}`;
+          const imageUrl = await handleFileUpload(req.file, 'profile');
           const updatedUser = await storage.updateUserProfileImage(userId, imageUrl);
           
+          logger.info(`Profile photo uploaded for user ${userId}: ${imageUrl}`);
           res.json({ imageUrl, user: updatedUser });
         } catch (error: any) {
-          console.error("Error uploading profile photo:", error);
+          logger.error("Error uploading profile photo:", error);
           res.status(500).json({ message: error.message || "Failed to upload profile photo" });
         }
       })();
@@ -885,35 +920,37 @@ export async function registerRoutes(
     upload.single('image')(req, res, (err: any) => {
       if (err) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+          return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
         }
         if (err.message && err.message.includes('Only')) {
           return res.status(400).json({ message: err.message });
         }
-        console.error("Multer error:", err);
+        logger.error("Multer error:", err);
         return res.status(400).json({ message: err.message || "File upload failed" });
       }
       
-      try {
-        if (!req.file) {
-          return res.status(400).json({ message: "No file uploaded" });
+      (async () => {
+        try {
+          if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+          }
+          
+          const imageUrl = await handleFileUpload(req.file, 'gallery');
+          
+          logger.info(`Admin file uploaded: ${imageUrl}`);
+          res.json({ 
+            success: true,
+            imageUrl,
+            filename: req.file.originalname,
+            originalName: req.file.originalname,
+            size: req.file.size,
+            mimeType: req.file.mimetype,
+          });
+        } catch (error: any) {
+          logger.error("Error uploading file:", error);
+          res.status(500).json({ message: error.message || "Failed to upload file" });
         }
-        
-        // Generate URL for the uploaded file
-        const imageUrl = `/uploads/${req.file.filename}`;
-        
-        res.json({ 
-          success: true,
-          imageUrl,
-          filename: req.file.filename,
-          originalName: req.file.originalname,
-          size: req.file.size,
-          mimeType: req.file.mimetype,
-        });
-      } catch (error: any) {
-        console.error("Error uploading file:", error);
-        res.status(500).json({ message: error.message || "Failed to upload file" });
-      }
+      })();
     });
   });
 
