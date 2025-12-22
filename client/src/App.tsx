@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SessionProvider } from "@/components/SessionProvider";
+import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { useAdminPath } from "@/hooks/useAdminPath";
@@ -129,12 +130,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <SessionProvider>
-          <Toaster />
-          <Router />
-          <WhatsAppButton />
-          <ScrollToTop />
-        </SessionProvider>
+        <SupabaseAuthProvider>
+          <SessionProvider>
+            <Toaster />
+            <Router />
+            <WhatsAppButton />
+            <ScrollToTop />
+          </SessionProvider>
+        </SupabaseAuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

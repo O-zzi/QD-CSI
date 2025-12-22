@@ -9,6 +9,8 @@ import createMemoryStore from "memorystore";
 import { storage } from "./storage";
 import { getDatabaseUrl } from "./db";
 import { sendWelcomeEmail, sendPasswordResetEmail, sendEmailVerificationEmail } from "./email";
+import { verifySupabaseToken, syncSupabaseUser, isSupabaseAuthEnabled } from "./supabaseAuth";
+import { logger } from "./logger";
 
 const SALT_ROUNDS = 12;
 const EMAIL_VERIFICATION_EXPIRY_MINUTES = 15;
@@ -325,6 +327,70 @@ export async function setupAuth(app: Express) {
         return res.json({ message: "Login successful", user: safeUser });
       });
     })(req, res, next);
+  });
+
+  app.post("/api/auth/sync", async (req: Request, res: Response) => {
+    try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "Missing authorization token" });
+      }
+      
+      if (!isSupabaseAuthEnabled()) {
+        return res.status(400).json({ message: "Supabase Auth not configured" });
+      }
+      
+      const token = authHeader.substring(7);
+      const supabaseUser = await verifySupabaseToken(token);
+      
+      if (!supabaseUser) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+      
+      const { firstName, lastName } = req.body;
+      
+      const emailConfirmed = supabaseUser.email_confirmed_at != null;
+      
+      const user = await syncSupabaseUser(
+        supabaseUser.id,
+        supabaseUser.email,
+        emailConfirmed,
+        firstName || supabaseUser.user_metadata?.firstName,
+        lastName || supabaseUser.user_metadata?.lastName
+      );
+      
+      if (!emailConfirmed) {
+        return res.status(403).json({ message: "Please verify your email before logging in" });
+      }
+      
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          logger.error('[auth] Supabase sync login error:', loginErr);
+          return res.status(500).json({ message: "Failed to establish session" });
+        }
+        
+        const now = new Date();
+        storage.updateUserActivity(user.id, now, now).catch(err => {
+          logger.error('[auth] Failed to update user activity:', err);
+        });
+        
+        logger.info(`[auth] Supabase user synced: ${user.email}`);
+        return res.json({ 
+          message: "User synced successfully",
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+          }
+        });
+      });
+    } catch (error) {
+      logger.error('[auth] Supabase sync error:', error);
+      return res.status(500).json({ message: "Failed to sync user" });
+    }
   });
 
   app.post("/api/auth/logout", (req: Request, res: Response) => {

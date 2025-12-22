@@ -10,7 +10,22 @@
 - [ ] Configure `RESEND_API_KEY` for email notifications
 - [ ] Set up Cloudflare Turnstile and configure keys
 
-### 2. Database Setup (Supabase)
+### 2. Supabase Setup
+- [ ] Create Supabase project at https://supabase.com
+- [ ] Set backend credentials:
+  - [ ] `SUPABASE_URL` - Project URL from Settings > API
+  - [ ] `SUPABASE_SERVICE_KEY` - Service role key (for backend)
+- [ ] Set frontend credentials (in .env with VITE_ prefix):
+  - [ ] `VITE_SUPABASE_URL` - Same as SUPABASE_URL
+  - [ ] `VITE_SUPABASE_ANON_KEY` - Anon/public key (for frontend)
+- [ ] Configure Supabase Storage:
+  - [ ] Create bucket named "uploads" (public or authenticated)
+  - [ ] Set up RLS policies for upload access
+- [ ] Configure Realtime (optional):
+  - [ ] Enable realtime for: bookings, notifications, events tables
+  - [ ] Set up RLS for realtime subscriptions
+
+### 3. Database Setup (Supabase)
 - [ ] Create Supabase project
 - [ ] Import `deployment/schema.sql` to create tables
 - [ ] Import `deployment/seed.sql` for initial data (optional)
