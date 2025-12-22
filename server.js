@@ -11,4 +11,4 @@
 process.env.NODE_ENV = 'production';
 
 // Start the compiled server
-require('./dist/index.js');
+require('./dist/index.cjs');
