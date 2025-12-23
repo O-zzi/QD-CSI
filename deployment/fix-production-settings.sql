@@ -21,7 +21,7 @@ ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 INSERT INTO users (
   id, 
   email, 
-  password,
+  password_hash,
   first_name, 
   last_name, 
   role,
@@ -36,7 +36,7 @@ INSERT INTO users (
   true
 ) ON CONFLICT (email) DO UPDATE SET 
   role = 'SUPER_ADMIN',
-  password = '$2b$10$K9c7.MaZt.iQf.7L.6h6/.uY8BKqO7LBzGZqPjWuJJ7U5e8KQEwG2';
+  password_hash = '$2b$10$K9c7.MaZt.iQf.7L.6h6/.uY8BKqO7LBzGZqPjWuJJ7U5e8KQEwG2';
 
 -- 4. Verify WhatsApp settings
 SELECT * FROM site_settings WHERE key LIKE 'whatsapp%';
