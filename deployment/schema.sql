@@ -365,8 +365,11 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
 -- Site Settings table
 CREATE TABLE IF NOT EXISTS site_settings (
     id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
-    setting_key VARCHAR UNIQUE NOT NULL,
-    setting_value TEXT,
+    key VARCHAR UNIQUE NOT NULL,
+    value TEXT,
+    type VARCHAR DEFAULT 'text',
+    label VARCHAR,
+    category VARCHAR DEFAULT 'general',
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
