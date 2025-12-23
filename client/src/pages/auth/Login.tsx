@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -62,12 +62,19 @@ export default function Login() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-between items-center mb-4">
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="gap-1" data-testid="button-back">
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
+            </Link>
             <Link href="/">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2a4060] to-[#1f2937] flex items-center justify-center" data-testid="link-logo">
                 <span className="text-white font-extrabold text-lg">Q</span>
               </div>
             </Link>
+            <div className="w-16"></div>
           </div>
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
           <CardDescription>Sign in to your Quarterdeck account</CardDescription>
