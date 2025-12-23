@@ -30,7 +30,7 @@ const defaultNavLinks: NavLink[] = [
   { label: "Facilities", href: "/facilities" },
   { label: "Events & Academies", href: "/events" },
   { label: "Updates", href: "/roadmap" },
-  { label: "Gallery", section: "gallery" },
+  { label: "Gallery", href: "/gallery" },
   { label: "Contact", section: "contact" },
 ];
 
@@ -103,6 +103,10 @@ export function Navbar({ onScrollTo }: NavbarProps) {
       .filter(item => item.isVisible)
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
       .map(item => {
+        // Gallery should always go to /gallery page, not scroll to section
+        if (item.href === '/#gallery') {
+          return { label: item.label, href: '/gallery' };
+        }
         if (item.href?.startsWith('/#')) {
           return { label: item.label, section: item.href.replace('/#', '') };
         }
