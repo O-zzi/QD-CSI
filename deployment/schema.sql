@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS facilities (
     base_price INTEGER DEFAULT 0 NOT NULL,
     min_players INTEGER DEFAULT 1,
     resource_count INTEGER DEFAULT 1,
-    require_certification BOOLEAN DEFAULT false,
+    requires_certification BOOLEAN DEFAULT false,
     is_restricted BOOLEAN DEFAULT false,
     status facility_status DEFAULT 'PLANNED' NOT NULL,
     image_url VARCHAR,
