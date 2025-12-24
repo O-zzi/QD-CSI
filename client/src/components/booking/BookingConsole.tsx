@@ -378,15 +378,15 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   
   // Generate time slots dynamically from operating hours - no fallback
   const TIME_SLOTS = useMemo(() => {
-    // Priority: 1) facility-specific hours (only if we have a facility ID), 2) venue-specific hours, 3) generic day hours
+    // Priority: 1) facility-specific hours for day, 2) venue-specific hours for day, 3) generic day hours
     const facilityHours = selectedFacilityDbId 
-      ? apiOperatingHours.find(h => !h.isClosed && !h.isHoliday && h.facilityId === selectedFacilityDbId)
+      ? apiOperatingHours.find(h => !h.isClosed && !h.isHoliday && h.facilityId === selectedFacilityDbId && h.dayOfWeek === selectedDayOfWeek)
       : null;
     const venueHours = selectedVenueDbId
-      ? apiOperatingHours.find(h => !h.isClosed && !h.isHoliday && h.venueId === selectedVenueDbId && !h.facilityId)
+      ? apiOperatingHours.find(h => !h.isClosed && !h.isHoliday && h.venueId === selectedVenueDbId && !h.facilityId && h.dayOfWeek === selectedDayOfWeek)
       : null;
     const genericHours = apiOperatingHours.find(h => 
-      !h.isClosed && !h.isHoliday && !h.facilityId && !h.venueId
+      !h.isClosed && !h.isHoliday && !h.facilityId && !h.venueId && h.dayOfWeek === selectedDayOfWeek
     );
     const relevantHours = facilityHours || venueHours || genericHours;
     
@@ -1675,7 +1675,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
 
         {/* PROFILE VIEW */}
         {currentView === 'profile' && (
-          <div className="max-w-2xl mx-auto space-y-8 animate-qd-fade-in">
+          <div className="max-w-3xl mx-auto space-y-6 animate-qd-fade-in">
             <div className="flex items-center gap-4 mb-6">
               <Button
                 variant="outline"
@@ -1688,77 +1688,165 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                 Back
               </Button>
               <div className="flex-1 text-center">
-                <h2 className="text-3xl font-extrabold" data-testid="text-profile-title">My Profile</h2>
-                <p className="text-muted-foreground mt-2 text-sm">Your membership details and stats.</p>
+                <h2 className="text-2xl md:text-3xl font-extrabold" data-testid="text-profile-title">My Profile</h2>
+                <p className="text-muted-foreground mt-1 text-sm">Your membership details and stats</p>
               </div>
-              <div className="w-16" /> {/* Spacer for balance */}
+              <div className="w-16" />
             </div>
 
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-lg">
-              <div className="flex items-center gap-6 mb-8 pb-6 border-b border-gray-100 dark:border-slate-700">
-                <div className="w-20 h-20 rounded-full bg-[#2a4060] flex items-center justify-center text-white text-3xl font-bold">
-                  {isAuthenticated && user ? (user.firstName?.charAt(0) || 'M') : 'M'}
+            {/* Profile Header Card */}
+            <div className="bg-gradient-to-r from-[#2a4060] to-[#1e3048] p-6 rounded-2xl shadow-lg text-white">
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl font-bold border-4 border-white/30">
+                  {isAuthenticated && user ? (user.firstName?.charAt(0) || 'M') : 'G'}
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold">{isAuthenticated && user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Member' : 'Guest User'}</h3>
-                  <p className="text-muted-foreground">{isAuthenticated && user ? user.email : 'Not logged in'}</p>
-                  <Badge className="mt-2 bg-amber-500 text-white">{userProfile.membershipTier} Member</Badge>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-700">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Wallet className="w-6 h-6 text-amber-500" />
-                    <span className="text-sm font-semibold text-muted-foreground">Credit Balance</span>
-                  </div>
-                  <p className="text-2xl font-bold">{formatPKR(userProfile.creditBalance)}</p>
-                </div>
-                <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-700">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Timer className="w-6 h-6 text-sky-500" />
-                    <span className="text-sm font-semibold text-muted-foreground">Hours Played</span>
-                  </div>
-                  <p className="text-2xl font-bold">{userProfile.totalHoursPlayed} hours</p>
-                </div>
-                <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-700">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Ticket className="w-6 h-6 text-emerald-500" />
-                    <span className="text-sm font-semibold text-muted-foreground">Guest Passes</span>
-                  </div>
-                  <p className="text-2xl font-bold">{userProfile.guestPasses} remaining</p>
-                </div>
-                <div className="p-4 rounded-xl bg-gray-50 dark:bg-slate-700">
-                  <div className="flex items-center gap-3 mb-2">
-                    <ShieldCheck className="w-6 h-6 text-green-500" />
-                    <span className="text-sm font-semibold text-muted-foreground">Certifications</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {userProfile.isSafetyCertified && (
-                      <Badge variant="outline" className="text-xs border-green-500 text-green-700 dark:text-green-400">
-                        <Check className="w-3 h-3 mr-1" /> Air Rifle Certified
-                      </Badge>
-                    )}
-                    {userProfile.hasSignedWaiver && (
-                      <Badge variant="outline" className="text-xs border-blue-500 text-blue-700 dark:text-blue-400">
-                        <FileCheck className="w-3 h-3 mr-1" /> Waiver Signed
+                <div className="text-center md:text-left flex-1">
+                  <h3 className="text-2xl font-bold mb-1">
+                    {isAuthenticated && user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Member' : 'Guest User'}
+                  </h3>
+                  <p className="text-white/70 text-sm mb-3">{isAuthenticated && user ? user.email : 'Not logged in'}</p>
+                  <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                    <Badge className={`${
+                      userProfile.membershipTier === 'FOUNDING' ? 'bg-amber-400 text-amber-900' :
+                      userProfile.membershipTier === 'GOLD' ? 'bg-yellow-400 text-yellow-900' :
+                      userProfile.membershipTier === 'SILVER' ? 'bg-gray-300 text-gray-800' :
+                      'bg-slate-500 text-white'
+                    } font-bold px-3 py-1`}>
+                      {userProfile.membershipTier} MEMBER
+                    </Badge>
+                    {userProfile.isActiveMember && (
+                      <Badge className="bg-green-500 text-white font-medium px-3 py-1">
+                        <Check className="w-3 h-3 mr-1" /> Active
                       </Badge>
                     )}
                   </div>
                 </div>
+                {membershipData && (
+                  <div className="text-center md:text-right bg-white/10 px-4 py-3 rounded-xl">
+                    <p className="text-xs text-white/60 uppercase tracking-wide">Member ID</p>
+                    <p className="font-mono font-bold text-lg">{membershipData.membershipNumber}</p>
+                    <p className="text-xs text-white/60 mt-2">
+                      Valid until {new Date(membershipData.validTo).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </p>
+                  </div>
+                )}
               </div>
+            </div>
 
-              {!isAuthenticated && (
-                <div className="mt-8 p-4 rounded-xl bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
-                  <p className="text-sm text-center mb-4">Sign in to access your full profile and booking history.</p>
-                  <div className="flex justify-center">
-                    <Link href="/login">
-                      <Button data-testid="button-sign-in">Sign In</Button>
-                    </Link>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-md text-center">
+                <Wallet className="w-8 h-8 mx-auto text-amber-500 mb-2" />
+                <p className="text-2xl font-bold">{formatPKR(userProfile.creditBalance)}</p>
+                <p className="text-xs text-muted-foreground uppercase mt-1">Credit Balance</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-md text-center">
+                <Timer className="w-8 h-8 mx-auto text-sky-500 mb-2" />
+                <p className="text-2xl font-bold">{userProfile.totalHoursPlayed}</p>
+                <p className="text-xs text-muted-foreground uppercase mt-1">Hours Played</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-md text-center">
+                <Ticket className="w-8 h-8 mx-auto text-emerald-500 mb-2" />
+                <p className="text-2xl font-bold">{userProfile.guestPasses}</p>
+                <p className="text-xs text-muted-foreground uppercase mt-1">Guest Passes</p>
+              </div>
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-md text-center">
+                <CalendarDays className="w-8 h-8 mx-auto text-purple-500 mb-2" />
+                <p className="text-2xl font-bold">{BOOKING_WINDOW_DAYS[userProfile.membershipTier] || 2}</p>
+                <p className="text-xs text-muted-foreground uppercase mt-1">Days Advance</p>
+              </div>
+            </div>
+
+            {/* Benefits & Certifications */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-md">
+                <h4 className="font-bold text-sm uppercase text-muted-foreground mb-4 flex items-center gap-2">
+                  <Trophy className="w-4 h-4" /> Membership Benefits
+                </h4>
+                <ul className="space-y-3 text-sm">
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                      <span className="font-bold text-amber-600 dark:text-amber-400">
+                        {userProfile.membershipTier === 'FOUNDING' ? '25%' :
+                         userProfile.membershipTier === 'GOLD' ? '20%' :
+                         userProfile.membershipTier === 'SILVER' ? '10%' : '0%'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium">Off-Peak Discount</p>
+                      <p className="text-xs text-muted-foreground">10AM - 5PM weekdays</p>
+                    </div>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Booking Window</p>
+                      <p className="text-xs text-muted-foreground">Book up to {BOOKING_WINDOW_DAYS[userProfile.membershipTier] || 2} days ahead</p>
+                    </div>
+                  </li>
+                  {userProfile.guestPasses > 0 && (
+                    <li className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                        <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Guest Passes</p>
+                        <p className="text-xs text-muted-foreground">{userProfile.guestPasses} passes remaining</p>
+                      </div>
+                    </li>
+                  )}
+                </ul>
+              </div>
+              
+              <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-md">
+                <h4 className="font-bold text-sm uppercase text-muted-foreground mb-4 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" /> Certifications & Waivers
+                </h4>
+                <div className="space-y-3">
+                  <div className={`flex items-center gap-3 p-3 rounded-lg ${userProfile.isSafetyCertified ? 'bg-green-50 dark:bg-green-900/20' : 'bg-gray-50 dark:bg-slate-700'}`}>
+                    {userProfile.isSafetyCertified ? (
+                      <Check className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-muted-foreground" />
+                    )}
+                    <div>
+                      <p className="font-medium text-sm">Air Rifle Safety</p>
+                      <p className="text-xs text-muted-foreground">
+                        {userProfile.isSafetyCertified ? 'Certified' : 'Required for range access'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`flex items-center gap-3 p-3 rounded-lg ${userProfile.hasSignedWaiver ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-gray-50 dark:bg-slate-700'}`}>
+                    {userProfile.hasSignedWaiver ? (
+                      <FileCheck className="w-5 h-5 text-blue-600" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-muted-foreground" />
+                    )}
+                    <div>
+                      <p className="font-medium text-sm">Liability Waiver</p>
+                      <p className="text-xs text-muted-foreground">
+                        {userProfile.hasSignedWaiver ? 'Signed' : 'Sign at reception'}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
+
+            {!isAuthenticated && (
+              <div className="bg-gradient-to-r from-sky-500 to-blue-600 p-6 rounded-xl text-white text-center">
+                <User className="w-12 h-12 mx-auto mb-3 opacity-80" />
+                <h3 className="font-bold text-lg mb-2">Sign In to Access Full Features</h3>
+                <p className="text-white/80 text-sm mb-4">View your bookings, manage memberships, and more.</p>
+                <Link href="/login">
+                  <Button variant="secondary" data-testid="button-sign-in">
+                    Sign In Now
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>

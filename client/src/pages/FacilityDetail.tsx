@@ -354,7 +354,8 @@ export default function FacilityDetail() {
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground pt-2 border-t">
-                      30% discount during off-peak hours
+                      Member discounts during off-peak hours (10AM-5PM):
+                      <br />Founding: 25% | Gold: 20% | Silver: 10%
                     </p>
                   </div>
                 </CardContent>
