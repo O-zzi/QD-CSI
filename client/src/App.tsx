@@ -7,6 +7,7 @@ import { SessionProvider } from "@/components/SessionProvider";
 import { SupabaseAuthProvider } from "@/contexts/SupabaseAuthContext";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { RouteScrollToTop } from "@/components/RouteScrollToTop";
 import { useAdminPath } from "@/hooks/useAdminPath";
 import Home from "@/pages/Home";
 import Booking from "@/pages/Booking";
@@ -137,6 +138,7 @@ function App() {
         <SupabaseAuthProvider>
           <SessionProvider>
             <Toaster />
+            <RouteScrollToTop />
             <Router />
             <WhatsAppButton />
             <ScrollToTop />
