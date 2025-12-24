@@ -123,10 +123,10 @@ export default function Profile() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
+      <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-1">
-          <div className="relative h-[20vh] min-h-[150px] bg-[#2a4060] overflow-hidden">
+          <div className="relative h-[20vh] min-h-[150px] bg-primary overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
             <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
               <h1 className="text-3xl md:text-4xl font-bold">My Profile</h1>
@@ -147,7 +147,7 @@ export default function Profile() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
+      <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-1 flex items-center justify-center">
           <Card className="max-w-md w-full mx-4">
@@ -211,10 +211,10 @@ export default function Profile() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1">
-        <div className="relative h-[20vh] min-h-[150px] bg-[#2a4060] overflow-hidden">
+        <div className="relative h-[20vh] min-h-[150px] bg-primary overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
           <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
             <h1 className="text-3xl md:text-4xl font-bold" data-testid="text-profile-title">
@@ -471,7 +471,7 @@ export default function Profile() {
                               )}
                               <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
                               <p className="text-xs text-muted-foreground mt-2">
-                                {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                                {notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true }) : ''}
                               </p>
                             </div>
                             <div className="flex items-center gap-1">

@@ -12,17 +12,25 @@ import { ContactSection } from "@/components/landing/ContactSection";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--qd-bg-main)] dark:bg-slate-950">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1">
         <HeroSection />
-        <AboutSection />
+        <div className="qd-section-alt">
+          <AboutSection />
+        </div>
         <FacilitiesSection />
-        <UpdatesSection />
+        <div className="qd-section-alt">
+          <UpdatesSection />
+        </div>
         <GallerySection />
-        <MembershipSection />
+        <div className="qd-section-alt">
+          <MembershipSection />
+        </div>
         <RulesSection />
-        <CareersSection />
+        <div className="qd-section-alt">
+          <CareersSection />
+        </div>
         <ContactSection />
       </main>
       <Footer />

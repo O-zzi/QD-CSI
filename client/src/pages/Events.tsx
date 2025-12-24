@@ -150,11 +150,11 @@ export default function Events() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1">
-        <div className="bg-[#2a4060] py-8 md:py-12">
-          <div className="container mx-auto px-6 text-center text-white">
+        <div className="bg-primary py-8 md:py-12">
+          <div className="qd-container text-center text-primary-foreground">
             <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-events-title">
               Events & Academies
             </h1>

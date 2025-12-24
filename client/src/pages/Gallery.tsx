@@ -61,7 +61,7 @@ export default function Gallery() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="pt-24 pb-16">
+      <main className="pt-6 pb-16">
         <div className="qd-container">
           <div className="mb-8">
             <Link href="/#gallery">

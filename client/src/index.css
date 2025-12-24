@@ -330,6 +330,11 @@
   }
 }
 
+/* Alternating section backgrounds for visual separation */
+.qd-section-alt {
+  background: hsl(var(--card));
+}
+
 /* Navigation underline animation */
 .qd-nav-link {
   position: relative;
