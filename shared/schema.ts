@@ -694,6 +694,17 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
+export const updateUserProfileSchema = createInsertSchema(users).pick({
+  firstName: true,
+  lastName: true,
+  phone: true,
+  dateOfBirth: true,
+  profileImageUrl: true,
+  role: true,
+  isSafetyCertified: true,
+  hasSignedWaiver: true,
+}).partial();
+
 export const insertMembershipSchema = createInsertSchema(memberships).omit({
   id: true,
   createdAt: true,
@@ -874,6 +885,7 @@ export const insertFacilityAddOnSchema = createInsertSchema(facilityAddOns).omit
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
 
 export type Membership = typeof memberships.$inferSelect;
 export type InsertMembership = z.infer<typeof insertMembershipSchema>;

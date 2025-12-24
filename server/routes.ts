@@ -39,6 +39,7 @@ import {
   insertOperatingHoursSchema,
   insertPeakWindowSchema,
   insertHallActivitySchema,
+  updateUserProfileSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
@@ -1046,6 +1047,58 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting event:", error);
       res.status(500).json({ message: "Failed to delete event" });
+    }
+  });
+
+  // Admin Users Management routes
+  app.get('/api/admin/users', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get('/api/admin/users/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.patch('/api/admin/users/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = updateUserProfileSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      
+      const currentUser = req.user as any;
+      const updateData = { ...result.data };
+      
+      // Strip role field unless current user is SUPER_ADMIN
+      if (currentUser.role !== 'SUPER_ADMIN') {
+        delete updateData.role;
+      }
+      
+      const updated = await storage.updateUser(req.params.id, updateData);
+      if (!updated) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      logAdminAction(req, 'USER_UPDATE', 'users', req.params.id, updateData);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
     }
   });
 

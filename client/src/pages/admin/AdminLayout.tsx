@@ -39,6 +39,7 @@ function getNavItems(basePath: string) {
     { path: `${basePath}/coming-soon`, label: "Coming Soon", icon: Clock },
     { path: `${basePath}/facilities`, label: "Facilities", icon: Building2 },
     { path: `${basePath}/bookings`, label: "Bookings", icon: CreditCard },
+    { path: `${basePath}/members`, label: "Members", icon: Users },
     { path: `${basePath}/roadmap`, label: "Construction Status", icon: HardHat },
     { path: `${basePath}/events`, label: "Events & Academies", icon: Calendar },
     { path: `${basePath}/pricing`, label: "Pricing Tiers", icon: DollarSign },

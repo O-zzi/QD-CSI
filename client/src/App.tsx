@@ -50,6 +50,7 @@ import SiteImagesManagement from "@/pages/admin/SiteImagesManagement";
 import BookingsManagement from "@/pages/admin/BookingsManagement";
 import BrandingManagement from "@/pages/admin/BrandingManagement";
 import FAQManagement from "@/pages/admin/FAQManagement";
+import MembersManagement from "@/pages/admin/MembersManagement";
 
 function AdminRoutes() {
   const { adminPath, isAuthorized, isLoading } = useAdminPath();
@@ -82,6 +83,7 @@ function AdminRoutes() {
       <Route path={`${base}/bookings`} component={BookingsManagement} />
       <Route path={`${base}/branding`} component={BrandingManagement} />
       <Route path={`${base}/faq`} component={FAQManagement} />
+      <Route path={`${base}/members`} component={MembersManagement} />
       <Route path={base} component={AdminDashboard} />
     </Switch>
   );

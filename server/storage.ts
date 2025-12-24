@@ -94,6 +94,8 @@ import {
   type InsertNotification,
   type AdminAuditLog,
   type InsertAdminAuditLog,
+  type InsertUser,
+  type UpdateUserProfile,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
@@ -104,6 +106,9 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserActivity(userId: string): Promise<void>;
+  
+  // Admin user management
+  getAllUsers(): Promise<User[]>;
 
   // Membership operations
   getMembership(userId: string): Promise<Membership | undefined>;
@@ -357,6 +362,10 @@ export class DatabaseStorage implements IStorage {
     if (lastAuthenticatedAt !== null) updateData.lastAuthenticatedAt = lastAuthenticatedAt;
     if (lastActivityAt !== null) updateData.lastActivityAt = lastActivityAt;
     await db.update(users).set(updateData).where(eq(users.id, userId));
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
   async updateUserProfileImage(userId: string, imageUrl: string): Promise<User | undefined> {
