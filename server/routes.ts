@@ -52,8 +52,8 @@ import { sql } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { uploadToSupabase, isSupabaseConfigured } from "./supabaseStorage";
 import { logger } from "./logger";
+import { getStorageService, MirroredUploadResult } from "./storage";
 
 // Setup file upload directory (fallback for local storage)
 const uploadDir = path.join(process.cwd(), 'uploads');
@@ -61,23 +61,9 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configure multer - use memory storage for Supabase, disk for local fallback
-const useMemoryStorage = isSupabaseConfigured();
-const multerStorage = useMemoryStorage 
-  ? multer.memoryStorage()
-  : multer.diskStorage({
-      destination: (_req, _file, cb) => {
-        cb(null, uploadDir);
-      },
-      filename: (_req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
-        cb(null, `upload-${uniqueSuffix}${ext}`);
-      }
-    });
-
+// Configure multer with memory storage for composite storage service
 const upload = multer({
-  storage: multerStorage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
@@ -91,33 +77,60 @@ const upload = multer({
   }
 });
 
-// Helper function to handle file upload (Supabase or local)
+// Helper function to handle file upload with mirrored storage (Supabase + Hostinger + Local)
 async function handleFileUpload(file: Express.Multer.File, folder: string = 'general'): Promise<string> {
-  if (isSupabaseConfigured() && file.buffer) {
-    const supabaseUrl = await uploadToSupabase(
-      file.buffer,
-      `${folder}-${file.originalname}`,
-      'uploads',
-      file.mimetype
-    );
-    if (supabaseUrl) {
-      return supabaseUrl;
+  const storageService = getStorageService();
+  
+  const result: MirroredUploadResult = await storageService.upload(
+    file.buffer,
+    `${folder}-${file.originalname}`,
+    {
+      folder,
+      contentType: file.mimetype
     }
-    logger.warn('Supabase upload failed, falling back to local storage');
+  );
+  
+  if (!result.success || !result.primaryUrl) {
+    logger.error('All storage uploads failed:', result.errors);
+    throw new Error('File upload failed to all storage providers');
   }
   
-  // Fallback: save locally if buffer exists (memory storage) or return existing path
-  if (file.buffer) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    const filename = `${folder}-${uniqueSuffix}${ext}`;
-    const filePath = path.join(uploadDir, filename);
-    fs.writeFileSync(filePath, file.buffer);
-    return `/uploads/${filename}`;
+  logger.info(`File uploaded successfully to: ${Object.keys(result.urls).filter(k => result.urls[k as keyof typeof result.urls]).join(', ')}`);
+  
+  return result.primaryUrl;
+}
+
+// Extended upload result with all URLs for mirrored storage tracking
+export interface ExtendedUploadResult {
+  primaryUrl: string;
+  urls: {
+    supabase?: string | null;
+    hostinger?: string | null;
+    local?: string | null;
+  };
+}
+
+async function handleFileUploadExtended(file: Express.Multer.File, folder: string = 'general'): Promise<ExtendedUploadResult> {
+  const storageService = getStorageService();
+  
+  const result: MirroredUploadResult = await storageService.upload(
+    file.buffer,
+    `${folder}-${file.originalname}`,
+    {
+      folder,
+      contentType: file.mimetype
+    }
+  );
+  
+  if (!result.success || !result.primaryUrl) {
+    logger.error('All storage uploads failed:', result.errors);
+    throw new Error('File upload failed to all storage providers');
   }
   
-  // Disk storage - file already saved
-  return `/uploads/${file.filename}`;
+  return {
+    primaryUrl: result.primaryUrl,
+    urls: result.urls
+  };
 }
 
 export async function registerRoutes(
@@ -128,11 +141,15 @@ export async function registerRoutes(
   app.get('/api/health', async (_req, res) => {
     try {
       const dbCheck = await storage.healthCheck();
+      const storageService = getStorageService();
+      const storageStatus = storageService.getStatus();
+      
       res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         database: dbCheck ? 'connected' : 'disconnected',
+        storage: storageStatus,
         environment: process.env.NODE_ENV || 'development',
         version: process.env.npm_package_version || '1.0.0',
       });
@@ -142,6 +159,25 @@ export async function registerRoutes(
         timestamp: new Date().toISOString(),
         database: 'disconnected',
         error: 'Health check failed',
+      });
+    }
+  });
+  
+  // Storage status endpoint (admin only)
+  app.get('/api/admin/storage/status', isAuthenticated, isAdmin, async (_req, res) => {
+    try {
+      const storageService = getStorageService();
+      const status = storageService.getStatus();
+      res.json({
+        success: true,
+        ...status,
+        message: `Storage running in ${status.mode} mode`
+      });
+    } catch (error) {
+      logger.error('Storage status check failed:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to check storage status' 
       });
     }
   });
