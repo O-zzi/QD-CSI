@@ -200,8 +200,8 @@ export default function Careers() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="bg-[#2a4060] py-8 md:py-12">
-          <div className="container mx-auto px-6 text-center text-white">
+        <div className="bg-primary py-8 md:py-12">
+          <div className="qd-container text-center text-primary-foreground">
             <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-careers-title">
               Join Our Team
             </h1>
@@ -211,7 +211,7 @@ export default function Careers() {
           </div>
         </div>
 
-        <div className="container mx-auto px-6 py-12">
+        <div className="qd-container py-12">
           <div className="max-w-4xl mx-auto">
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-[#2a4060] dark:text-sky-400 mb-4">Why Work at The Quarterdeck?</h2>

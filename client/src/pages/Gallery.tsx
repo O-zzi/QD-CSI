@@ -58,23 +58,20 @@ export default function Gallery() {
   }, [selectedCategory]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
-      <main className="pt-6 pb-16">
-        <div className="qd-container">
-          <div className="mb-8">
-            <Link href="/#gallery">
-              <Button variant="ghost" size="sm" className="mb-4" data-testid="button-back-to-home">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Home
-              </Button>
-            </Link>
-            <h1 className="text-4xl font-bold mb-2" data-testid="text-gallery-page-title">Gallery & Progress Photos</h1>
-            <p className="text-muted-foreground max-w-2xl">
+      <main className="flex-1">
+        <div className="bg-primary py-8 md:py-12">
+          <div className="qd-container text-center text-primary-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-gallery-page-title">Gallery & Progress</h1>
+            <p className="text-sm opacity-80 max-w-2xl mx-auto">
               Explore architectural renders, construction updates, and facility photos from The Quarterdeck sports complex.
             </p>
           </div>
+        </div>
 
+        <div className="qd-container py-8">
           <div className="flex flex-wrap gap-2 mb-8" data-testid="gallery-filters">
             <Filter className="w-5 h-5 text-muted-foreground mr-2 self-center" />
             {categories.map((cat) => (

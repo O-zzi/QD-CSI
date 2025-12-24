@@ -100,8 +100,8 @@ export default function Leaderboard() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="bg-[#2a4060] py-8 md:py-12">
-          <div className="container mx-auto px-6 text-center text-white">
+        <div className="bg-primary py-8 md:py-12">
+          <div className="qd-container text-center text-primary-foreground">
             <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-leaderboard-title">Leaderboard</h1>
             <p className="text-sm opacity-80 max-w-2xl mx-auto">
               Top players across all sports at The Quarterdeck

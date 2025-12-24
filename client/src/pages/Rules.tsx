@@ -40,8 +40,8 @@ export default function Rules() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="bg-[#2a4060] py-8 md:py-12">
-          <div className="container mx-auto px-6 text-center text-white">
+        <div className="bg-primary py-8 md:py-12">
+          <div className="qd-container text-center text-primary-foreground">
             <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-rules-title">Rules & Safety</h1>
             <p className="text-sm opacity-80 max-w-2xl mx-auto">
               For the safety and enjoyment of all members, please familiarize yourself with our facility rules
@@ -49,7 +49,7 @@ export default function Rules() {
           </div>
         </div>
 
-        <div className="container mx-auto px-6 py-8">
+        <div className="qd-container py-8">
           <div className="max-w-4xl mx-auto">
             <Card className="mb-8 border-amber-500/50 bg-amber-500/5">
               <CardContent className="p-6">
