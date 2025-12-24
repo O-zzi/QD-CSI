@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AdminLayout } from "./AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Pencil, Trash2, Save, Calendar, Users, Clock } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, Calendar, Users, Clock, Upload, Link as LinkIcon, Loader2, CheckCircle, Image as ImageIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,9 @@ export default function EventsManagement() {
   const { toast } = useToast();
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; url: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     facilityId: "",
     title: "",
@@ -123,6 +127,74 @@ export default function EventsManagement() {
       slug: "",
       isActive: true,
     });
+    setUploadedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG, PNG, or WebP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('image', file);
+      
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formDataUpload,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        let errorMessage = 'Upload failed';
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch {
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const result = await response.json();
+      
+      setUploadedFile({ name: file.name, url: result.imageUrl });
+      setFormData(prev => ({ ...prev, imageUrl: result.imageUrl }));
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      
+      toast({
+        title: "Upload successful",
+        description: "Your image has been uploaded.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload image.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleEdit = (event: Event) => {
@@ -351,14 +423,79 @@ export default function EventsManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="imageUrl">Image URL</Label>
-                  <Input
-                    id="imageUrl"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://..."
-                    data-testid="input-event-image"
-                  />
+                  <Label>Event Image</Label>
+                  <Tabs defaultValue="upload" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="upload" className="flex items-center gap-2">
+                        <Upload className="w-4 h-4" />
+                        Upload
+                      </TabsTrigger>
+                      <TabsTrigger value="url" className="flex items-center gap-2">
+                        <LinkIcon className="w-4 h-4" />
+                        URL
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="upload" className="space-y-3">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        data-testid="input-event-image-file"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="w-full"
+                        data-testid="button-upload-event-image"
+                      >
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Choose Image
+                          </>
+                        )}
+                      </Button>
+                      {uploadedFile && (
+                        <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                          <CheckCircle className="w-4 h-4" />
+                          {uploadedFile.name}
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Max 5MB. JPEG, PNG, or WebP.
+                      </p>
+                    </TabsContent>
+                    <TabsContent value="url" className="space-y-3">
+                      <Input
+                        id="imageUrl"
+                        value={formData.imageUrl}
+                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                        placeholder="https://example.com/image.jpg"
+                        data-testid="input-event-image-url"
+                      />
+                    </TabsContent>
+                  </Tabs>
+                  {formData.imageUrl && (
+                    <div className="mt-3 rounded-md border overflow-hidden">
+                      <img 
+                        src={formData.imageUrl} 
+                        alt="Preview" 
+                        className="w-full h-32 object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

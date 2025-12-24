@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AdminLayout } from "./AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Pencil, Trash2, Save, MapPin, Building, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, MapPin, Building, Package, Upload, Link as LinkIcon, Loader2, CheckCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,9 @@ export default function FacilitiesManagement() {
   const [editingFacility, setEditingFacility] = useState<Facility | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; url: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     slug: "",
     name: "",
@@ -239,6 +242,74 @@ export default function FacilitiesManagement() {
       imageUrl: "",
     });
     setActiveTab("details");
+    setUploadedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG, PNG, or WebP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('image', file);
+      
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formDataUpload,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        let errorMessage = 'Upload failed';
+        try {
+          const error = await response.json();
+          errorMessage = error.message || errorMessage;
+        } catch {
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const result = await response.json();
+      
+      setUploadedFile({ name: file.name, url: result.imageUrl });
+      setFormData(prev => ({ ...prev, imageUrl: result.imageUrl }));
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      
+      toast({
+        title: "Upload successful",
+        description: "Your image has been uploaded.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload image.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const resetVenueForm = () => {
@@ -495,14 +566,69 @@ export default function FacilitiesManagement() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="imageUrl">Image URL</Label>
-                    <Input
-                      id="imageUrl"
-                      value={formData.imageUrl}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                      placeholder="https://..."
-                      data-testid="input-facility-image"
-                    />
+                    <Label>Facility Image</Label>
+                    <div className="border rounded-md p-3 space-y-3">
+                      <div className="flex gap-2">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                          data-testid="input-facility-image-file"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                          data-testid="button-upload-facility-image"
+                        >
+                          {isUploading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 mr-2" />
+                              Upload
+                            </>
+                          )}
+                        </Button>
+                        <span className="text-xs text-muted-foreground self-center">or</span>
+                        <Input
+                          id="imageUrl"
+                          value={formData.imageUrl}
+                          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                          placeholder="Enter image URL..."
+                          className="flex-1"
+                          data-testid="input-facility-image-url"
+                        />
+                      </div>
+                      {uploadedFile && (
+                        <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                          <CheckCircle className="w-4 h-4" />
+                          {uploadedFile.name}
+                        </div>
+                      )}
+                      {formData.imageUrl && (
+                        <div className="rounded-md border overflow-hidden">
+                          <img 
+                            src={formData.imageUrl} 
+                            alt="Preview" 
+                            className="w-full h-24 object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Max 5MB. JPEG, PNG, or WebP.
+                      </p>
+                    </div>
                   </div>
                   <div className="flex gap-6">
                     <div className="flex items-center gap-2">
