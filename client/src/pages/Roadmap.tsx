@@ -8,6 +8,7 @@ import { CheckCircle2, Clock, Calendar, Building2, PartyPopper, Check, Hammer, H
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 
 interface ConstructionPhase {
   id: string;
@@ -85,7 +86,8 @@ export default function Roadmap() {
           </div>
         </div>
 
-        <div className="qd-container py-12">
+        <div className="qd-container py-8">
+          <PageBreadcrumb />
 
         {/* Overall Progress Summary */}
         <div className="max-w-5xl mx-auto mb-12">
@@ -93,7 +95,7 @@ export default function Roadmap() {
             <div className="flex flex-wrap gap-6 items-center justify-between">
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Overall Progress</div>
-                <div className="text-2xl font-bold text-[#2a4060] dark:text-white mt-1">
+                <div className="text-2xl font-bold text-primary dark:text-white mt-1">
                   {Math.round(overallProgress)}% Complete
                 </div>
               </div>
@@ -240,7 +242,7 @@ export default function Roadmap() {
                                 <ul className="space-y-2">
                                   {phase.highlights.map((highlight, i) => (
                                     <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                                      <span className="text-[#2a4060] dark:text-sky-400">•</span>
+                                      <span className="text-primary dark:text-sky-400">•</span>
                                       {highlight}
                                     </li>
                                   ))}
@@ -258,13 +260,13 @@ export default function Roadmap() {
           )}
 
           <div className="mt-12 text-center">
-            <h3 className="text-2xl font-bold text-[#2a4060] dark:text-sky-400 mb-4">Stay Updated</h3>
+            <h3 className="text-2xl font-bold text-primary dark:text-sky-400 mb-4">Stay Updated</h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
               Follow our progress and be the first to know about new developments, 
               preview events, and exclusive opportunities.
             </p>
             <Link href="/#contact">
-              <Button className="bg-[#2a4060] hover:bg-[#1e3048]" data-testid="button-register-interest">
+              <Button data-testid="button-register-interest">
                 Register Your Interest
               </Button>
             </Link>

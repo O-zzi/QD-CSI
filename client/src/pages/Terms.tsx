@@ -59,7 +59,7 @@ export default function Terms() {
             ) : (
               sections.map((section, idx) => (
                 <section key={idx} className="mb-8">
-                  <h2 className="text-2xl font-bold text-[#2a4060] dark:text-sky-400 mb-4">{section.section}</h2>
+                  <h2 className="text-2xl font-bold text-primary dark:text-sky-400 mb-4">{section.section}</h2>
                   <p className="text-muted-foreground leading-relaxed mb-4">
                     {section.content}
                   </p>

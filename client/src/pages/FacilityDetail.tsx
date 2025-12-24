@@ -233,7 +233,7 @@ export default function FacilityDetail() {
               The facility you're looking for doesn't exist or has been removed.
             </p>
             <Link href="/facilities">
-              <Button className="bg-[#2a4060] hover:bg-[#1e3048]">
+              <Button>
                 View All Facilities
               </Button>
             </Link>
@@ -251,7 +251,7 @@ export default function FacilityDetail() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="relative h-[50vh] min-h-[400px] bg-[#2a4060] overflow-hidden">
+        <div className="relative h-[50vh] min-h-[400px] bg-primary overflow-hidden">
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${facilityBgImage})` }}
@@ -285,12 +285,12 @@ export default function FacilityDetail() {
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <section>
-                <h2 className="text-2xl font-bold text-[#2a4060] mb-4">About This Facility</h2>
+                <h2 className="text-2xl font-bold text-primary mb-4">About This Facility</h2>
                 <p className="text-muted-foreground leading-relaxed">{facility.longDescription}</p>
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-[#2a4060] mb-4">Features</h2>
+                <h2 className="text-2xl font-bold text-primary mb-4">Features</h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {facility.features?.map((feature: string, index: number) => (
                     <div key={index} className="flex items-center gap-2">
@@ -302,7 +302,7 @@ export default function FacilityDetail() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-[#2a4060] mb-4">Amenities</h2>
+                <h2 className="text-2xl font-bold text-primary mb-4">Amenities</h2>
                 <div className="flex flex-wrap gap-2">
                   {facility.amenities?.map((amenity: string, index: number) => (
                     <Badge key={index} variant="secondary">{amenity}</Badge>
@@ -312,13 +312,13 @@ export default function FacilityDetail() {
 
               {facility.addOns && facility.addOns.length > 0 && (
                 <section>
-                  <h2 className="text-2xl font-bold text-[#2a4060] mb-4">Available Add-Ons</h2>
+                  <h2 className="text-2xl font-bold text-primary mb-4">Available Add-Ons</h2>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {facility.addOns.map((addOn: any) => (
                       <Card key={addOn.id}>
                         <CardContent className="p-4 flex items-center justify-between">
                           <span>{addOn.name}</span>
-                          <span className="font-semibold text-[#2a4060]">
+                          <span className="font-semibold text-primary">
                             PKR {addOn.price.toLocaleString()}
                           </span>
                         </CardContent>
@@ -367,13 +367,13 @@ export default function FacilityDetail() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Off-Peak (10AM-5PM)</span>
-                      <span className="font-semibold text-[#2a4060]">
+                      <span className="font-semibold text-primary">
                         PKR {parseInt(facility.basePrice || "0").toLocaleString()}/hr
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Peak Hours</span>
-                      <span className="font-semibold text-[#2a4060]">
+                      <span className="font-semibold text-primary">
                         PKR {parseInt(facility.peakPrice || "0").toLocaleString()}/hr
                       </span>
                     </div>
@@ -414,7 +414,7 @@ export default function FacilityDetail() {
               )}
 
               <Link href="/booking">
-                <Button className="w-full bg-[#2a4060] hover:bg-[#1e3048]" size="lg" data-testid="button-book-facility">
+                <Button className="w-full" size="lg" data-testid="button-book-facility">
                   <Calendar className="w-4 h-4 mr-2" /> Book This Facility
                 </Button>
               </Link>

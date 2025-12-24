@@ -6,6 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import type { Rule } from "@shared/schema";
 
 const categoryConfig: Record<string, { title: string; icon: any }> = {
@@ -50,6 +51,7 @@ export default function Rules() {
         </div>
 
         <div className="qd-container py-8">
+          <PageBreadcrumb />
           <div className="max-w-4xl mx-auto">
             <Card className="mb-8 border-amber-500/50 bg-amber-500/5">
               <CardContent className="p-6">
@@ -92,8 +94,8 @@ export default function Rules() {
                     >
                       <AccordionTrigger className="hover:no-underline">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-md bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center">
-                            <Icon className="w-5 h-5 text-[#2a4060] dark:text-sky-400" />
+                          <div className="w-10 h-10 rounded-md bg-primary/10 dark:bg-sky-400/10 flex items-center justify-center">
+                            <Icon className="w-5 h-5 text-primary dark:text-sky-400" />
                           </div>
                           <span className="font-semibold">{config.title}</span>
                         </div>
@@ -102,7 +104,7 @@ export default function Rules() {
                         <ul className="space-y-3 pl-13 py-4">
                           {categoryRules.map((rule, index) => (
                             <li key={rule.id} className="flex items-start gap-3 text-muted-foreground">
-                              <span className="text-[#2a4060] dark:text-sky-400 font-bold">{index + 1}.</span>
+                              <span className="text-primary dark:text-sky-400 font-bold">{index + 1}.</span>
                               <div>
                                 {rule.title && <span className="font-medium text-foreground">{rule.title}: </span>}
                                 {rule.content}
@@ -128,7 +130,7 @@ export default function Rules() {
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Link href="/#contact">
-                    <Button className="bg-[#2a4060] hover:bg-[#1e3048]" data-testid="button-contact-us">
+                    <Button data-testid="button-contact-us">
                       Contact Us
                     </Button>
                   </Link>

@@ -4,6 +4,7 @@ import { ArrowLeft, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 
 import renderExterior1 from "@assets/stock_images/architectural_render_b118ee78.jpg";
 import renderExterior2 from "@assets/stock_images/architectural_render_cd4dce75.jpg";
@@ -72,6 +73,7 @@ export default function Gallery() {
         </div>
 
         <div className="qd-container py-8">
+          <PageBreadcrumb />
           <div className="flex flex-wrap gap-2 mb-8" data-testid="gallery-filters">
             <Filter className="w-5 h-5 text-muted-foreground mr-2 self-center" />
             {categories.map((cat) => (

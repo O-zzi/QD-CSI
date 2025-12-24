@@ -23,7 +23,7 @@ export default function Vision() {
         <div className="qd-container py-16">
           <div className="max-w-4xl mx-auto">
             <section className="mb-16">
-              <h2 className="text-3xl font-bold text-[#2a4060] dark:text-sky-400 mb-6" data-testid="text-mission-title">Our Mission</h2>
+              <h2 className="text-3xl font-bold text-primary dark:text-sky-400 mb-6" data-testid="text-mission-title">Our Mission</h2>
               <p className="text-lg text-muted-foreground leading-relaxed mb-6">
                 The Quarterdeck aims to create a world-class sports and recreation complex that brings together 
                 Islamabad's community through premium facilities, professional coaching, and a commitment to 
@@ -37,13 +37,13 @@ export default function Vision() {
             </section>
 
             <section className="mb-16">
-              <h2 className="text-3xl font-bold text-[#2a4060] dark:text-sky-400 mb-8" data-testid="text-values-title">Our Values</h2>
+              <h2 className="text-3xl font-bold text-primary dark:text-sky-400 mb-8" data-testid="text-values-title">Our Values</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <Card data-testid="card-value-excellence">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-md bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center flex-shrink-0">
-                        <Trophy className="w-6 h-6 text-[#2a4060] dark:text-sky-400" />
+                      <div className="w-12 h-12 rounded-md bg-primary/10 dark:bg-sky-400/10 flex items-center justify-center flex-shrink-0">
+                        <Trophy className="w-6 h-6 text-primary dark:text-sky-400" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg mb-2">Excellence</h3>
@@ -58,8 +58,8 @@ export default function Vision() {
                 <Card data-testid="card-value-community">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-md bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center flex-shrink-0">
-                        <Users className="w-6 h-6 text-[#2a4060] dark:text-sky-400" />
+                      <div className="w-12 h-12 rounded-md bg-primary/10 dark:bg-sky-400/10 flex items-center justify-center flex-shrink-0">
+                        <Users className="w-6 h-6 text-primary dark:text-sky-400" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg mb-2">Community</h3>
@@ -74,8 +74,8 @@ export default function Vision() {
                 <Card data-testid="card-value-integrity">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-md bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center flex-shrink-0">
-                        <Shield className="w-6 h-6 text-[#2a4060] dark:text-sky-400" />
+                      <div className="w-12 h-12 rounded-md bg-primary/10 dark:bg-sky-400/10 flex items-center justify-center flex-shrink-0">
+                        <Shield className="w-6 h-6 text-primary dark:text-sky-400" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg mb-2">Safety & Integrity</h3>
@@ -90,8 +90,8 @@ export default function Vision() {
                 <Card data-testid="card-value-wellness">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-md bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center flex-shrink-0">
-                        <Heart className="w-6 h-6 text-[#2a4060] dark:text-sky-400" />
+                      <div className="w-12 h-12 rounded-md bg-primary/10 dark:bg-sky-400/10 flex items-center justify-center flex-shrink-0">
+                        <Heart className="w-6 h-6 text-primary dark:text-sky-400" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg mb-2">Wellness</h3>
@@ -106,7 +106,7 @@ export default function Vision() {
             </section>
 
             <section className="mb-16">
-              <h2 className="text-3xl font-bold text-[#2a4060] dark:text-sky-400 mb-6" data-testid="text-future-title">Looking Ahead</h2>
+              <h2 className="text-3xl font-bold text-primary dark:text-sky-400 mb-6" data-testid="text-future-title">Looking Ahead</h2>
               <p className="text-lg text-muted-foreground leading-relaxed mb-6">
                 With our Q4 2026 launch approaching, The Quarterdeck is set to transform the sports and 
                 recreation landscape in Islamabad. Our early members will be the first to experience 
@@ -114,7 +114,7 @@ export default function Vision() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/roadmap">
-                  <Button className="bg-[#2a4060] hover:bg-[#1e3048]" data-testid="button-view-roadmap">
+                  <Button data-testid="button-view-roadmap">
                     <Building2 className="w-4 h-4 mr-2" /> View Our Roadmap
                   </Button>
                 </Link>

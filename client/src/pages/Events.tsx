@@ -19,6 +19,7 @@ import type { Event } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 
 const registrationFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -165,7 +166,8 @@ export default function Events() {
         </div>
 
         <div className="qd-container py-8">
-        {isLoading ? (
+          <PageBreadcrumb />
+          {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-64 rounded-xl" />

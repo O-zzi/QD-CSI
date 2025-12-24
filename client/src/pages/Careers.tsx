@@ -17,6 +17,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import type { Career } from "@shared/schema";
 
 const applicationSchema = z.object({
@@ -211,15 +212,16 @@ export default function Careers() {
           </div>
         </div>
 
-        <div className="qd-container py-12">
-          <div className="max-w-4xl mx-auto">
+        <div className="qd-container py-8">
+          <PageBreadcrumb />
+          <div className="max-w-4xl mx-auto mt-4">
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-[#2a4060] dark:text-sky-400 mb-4">Why Work at The Quarterdeck?</h2>
+            <h2 className="text-2xl font-bold text-primary dark:text-sky-400 mb-4">Why Work at The Quarterdeck?</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <Card>
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center mx-auto mb-4">
-                    <Briefcase className="w-6 h-6 text-[#2a4060] dark:text-sky-400" />
+                  <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-sky-400/10 flex items-center justify-center mx-auto mb-4">
+                    <Briefcase className="w-6 h-6 text-primary dark:text-sky-400" />
                   </div>
                   <h3 className="font-semibold mb-2">Career Growth</h3>
                   <p className="text-sm text-muted-foreground">
@@ -229,8 +231,8 @@ export default function Careers() {
               </Card>
               <Card>
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center mx-auto mb-4">
-                    <MapPin className="w-6 h-6 text-[#2a4060] dark:text-sky-400" />
+                  <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-sky-400/10 flex items-center justify-center mx-auto mb-4">
+                    <MapPin className="w-6 h-6 text-primary dark:text-sky-400" />
                   </div>
                   <h3 className="font-semibold mb-2">Prime Location</h3>
                   <p className="text-sm text-muted-foreground">
@@ -240,8 +242,8 @@ export default function Careers() {
               </Card>
               <Card>
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-[#2a4060]/10 dark:bg-sky-400/10 flex items-center justify-center mx-auto mb-4">
-                    <Clock className="w-6 h-6 text-[#2a4060] dark:text-sky-400" />
+                  <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-sky-400/10 flex items-center justify-center mx-auto mb-4">
+                    <Clock className="w-6 h-6 text-primary dark:text-sky-400" />
                   </div>
                   <h3 className="font-semibold mb-2">Flexible Hours</h3>
                   <p className="text-sm text-muted-foreground">
@@ -253,7 +255,7 @@ export default function Careers() {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold text-[#2a4060] dark:text-sky-400 mb-6">Open Positions</h2>
+            <h2 className="text-2xl font-bold text-primary dark:text-sky-400 mb-6">Open Positions</h2>
             
             {activeJobs.length === 0 ? (
               <Card>
@@ -282,7 +284,7 @@ export default function Careers() {
                               <MapPin className="w-4 h-4" /> {job.location}
                             </span>
                             {isAdmin && job.salary && (
-                              <span className="text-[#2a4060] dark:text-sky-400 font-medium">{job.salary}</span>
+                              <span className="text-primary dark:text-sky-400 font-medium">{job.salary}</span>
                             )}
                           </div>
                           <p className="text-muted-foreground text-sm mb-3">{job.description}</p>
@@ -294,7 +296,7 @@ export default function Careers() {
                           )}
                         </div>
                         <Button 
-                          className="bg-[#2a4060] hover:bg-[#1e3048] flex-shrink-0"
+                          className=" flex-shrink-0"
                           onClick={() => handleApply(job)}
                           data-testid={`button-apply-${job.id}`}
                         >
@@ -318,7 +320,7 @@ export default function Careers() {
                 and we'll keep you in mind for future opportunities.
               </p>
               <Button 
-                className="bg-[#2a4060] hover:bg-[#1e3048]"
+                className=""
                 onClick={() => setIsCvDialogOpen(true)}
                 data-testid="button-submit-cv"
               >
@@ -450,7 +452,7 @@ export default function Careers() {
                 <Button 
                   type="submit" 
                   disabled={applyMutation.isPending}
-                  className="bg-[#2a4060] hover:bg-[#1e3048]"
+                  className=""
                   data-testid="button-submit-application"
                 >
                   {applyMutation.isPending ? (
@@ -584,7 +586,7 @@ export default function Careers() {
                 <Button 
                   type="submit" 
                   disabled={generalCvMutation.isPending}
-                  className="bg-[#2a4060] hover:bg-[#1e3048]"
+                  className=""
                   data-testid="button-submit-cv-form"
                 >
                   {generalCvMutation.isPending ? (

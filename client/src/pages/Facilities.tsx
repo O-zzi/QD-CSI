@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { GiTennisRacket, GiSquare } from "react-icons/gi";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_d29f9aaf.jpg";
 import squashImage from "@assets/stock_images/professional_squash__c4dca43a.jpg";
@@ -164,8 +165,9 @@ export default function Facilities() {
           </div>
         </div>
 
-        <div className="qd-container py-12">
-        <div className="max-w-5xl mx-auto">
+        <div className="qd-container py-8">
+          <PageBreadcrumb />
+          <div className="max-w-5xl mx-auto mt-4">
           <div className="grid gap-6">
             {activeFacilities.map((facility) => (
               <Link key={facility.id} href={`/facilities/${facility.slug}`}>
@@ -189,10 +191,10 @@ export default function Facilities() {
                             </div>
                           </>
                         ) : (
-                          <div className="w-full h-full bg-[#2a4060]/10 flex items-center justify-center">
+                          <div className="w-full h-full bg-primary/10 flex items-center justify-center">
                             {(() => {
                               const Icon = facilityIcons[facility.slug] || GiTennisRacket;
-                              return <Icon className="w-12 h-12 text-[#2a4060]/50" />;
+                              return <Icon className="w-12 h-12 text-primary/50" />;
                             })()}
                           </div>
                         )}
@@ -221,12 +223,12 @@ export default function Facilities() {
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div className="text-sm">
                             <span className="text-muted-foreground">From </span>
-                            <span className="font-semibold text-[#2a4060]">
+                            <span className="font-semibold text-primary">
                               PKR {parseInt(facility.basePrice).toLocaleString()}
                             </span>
                             <span className="text-muted-foreground">/hour</span>
                           </div>
-                          <Button variant="ghost" size="sm" className="text-[#2a4060]">
+                          <Button variant="ghost" size="sm" className="text-primary">
                             View Details <ChevronRight className="w-4 h-4 ml-1" />
                           </Button>
                         </div>
@@ -239,14 +241,14 @@ export default function Facilities() {
           </div>
 
           <div className="mt-12 text-center">
-            <h3 className="text-2xl font-bold text-[#2a4060] mb-4">Ready to Book?</h3>
+            <h3 className="text-2xl font-bold text-primary mb-4">Ready to Book?</h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
               Members can book facilities through our online booking system. 
               Log in to access all our premium facilities and exclusive member benefits.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/booking">
-                <Button className="bg-[#2a4060] hover:bg-[#1e3048]" data-testid="button-book-now">
+                <Button data-testid="button-book-now">
                   Book Now
                 </Button>
               </Link>
