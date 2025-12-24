@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Eye, EyeOff, Loader2, ArrowLeft, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -20,12 +21,16 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { signIn, isSupabaseConfigured } = useSupabaseAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -45,6 +50,15 @@ export default function Login() {
       return;
     }
 
+    if (turnstileSiteKey && !turnstileToken) {
+      toast({
+        title: "Verification Required",
+        description: "Please complete the security verification.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await signIn(data.email, data.password);
@@ -55,6 +69,8 @@ export default function Login() {
           description: error.message || "Invalid email or password",
           variant: "destructive",
         });
+        turnstileRef.current?.reset();
+        setTurnstileToken(null);
       } else {
         toast({
           title: "Welcome back!",
@@ -177,6 +193,18 @@ export default function Login() {
                   Forgot password?
                 </Link>
               </div>
+
+              {turnstileSiteKey && (
+                <div className="flex justify-center" data-testid="turnstile-container">
+                  <Turnstile
+                    ref={turnstileRef}
+                    siteKey={turnstileSiteKey}
+                    onSuccess={(token) => setTurnstileToken(token)}
+                    onError={() => setTurnstileToken(null)}
+                    onExpire={() => setTurnstileToken(null)}
+                  />
+                </div>
+              )}
 
               <Button
                 type="submit"

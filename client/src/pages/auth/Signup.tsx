@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 
 const signupSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -31,6 +32,8 @@ const signupSchema = z.object({
 
 type SignupForm = z.infer<typeof signupSchema>;
 
+const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+
 export default function Signup() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -38,6 +41,8 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
@@ -62,6 +67,15 @@ export default function Signup() {
       return;
     }
 
+    if (turnstileSiteKey && !turnstileToken) {
+      toast({
+        title: "Verification Required",
+        description: "Please complete the security verification.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await signUp(data.email, data.password, {
@@ -75,6 +89,8 @@ export default function Signup() {
           description: error.message || "Failed to create account",
           variant: "destructive",
         });
+        turnstileRef.current?.reset();
+        setTurnstileToken(null);
       } else {
         toast({
           title: "Account created!",
@@ -300,6 +316,18 @@ export default function Signup() {
                   </FormItem>
                 )}
               />
+
+              {turnstileSiteKey && (
+                <div className="flex justify-center" data-testid="turnstile-container">
+                  <Turnstile
+                    ref={turnstileRef}
+                    siteKey={turnstileSiteKey}
+                    onSuccess={(token) => setTurnstileToken(token)}
+                    onError={() => setTurnstileToken(null)}
+                    onExpire={() => setTurnstileToken(null)}
+                  />
+                </div>
+              )}
 
               <Button
                 type="submit"
