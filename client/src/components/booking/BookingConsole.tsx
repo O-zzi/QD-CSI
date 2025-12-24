@@ -487,6 +487,25 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
       });
   }, [apiFacilities]);
+  
+  // ALL facilities (including PLANNED) for events display
+  const ALL_FACILITIES = useMemo(() => {
+    return apiFacilities.map(f => ({
+      id: f.slug,
+      label: f.name,
+      count: f.resourceCount || 1,
+      basePrice: f.basePrice,
+      minPlayers: f.minPlayers || 1,
+      icon: FACILITY_ICONS[f.slug] || Building2,
+      requiresCert: f.requiresCertification || false,
+      restricted: f.isRestricted || false,
+      status: f.status,
+    })).sort((a, b) => {
+      const orderA = FACILITY_SORT_ORDER.indexOf(a.id);
+      const orderB = FACILITY_SORT_ORDER.indexOf(b.id);
+      return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+    });
+  }, [apiFacilities]);
 
   // Update selected facility when FACILITIES changes
   useEffect(() => {
@@ -789,7 +808,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     }
   };
 
-  const leaderboardFacilities = FACILITIES.filter((f) => f.id !== 'bridge-room' && f.id !== 'multipurpose-hall');
+  const leaderboardFacilities = ALL_FACILITIES.filter((f) => f.id !== 'bridge-room' && f.id !== 'multipurpose-hall');
   
   // Transform API leaderboard data to display format
   const currentLeaderboard = useMemo(() => {
@@ -1505,7 +1524,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
               <div className="w-16" /> {/* Spacer for balance */}
             </div>
             {apiEvents.length > 0 ? (
-              FACILITIES.map((fac) => {
+              ALL_FACILITIES.map((fac) => {
                 const FacIcon = fac.icon;
                 const facEvents = apiEvents.filter((e) => facilityIdToSlug[e.facilityId] === fac.id);
                 if (facEvents.length === 0) return null;
@@ -1523,6 +1542,9 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                     <div className="flex items-center gap-3 mb-5 border-b border-gray-100 dark:border-slate-700 pb-3">
                       <FacIcon className="w-8 h-8 text-[#2a4060] dark:text-sky-400" />
                       <h3 className="text-xl font-extrabold">{fac.label} Programs</h3>
+                      {fac.status === 'PLANNED' && (
+                        <Badge variant="outline" className="text-xs">Coming Soon</Badge>
+                      )}
                     </div>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                       {facEvents.map((event) => (
@@ -1665,8 +1687,17 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   </div>
                 ))
               ) : (
-                <div className="p-8 text-center text-muted-foreground">
-                  <p>No leaderboard data available for this facility.</p>
+                <div className="p-12 text-center">
+                  <Trophy className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
+                  <h3 className="font-bold text-lg mb-2">No Rankings Yet</h3>
+                  <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                    {currentLeaderboardType === 'cumulative' 
+                      ? 'Once members start playing, top performers will appear here!'
+                      : `Be the first to rank in ${leaderboardFacilities.find(f => f.id === currentLeaderboardType)?.label || 'this facility'}!`}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Book a session and start climbing the leaderboard
+                  </p>
                 </div>
               )}
             </div>
