@@ -3,17 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useSupabaseAuth, OAuthProvider } from "@/contexts/SupabaseAuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { SiGoogle, SiApple, SiGithub, SiX } from "react-icons/si";
+import { SiGithub, SiX, SiFacebook } from "react-icons/si";
 
 interface SocialLoginButtonsProps {
   mode: "signin" | "signup";
 }
 
-const providers: { id: OAuthProvider; name: string; icon: typeof SiGoogle }[] = [
-  { id: "google", name: "Google", icon: SiGoogle },
-  { id: "apple", name: "Apple", icon: SiApple },
-  { id: "github", name: "GitHub", icon: SiGithub },
+const providers: { id: OAuthProvider; name: string; icon: typeof SiGithub }[] = [
   { id: "twitter", name: "X", icon: SiX },
+  { id: "github", name: "GitHub", icon: SiGithub },
+  { id: "facebook", name: "Facebook", icon: SiFacebook },
 ];
 
 export function SocialLoginButtons({ mode }: SocialLoginButtonsProps) {

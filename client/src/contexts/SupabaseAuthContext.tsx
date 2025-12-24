@@ -3,7 +3,7 @@ import { User, Session, AuthError, Provider } from '@supabase/supabase-js';
 import { supabase, isSupabaseAuthConfigured, getSupabaseClient } from '@/lib/supabase';
 import { queryClient } from '@/lib/queryClient';
 
-export type OAuthProvider = 'google' | 'apple' | 'github' | 'twitter';
+export type OAuthProvider = 'github' | 'twitter' | 'facebook';
 
 interface AuthState {
   user: User | null;
