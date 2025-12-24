@@ -33,6 +33,7 @@ import Signup from "@/pages/auth/Signup";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
 import VerifyEmail from "@/pages/auth/VerifyEmail";
+import AuthCallback from "@/pages/auth/AuthCallback";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import HomepageManagement from "@/pages/admin/HomepageManagement";
 import ComingSoonManagement from "@/pages/admin/ComingSoonManagement";
@@ -120,8 +121,9 @@ function PublicRoutes() {
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/forgot-password" component={ForgotPassword} />
-      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/verify-email" component={VerifyEmail} />
+      <Route path="/auth/callback" component={AuthCallback} />
+      <Route path="/auth/reset-password" component={ResetPassword} />
       <Route path="/" component={Home} />
       <Route component={NotFound} />
     </Switch>

@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link, useLocation, useSearch } from "wouter";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const resetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -24,12 +24,13 @@ type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPassword() {
   const [, setLocation] = useLocation();
-  const search = useSearch();
-  const token = new URLSearchParams(search).get("token");
   const { toast } = useToast();
+  const { updatePassword, isSupabaseConfigured, isAuthenticated, isLoading: authLoading } = useSupabaseAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resetComplete, setResetComplete] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
 
   const form = useForm<ResetPasswordForm>({
     resolver: zodResolver(resetPasswordSchema),
@@ -39,31 +40,88 @@ export default function ResetPassword() {
     },
   });
 
-  const resetPasswordMutation = useMutation({
-    mutationFn: async (data: ResetPasswordForm) => {
-      const response = await apiRequest("POST", "/api/auth/reset-password", {
-        token,
-        password: data.password,
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      setResetComplete(true);
-    },
-    onError: (error: Error) => {
+  useEffect(() => {
+    if (!authLoading) {
+      const timer = setTimeout(() => {
+        setCheckingSession(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [authLoading]);
+
+  const onSubmit = async (data: ResetPasswordForm) => {
+    if (!isSupabaseConfigured) {
       toast({
-        title: "Reset failed",
-        description: error.message || "Failed to reset password",
+        title: "Configuration Error",
+        description: "Password reset is not available. Please contact support.",
         variant: "destructive",
       });
-    },
-  });
+      return;
+    }
 
-  const onSubmit = (data: ResetPasswordForm) => {
-    resetPasswordMutation.mutate(data);
+    setIsLoading(true);
+    try {
+      const { error } = await updatePassword(data.password);
+      
+      if (error) {
+        toast({
+          title: "Reset failed",
+          description: error.message || "Failed to reset password",
+          variant: "destructive",
+        });
+      } else {
+        setResetComplete(true);
+      }
+    } catch (error) {
+      toast({
+        title: "Reset failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  if (!token) {
+  if (checkingSession || authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center justify-center py-8 gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Verifying your session...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!isSupabaseConfigured) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Service Unavailable</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Password reset is currently unavailable. Please try again later or contact support.
+              </AlertDescription>
+            </Alert>
+            <div className="mt-4 text-center">
+              <Link href="/login">
+                <Button variant="outline" data-testid="button-back-to-login">Back to Sign In</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -73,9 +131,9 @@ export default function ResetPassword() {
                 <AlertCircle className="h-8 w-8 text-destructive" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Invalid Link</CardTitle>
+            <CardTitle className="text-2xl font-bold">Session Expired</CardTitle>
             <CardDescription>
-              This password reset link is invalid or has expired.
+              Your password reset link has expired or is invalid. Please request a new one.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -101,8 +159,8 @@ export default function ResetPassword() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="h-8 w-8 text-green-600" />
+              <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
             </div>
             <CardTitle className="text-2xl font-bold">Password Reset!</CardTitle>
@@ -204,10 +262,10 @@ export default function ResetPassword() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={resetPasswordMutation.isPending}
+                disabled={isLoading}
                 data-testid="button-reset-password"
               >
-                {resetPasswordMutation.isPending ? (
+                {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Resetting...

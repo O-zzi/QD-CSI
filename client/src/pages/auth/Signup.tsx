@@ -3,15 +3,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link, useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const signupSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -33,8 +33,10 @@ type SignupForm = z.infer<typeof signupSchema>;
 export default function Signup() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { signUp, isSupabaseConfigured } = useSupabaseAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
@@ -49,31 +51,71 @@ export default function Signup() {
     },
   });
 
-  const signupMutation = useMutation({
-    mutationFn: async (data: SignupForm) => {
-      const { confirmPassword, ...signupData } = data;
-      const response = await apiRequest("POST", "/api/auth/signup", signupData);
-      return response.json();
-    },
-    onSuccess: () => {
+  const onSubmit = async (data: SignupForm) => {
+    if (!isSupabaseConfigured) {
       toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account.",
-      });
-      setLocation("/login");
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Signup failed",
-        description: error.message || "Failed to create account",
+        title: "Configuration Error",
+        description: "Authentication is not properly configured. Please contact support.",
         variant: "destructive",
       });
-    },
-  });
+      return;
+    }
 
-  const onSubmit = (data: SignupForm) => {
-    signupMutation.mutate(data);
+    setIsLoading(true);
+    try {
+      const { error } = await signUp(data.email, data.password, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+      });
+      
+      if (error) {
+        toast({
+          title: "Signup failed",
+          description: error.message || "Failed to create account",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account.",
+        });
+        setLocation("/login");
+      }
+    } catch (error) {
+      toast({
+        title: "Signup failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (!isSupabaseConfigured) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Authentication Unavailable</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Authentication services are currently unavailable. Please try again later or contact support.
+              </AlertDescription>
+            </Alert>
+            <div className="mt-4 text-center">
+              <Link href="/">
+                <Button variant="outline" data-testid="button-back-home">Back to Home</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -261,10 +303,10 @@ export default function Signup() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={signupMutation.isPending}
+                disabled={isLoading}
                 data-testid="button-signup"
               >
-                {signupMutation.isPending ? (
+                {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating account...

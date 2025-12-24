@@ -16,7 +16,7 @@ The frontend is built with React 18, TypeScript, Vite, Wouter for routing, and R
 
 ### Backend Architecture
 
-The backend uses Express.js and Node.js with WebSocket capabilities. Authentication is session-based via Replit Auth (OpenID Connect) and Passport.js, syncing user data to a PostgreSQL database. The API is RESTful, covering authentication, memberships, bookings, events, leaderboards, and CMS. Drizzle ORM is used for type-safe database interactions with a schema-first approach and Zod validation. Key features include double-booking prevention, membership validation, and role-based access control. The entire site maintains uniform session security with re-authentication and inactivity timeouts, managed by a heartbeat system.
+The backend uses Express.js and Node.js with WebSocket capabilities. **Authentication is now handled by Supabase Auth** (email/password with email verification, password reset flows). Supabase users are synced to the PostgreSQL users table on sign-in via the `/api/auth/sync` endpoint. Backend validates Supabase JWTs via middleware. The API is RESTful, covering authentication, memberships, bookings, events, leaderboards, and CMS. Drizzle ORM is used for type-safe database interactions with a schema-first approach and Zod validation. Key features include double-booking prevention, membership validation, and role-based access control. Session cookies are still used for legacy compatibility but Supabase Auth is the primary authentication method.
 
 ### Database Architecture
 
@@ -48,9 +48,9 @@ The system supports optional integration with Supabase for Storage, Auth, and Re
 ## External Dependencies
 
 **Authentication & Session Management:**
-- Replit Auth (OpenID Connect)
-- PostgreSQL (`connect-pg-simple` for session persistence)
-- `openid-client`
+- Supabase Auth (primary - email/password with JWT tokens)
+- PostgreSQL (`connect-pg-simple` for legacy session persistence)
+- `@supabase/supabase-js` for auth client
 
 **UI Component Libraries:**
 - Radix UI
