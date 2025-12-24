@@ -100,12 +100,10 @@ export default function Leaderboard() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="relative h-[30vh] min-h-[200px] bg-[#2a4060] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
-          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
-            <Trophy className="w-12 h-12 mb-4" />
-            <h1 className="text-4xl md:text-5xl font-bold mb-4" data-testid="text-leaderboard-title">Leaderboard</h1>
-            <p className="text-lg opacity-90 max-w-2xl">
+        <div className="bg-[#2a4060] py-8 md:py-12">
+          <div className="container mx-auto px-6 text-center text-white">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-leaderboard-title">Leaderboard</h1>
+            <p className="text-sm opacity-80 max-w-2xl mx-auto">
               Top players across all sports at The Quarterdeck
             </p>
           </div>

@@ -153,13 +153,12 @@ export default function Events() {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-slate-900">
       <Navbar />
       <main className="flex-1">
-        <div className="relative h-[30vh] min-h-[200px] bg-[#2a4060] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40" />
-          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white px-6 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2" data-testid="text-events-title">
+        <div className="bg-[#2a4060] py-8 md:py-12">
+          <div className="container mx-auto px-6 text-center text-white">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-events-title">
               Events & Academies
             </h1>
-            <p className="text-lg max-w-2xl opacity-90">
+            <p className="text-sm opacity-80 max-w-2xl mx-auto">
               Tournaments, leagues, and training programs
             </p>
           </div>
