@@ -30,21 +30,26 @@ const contactFormSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
-interface SiteSettings {
-  key: string;
-  value: string;
-}
-
 export default function Contact() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
 
-  const { data: settings = [] } = useQuery<SiteSettings[]>({
+  const { data: settings = {} } = useQuery<Record<string, string>>({
     queryKey: ["/api/site-settings"],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/site-settings');
+        if (!res.ok) return {};
+        const data = await res.json();
+        return data && typeof data === 'object' && !data.message ? data : {};
+      } catch {
+        return {};
+      }
+    },
   });
 
   const getSetting = (key: string): string => {
-    return settings.find(s => s.key === key)?.value || "";
+    return settings[key] || "";
   };
 
   const form = useForm<ContactFormData>({
