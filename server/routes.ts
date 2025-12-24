@@ -53,7 +53,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { logger } from "./logger";
-import { getStorageService, MirroredUploadResult } from "./storage";
+import { getStorageService } from "./storage/compositeStorage";
+import type { MirroredUploadResult } from "./storage/types";
 
 // Setup file upload directory (fallback for local storage)
 const uploadDir = path.join(process.cwd(), 'uploads');

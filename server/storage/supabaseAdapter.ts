@@ -98,12 +98,22 @@ export class SupabaseStorageAdapter implements IStorageProvider {
     }
     
     try {
-      const urlParts = fileUrl.split('/');
-      const filename = urlParts[urlParts.length - 1];
+      const url = new URL(fileUrl);
+      const pathParts = url.pathname.split('/');
+      const bucketIndex = pathParts.indexOf('object') + 2;
+      const filePath = pathParts.slice(bucketIndex + 1).join('/');
+      
+      if (!filePath) {
+        return {
+          success: false,
+          provider: 'supabase',
+          error: 'Could not extract file path from URL'
+        };
+      }
       
       const { error } = await this.client.storage
         .from(bucket)
-        .remove([filename]);
+        .remove([filePath]);
       
       if (error) {
         logger.error('Supabase delete error:', error);
@@ -114,7 +124,7 @@ export class SupabaseStorageAdapter implements IStorageProvider {
         };
       }
       
-      logger.info(`Successfully deleted from Supabase: ${filename}`);
+      logger.info(`Successfully deleted from Supabase: ${filePath}`);
       
       return {
         success: true,
