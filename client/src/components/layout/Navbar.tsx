@@ -127,7 +127,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
+    <header className="sticky top-0 z-50 bg-primary dark:bg-slate-900 border-b border-primary-foreground/10 shadow-sm">
       <div className="qd-container">
         <nav className="h-[70px] flex items-center justify-between gap-8">
           <Link href="/">
@@ -143,17 +143,17 @@ export function Navbar({ onScrollTo }: NavbarProps) {
                 <div className="qd-logo-mark">Q</div>
               )}
               <div>
-                <div className="font-bold tracking-wider text-sm uppercase">{siteName}</div>
-                <div className="text-xs text-muted-foreground">{siteTagline}</div>
+                <div className="font-bold tracking-wider text-sm uppercase text-primary-foreground">{siteName}</div>
+                <div className="text-xs text-primary-foreground/70">{siteTagline}</div>
               </div>
             </div>
           </Link>
 
-          <div className="hidden lg:flex items-center gap-7 text-sm text-muted-foreground">
+          <div className="hidden lg:flex items-center gap-7 text-sm text-primary-foreground/70">
             {navLinks.map((link) => (
               link.href ? (
                 <Link key={link.label} href={link.href}>
-                  <span className="qd-nav-link cursor-pointer" data-testid={`link-nav-${link.label.toLowerCase()}`}>
+                  <span className="hover:text-primary-foreground transition-colors cursor-pointer" data-testid={`link-nav-${link.label.toLowerCase()}`}>
                     {link.label}
                   </span>
                 </Link>
@@ -161,7 +161,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
                 <button
                   key={link.section}
                   onClick={() => scrollToSection(link.section!)}
-                  className="qd-nav-link"
+                  className="hover:text-primary-foreground transition-colors"
                   data-testid={`link-nav-${link.section}`}
                 >
                   {link.label}
@@ -238,17 +238,17 @@ export function Navbar({ onScrollTo }: NavbarProps) {
             aria-label="Toggle navigation"
             data-testid="button-mobile-menu"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-5 h-5 text-primary-foreground" /> : <Menu className="w-5 h-5 text-primary-foreground" />}
           </button>
         </nav>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden flex flex-col gap-2 pb-4 border-t border-border pt-4 animate-qd-fade-in">
+          <div className="lg:hidden flex flex-col gap-2 pb-4 border-t border-primary-foreground/10 pt-4 animate-qd-fade-in">
             {navLinks.map((link) => (
               link.href ? (
                 <Link key={link.label} href={link.href}>
                   <span 
-                    className="block text-left py-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+                    className="block text-left py-2 text-sm text-primary-foreground/70 hover:text-primary-foreground cursor-pointer"
                     onClick={() => setMobileMenuOpen(false)}
                     data-testid={`link-mobile-nav-${link.label.toLowerCase()}`}
                   >
@@ -259,15 +259,15 @@ export function Navbar({ onScrollTo }: NavbarProps) {
                 <button
                   key={link.section}
                   onClick={() => handleNavClick(link)}
-                  className="text-left py-2 text-sm text-muted-foreground hover:text-foreground"
+                  className="text-left py-2 text-sm text-primary-foreground/70 hover:text-primary-foreground"
                   data-testid={`link-mobile-nav-${link.section}`}
                 >
                   {link.label}
                 </button>
               )
             ))}
-            <div className="flex items-center justify-between border-t border-border pt-4 mt-4">
-              <span className="text-sm text-muted-foreground">Theme</span>
+            <div className="flex items-center justify-between border-t border-primary-foreground/10 pt-4 mt-4">
+              <span className="text-sm text-primary-foreground/70">Theme</span>
               <ThemeToggle />
             </div>
             <div className="flex flex-col gap-2 mt-4">
