@@ -1,5 +1,6 @@
 import { Link, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Clock, Users, MapPin, Check, AlertTriangle, Calendar, Crosshair, Spade, Building2 } from "lucide-react";
@@ -7,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { GiTennisRacket, GiSquare } from "react-icons/gi";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import type { Facility, FacilityAddOn } from "@shared/schema";
+import type { Facility, FacilityAddOn, PricingTier } from "@shared/schema";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
 import squashImage from "@assets/stock_images/indoor_squash_court__3447d74a.jpg";
@@ -185,6 +186,29 @@ export default function FacilityDetail() {
     enabled: !!slug,
   });
 
+  // Fetch pricing tiers for dynamic discount display
+  const { data: pricingTiers = [] } = useQuery<PricingTier[]>({
+    queryKey: ["/api/pricing-tiers"],
+  });
+
+  // Extract discount percentages from pricing tier benefits
+  const tierDiscounts = useMemo(() => {
+    const discounts: Record<string, string> = {};
+    pricingTiers.forEach(tier => {
+      const benefits = tier.benefits || [];
+      const discountBenefit = benefits.find((b: string) => 
+        b.toLowerCase().includes('discount') && b.toLowerCase().includes('off-peak')
+      );
+      if (discountBenefit) {
+        const match = discountBenefit.match(/(\d+)%/);
+        if (match) {
+          discounts[tier.tier] = match[1];
+        }
+      }
+    });
+    return discounts;
+  }, [pricingTiers]);
+
   const defaultData = defaultFacilities[slug || ""];
   const facility = dbFacility 
     ? {
@@ -353,10 +377,21 @@ export default function FacilityDetail() {
                         PKR {parseInt(facility.peakPrice || "0").toLocaleString()}/hr
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground pt-2 border-t">
-                      Member discounts during off-peak hours (10AM-5PM):
-                      <br />Founding: 25% | Gold: 20% | Silver: 10%
-                    </p>
+                    {Object.keys(tierDiscounts).length > 0 ? (
+                      <p className="text-xs text-muted-foreground pt-2 border-t">
+                        Member discounts during off-peak hours (10AM-5PM):
+                        <br />
+                        {tierDiscounts.FOUNDING && `Founding: ${tierDiscounts.FOUNDING}%`}
+                        {tierDiscounts.FOUNDING && tierDiscounts.GOLD && ' | '}
+                        {tierDiscounts.GOLD && `Gold: ${tierDiscounts.GOLD}%`}
+                        {tierDiscounts.GOLD && tierDiscounts.SILVER && ' | '}
+                        {tierDiscounts.SILVER && `Silver: ${tierDiscounts.SILVER}%`}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground pt-2 border-t">
+                        Members enjoy off-peak discounts (10AM-5PM)
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
