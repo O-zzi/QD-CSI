@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 
 const signupSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -317,6 +318,10 @@ export default function Signup() {
               </Button>
             </form>
           </Form>
+
+          <div className="mt-6">
+            <SocialLoginButtons mode="signup" />
+          </div>
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Already have an account? </span>
