@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, Session, AuthError } from '@supabase/supabase-js';
+import { User, Session, AuthError, Provider } from '@supabase/supabase-js';
 import { supabase, isSupabaseAuthConfigured, getSupabaseClient } from '@/lib/supabase';
 import { queryClient } from '@/lib/queryClient';
+
+export type OAuthProvider = 'google' | 'apple' | 'github' | 'twitter';
 
 interface AuthState {
   user: User | null;
@@ -13,6 +15,7 @@ interface AuthState {
 interface AuthContextType extends AuthState {
   signUp: (email: string, password: string, metadata?: { firstName?: string; lastName?: string }) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signInWithOAuth: (provider: OAuthProvider) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
@@ -165,6 +168,22 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     return { error };
   }, [isConfigured]);
 
+  const signInWithOAuth = useCallback(async (provider: OAuthProvider) => {
+    if (!isConfigured) {
+      return { error: { message: 'Supabase not configured' } as AuthError };
+    }
+
+    const client = getSupabaseClient();
+    const { error } = await client.auth.signInWithOAuth({
+      provider: provider as Provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    return { error };
+  }, [isConfigured]);
+
   const useSupabaseAuthEnabled = isConfigured && import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
 
   return (
@@ -173,6 +192,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
         ...state,
         signUp,
         signIn,
+        signInWithOAuth,
         signOut,
         resetPassword,
         updatePassword,
