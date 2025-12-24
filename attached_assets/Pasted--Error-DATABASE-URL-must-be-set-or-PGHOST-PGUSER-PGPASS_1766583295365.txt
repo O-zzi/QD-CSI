@@ -1,0 +1,690 @@
+
+Error: DATABASE_URL must be set or PGHOST/PGUSER/PGPASSWORD/PGDATABASE must be set. Did you forget to provision a database?
+    at Iy (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:123521)
+    at Object.<anonymous> (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:123658)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/app.cjs:1:1)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+
+Node.js v20.19.4
+node:internal/modules/cjs/loader:1215
+  throw err;
+  ^
+
+Error: Cannot find module 'dotenv'
+Require stack:
+- /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/app.cjs
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1212:15)
+    at Module._load (node:internal/modules/cjs/loader:1043:27)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/app.cjs:1:1)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/app.cjs',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.19.4
+node:internal/modules/cjs/loader:1215
+  throw err;
+  ^
+
+Error: Cannot find module 'dotenv'
+Require stack:
+- /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/app.cjs
+- /usr/local/lsws/fcgi-bin/lsnode.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1212:15)
+    at Module._load (node:internal/modules/cjs/loader:1043:27)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/app.cjs:1:1)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/app.cjs',
+    '/usr/local/lsws/fcgi-bin/lsnode.js'
+  ]
+}
+
+Node.js v20.19.4
+Error fetching navbar items: error: column "is_visible" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getNavbarItems (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:8880)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:59279 {
+  length: 110,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '45',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching site images: error: column "key" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getSiteImagesByPage (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:8511)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:57679 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '14',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching venues: error: column "country" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getVenues (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:4578)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:9268 {
+  length: 107,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '38',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching leaderboard: error: column leaderboard.score does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getLeaderboard (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:147)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:13311 {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '82',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching operating hours: error: column "slot_duration_minutes" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getOperatingHours (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:9581)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:52816 {
+  length: 121,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '83',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching hall activities: error: column "slug" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getHallActivities (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:10753)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:55139 {
+  length: 104,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '37',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching facility addons: error: column "icon" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getFacilityAddOns (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:126254)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:7545 {
+  length: 104,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '47',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching navbar items: error: column "is_visible" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getNavbarItems (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:8880)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:59279 {
+  length: 110,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '45',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching leaderboard: error: column leaderboard.score does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getLeaderboard (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:147)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:13311 {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '82',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching hall activities: error: column "slug" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getHallActivities (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:10753)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:55139 {
+  length: 104,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '37',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching venues: error: column "country" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getVenues (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:4578)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:9268 {
+  length: 107,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '38',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching operating hours: error: column "slot_duration_minutes" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getOperatingHours (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:9581)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:52816 {
+  length: 121,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '83',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching facility addons: error: column "icon" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getFacilityAddOns (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:126254)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:7545 {
+  length: 104,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '47',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching site images: error: column "key" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getSiteImagesByPage (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:8511)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:57679 {
+  length: 103,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '14',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching leaderboard: error: column leaderboard.score does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getLeaderboard (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:147)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:13311 {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '82',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching operating hours: error: column "slot_duration_minutes" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getOperatingHours (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:9581)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:52816 {
+  length: 121,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '83',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching venues: error: column "country" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getVenues (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:4578)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:9268 {
+  length: 107,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '38',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching hall activities: error: column "slug" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getHallActivities (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:10753)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:55139 {
+  length: 104,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '37',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching navbar items: error: column "is_visible" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getNavbarItems (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:8880)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:59279 {
+  length: 110,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '45',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching facility addons: error: column "icon" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getFacilityAddOns (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:126254)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:7545 {
+  length: 104,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '47',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching hall activities: error: column "slug" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getHallActivities (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:10753)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:55139 {
+  length: 104,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '37',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching operating hours: error: column "slot_duration_minutes" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getOperatingHours (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:9581)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:52816 {
+  length: 121,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '83',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching leaderboard: error: column leaderboard.score does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getLeaderboard (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:147)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:13311 {
+  length: 115,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '82',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching navbar items: error: column "is_visible" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getNavbarItems (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:8880)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:59279 {
+  length: 110,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '45',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching venues: error: column "country" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getVenues (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:96:4578)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:9268 {
+  length: 107,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '38',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+Error fetching facility addons: error: column "icon" does not exist
+    at /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:64:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:120467
+    at async Ry.getFacilityAddOns (/home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:94:126254)
+    at async /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html/dist/index.cjs:583:7545 {
+  length: 104,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '47',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
