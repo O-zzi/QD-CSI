@@ -19,6 +19,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
+import { PageHero } from "@/components/layout/PageHero";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -99,14 +100,11 @@ export default function Contact() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="bg-primary py-8 md:py-12">
-          <div className="qd-container text-center text-primary-foreground">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-contact-title">Contact Us</h1>
-            <p className="text-sm opacity-80 max-w-2xl mx-auto">
-              Get in touch with The Quarterdeck team. We're here to help with bookings, memberships, and any questions you may have.
-            </p>
-          </div>
-        </div>
+        <PageHero 
+          title="Contact Us"
+          subtitle="Get in touch with The Quarterdeck team. We're here to help with bookings, memberships, and any questions you may have."
+          testId="text-contact-title"
+        />
 
         <div className="qd-container py-8">
           <PageBreadcrumb />

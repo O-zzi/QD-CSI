@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
+import { PageHero } from "@/components/layout/PageHero";
 
 interface ConstructionPhase {
   id: string;
@@ -75,16 +76,11 @@ export default function Roadmap() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1">
-        <div className="bg-primary py-8 md:py-12">
-          <div className="qd-container text-center text-primary-foreground">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-roadmap-title">
-              Development Roadmap
-            </h1>
-            <p className="text-sm opacity-80 max-w-2xl mx-auto">
-              Follow our journey from groundbreaking to grand opening
-            </p>
-          </div>
-        </div>
+        <PageHero 
+          title="Development Roadmap"
+          subtitle="Follow our journey from groundbreaking to grand opening"
+          testId="text-roadmap-title"
+        />
 
         <div className="qd-container py-8">
           <PageBreadcrumb />

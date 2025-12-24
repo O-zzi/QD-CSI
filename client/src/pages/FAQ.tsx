@@ -5,6 +5,7 @@ import { ChevronDown, HelpCircle, Calendar, Users, CreditCard, Clock, Building2,
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
+import { PageHero } from "@/components/layout/PageHero";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { FaqCategory, FaqItem } from "@shared/schema";
@@ -64,16 +65,11 @@ export default function FAQ() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="bg-primary py-8 md:py-12">
-          <div className="qd-container text-center text-primary-foreground">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-faq-title">
-              Frequently Asked Questions
-            </h1>
-            <p className="text-sm opacity-80 max-w-2xl mx-auto">
-              Find answers to common questions about The Quarterdeck, memberships, bookings, and more.
-            </p>
-          </div>
-        </div>
+        <PageHero 
+          title="Frequently Asked Questions"
+          subtitle="Find answers to common questions about The Quarterdeck, memberships, bookings, and more."
+          testId="text-faq-title"
+        />
 
         <PageBreadcrumb 
           items={[{ label: "FAQ" }]} 

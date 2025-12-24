@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Target, Users, Trophy, Heart, Shield, Building2 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageHero } from "@/components/layout/PageHero";
 
 export default function Vision() {
   return (
@@ -11,14 +12,12 @@ export default function Vision() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="bg-primary py-8 md:py-12">
-          <div className="qd-container text-center text-primary-foreground">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-vision-title">Our Vision</h1>
-            <p className="text-sm opacity-80 max-w-3xl mx-auto" data-testid="text-vision-subtitle">
-              Building Islamabad's premier sports and recreation destination
-            </p>
-          </div>
-        </div>
+        <PageHero 
+          title="Our Vision"
+          subtitle="Building Islamabad's premier sports and recreation destination"
+          testId="text-vision-title"
+          subtitleTestId="text-vision-subtitle"
+        />
 
         <div className="qd-container py-16">
           <div className="max-w-4xl mx-auto">

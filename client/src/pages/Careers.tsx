@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
+import { PageHero } from "@/components/layout/PageHero";
 import type { Career } from "@shared/schema";
 
 const applicationSchema = z.object({
@@ -201,16 +202,11 @@ export default function Careers() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="bg-primary py-8 md:py-12">
-          <div className="qd-container text-center text-primary-foreground">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-careers-title">
-              Join Our Team
-            </h1>
-            <p className="text-sm opacity-80 max-w-3xl mx-auto">
-              Be part of Islamabad's premier sports and recreation destination
-            </p>
-          </div>
-        </div>
+        <PageHero 
+          title="Join Our Team"
+          subtitle="Be part of Islamabad's premier sports and recreation destination"
+          testId="text-careers-title"
+        />
 
         <div className="qd-container py-8">
           <PageBreadcrumb />

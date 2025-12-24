@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
+import { PageHero } from "@/components/layout/PageHero";
 
 import renderExterior1 from "@assets/stock_images/architectural_render_b118ee78.jpg";
 import renderExterior2 from "@assets/stock_images/architectural_render_cd4dce75.jpg";
@@ -63,14 +64,11 @@ export default function Gallery() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="bg-primary py-8 md:py-12">
-          <div className="qd-container text-center text-primary-foreground">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-gallery-page-title">Gallery & Progress</h1>
-            <p className="text-sm opacity-80 max-w-2xl mx-auto">
-              Explore architectural renders, construction updates, and facility photos from The Quarterdeck sports complex.
-            </p>
-          </div>
-        </div>
+        <PageHero 
+          title="Gallery & Progress"
+          subtitle="Explore architectural renders, construction updates, and facility photos from The Quarterdeck sports complex."
+          testId="text-gallery-page-title"
+        />
 
         <div className="qd-container py-8">
           <PageBreadcrumb />

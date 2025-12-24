@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
+import { PageHero } from "@/components/layout/PageHero";
 
 const registrationFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -154,16 +155,11 @@ export default function Events() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1">
-        <div className="bg-primary py-8 md:py-12">
-          <div className="qd-container text-center text-primary-foreground">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-events-title">
-              Events & Academies
-            </h1>
-            <p className="text-sm opacity-80 max-w-2xl mx-auto">
-              Tournaments, leagues, and training programs
-            </p>
-          </div>
-        </div>
+        <PageHero 
+          title="Events & Academies"
+          subtitle="Tournaments, leagues, and training programs"
+          testId="text-events-title"
+        />
 
         <div className="qd-container py-8">
           <PageBreadcrumb />

@@ -2,6 +2,7 @@ import { Loader2, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageHero } from "@/components/layout/PageHero";
 
 interface PolicySection {
   section: string;
@@ -38,12 +39,11 @@ export default function Terms() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="bg-primary py-8 md:py-12">
-          <div className="qd-container text-center text-primary-foreground">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-terms-title">Terms & Conditions</h1>
-            <p className="text-sm opacity-80">Last updated: December 2025</p>
-          </div>
-        </div>
+        <PageHero 
+          title="Terms & Conditions"
+          subtitle="Last updated: December 2025"
+          testId="text-terms-title"
+        />
 
         <div className="qd-container py-8">
           <div className="max-w-4xl mx-auto prose prose-slate dark:prose-invert">

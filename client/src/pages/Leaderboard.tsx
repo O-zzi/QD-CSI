@@ -10,6 +10,7 @@ import { Trophy, Medal, Target, Swords } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PageHero } from "@/components/layout/PageHero";
 import type { LeaderboardEntry } from "@shared/schema";
 
 const FACILITIES = [
@@ -100,14 +101,11 @@ export default function Leaderboard() {
       <Navbar />
       
       <main className="flex-1">
-        <div className="bg-primary py-8 md:py-12">
-          <div className="qd-container text-center text-primary-foreground">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-leaderboard-title">Leaderboard</h1>
-            <p className="text-sm opacity-80 max-w-2xl mx-auto">
-              Top players across all sports at The Quarterdeck
-            </p>
-          </div>
-        </div>
+        <PageHero 
+          title="Leaderboard"
+          subtitle="Top players across all sports at The Quarterdeck"
+          testId="text-leaderboard-title"
+        />
 
         <div className="qd-container py-8">
           <div className="flex flex-wrap gap-2 mb-6">
