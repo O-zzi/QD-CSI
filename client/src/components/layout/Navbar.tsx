@@ -127,7 +127,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-primary dark:bg-slate-900 border-b border-primary-foreground/10 shadow-sm">
+    <header className="sticky top-0 z-50 bg-[rgb(17_24_39_/_0.8)] backdrop-blur-md border-b border-white/10 shadow-sm">
       <div className="qd-container">
         <nav className="h-[70px] flex items-center justify-between gap-8">
           <Link href="/">
