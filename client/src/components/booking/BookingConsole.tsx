@@ -329,6 +329,38 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     }));
   }, [apiHallActivities]);
 
+  // Fetch pricing tiers for dynamic discount calculation
+  interface PricingTierData {
+    id: string;
+    name: string;
+    tier: string;
+    price: number;
+    benefits: string[];
+    isActive: boolean;
+  }
+  
+  const { data: apiPricingTiers = [] } = useQuery<PricingTierData[]>({
+    queryKey: ['/api/pricing-tiers'],
+  });
+
+  // Extract discount percentages from pricing tier benefits - fully dynamic from CMS
+  const tierDiscounts = useMemo(() => {
+    const discounts: Record<string, number> = { FOUNDING: 0, GOLD: 0, SILVER: 0, GUEST: 0 };
+    apiPricingTiers.forEach(tier => {
+      const benefits = tier.benefits || [];
+      const discountBenefit = benefits.find((b: string) => 
+        b.toLowerCase().includes('discount') && b.toLowerCase().includes('off-peak')
+      );
+      if (discountBenefit) {
+        const match = discountBenefit.match(/(\d+)%/);
+        if (match) {
+          discounts[tier.tier] = parseInt(match[1], 10);
+        }
+      }
+    });
+    return discounts;
+  }, [apiPricingTiers]);
+
   // Fetch operating hours for selected date's day of week and facility
   // selectedDate is an ISO string like "2025-12-21", need to parse it to get day of week
   const selectedDayOfWeek = useMemo(() => {
@@ -669,24 +701,18 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     
     // Apply membership-based discounts (OFF-PEAK HOURS ONLY)
     // CRITICAL: Discounts ONLY apply if membershipStatus === 'ACTIVE'
-    // Founding: 25% off-peak only
-    // Gold: 20% off-peak only  
-    // Silver: 10% off-peak only
-    // Guest: 0% (no discount)
+    // Discount percentages fetched dynamically from pricing tiers CMS
     let discount = 0;
     const tier = userProfile.membershipTier;
     const isActive = userProfile.isActiveMember;
     const offPeak = isOffPeak(selectedStartTime);
     
+    // Get dynamic discount percentage from CMS-driven pricing tiers
+    const discountPercent = tierDiscounts[tier] || 0;
+    
     // All discounts only apply during off-peak hours (10 AM - 5 PM) AND status === ACTIVE
-    if (offPeak && isActive) {
-      if (tier === 'FOUNDING') {
-        discount = base * 0.25;
-      } else if (tier === 'GOLD') {
-        discount = base * 0.20;
-      } else if (tier === 'SILVER') {
-        discount = base * 0.10;
-      }
+    if (offPeak && isActive && discountPercent > 0) {
+      discount = base * (discountPercent / 100);
     }
     // Guest tier, peak hours, and non-ACTIVE status get no discount
     
@@ -700,12 +726,11 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     });
     if (coachBooked) addOnTotal += 4000;
     
-    // Build discount label only if discount applies
+    // Build discount label dynamically from CMS tier data
     let discountLabel: string | null = null;
     if (offPeak && isActive && discount > 0) {
-      if (tier === 'FOUNDING') discountLabel = '25% Founding (Off-Peak)';
-      else if (tier === 'GOLD') discountLabel = '20% Gold (Off-Peak)';
-      else if (tier === 'SILVER') discountLabel = '10% Silver (Off-Peak)';
+      const tierName = tier.charAt(0) + tier.slice(1).toLowerCase();
+      discountLabel = `${discountPercent}% ${tierName} (Off-Peak)`;
     }
     
     return {
@@ -718,7 +743,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       startTime: selectedStartTime,
       endTime: calculateEndTime(selectedStartTime, selectedDuration),
     };
-  }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate, userProfile.membershipTier, userProfile.isActiveMember, currentFacilityAddOns]);
+  }, [selectedStartTime, selectedFacility, selectedDuration, selectedAddOns, addOnQuantities, coachBooked, selectedDate, userProfile.membershipTier, userProfile.isActiveMember, currentFacilityAddOns, tierDiscounts]);
 
   const toggleAddOn = (item: { id: string }) => {
     const newSet = new Set(selectedAddOns);
@@ -1798,9 +1823,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   <li className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                       <span className="font-bold text-amber-600 dark:text-amber-400">
-                        {userProfile.membershipTier === 'FOUNDING' ? '25%' :
-                         userProfile.membershipTier === 'GOLD' ? '20%' :
-                         userProfile.membershipTier === 'SILVER' ? '10%' : '0%'}
+                        {tierDiscounts[userProfile.membershipTier] || 0}%
                       </span>
                     </div>
                     <div>
