@@ -1,6 +1,6 @@
 -- Fix CMS Content Table Structure for The Quarterdeck
--- The code expects: key, title, content, metadata, sort_order, is_active
--- But production has: page, section, content_key, content_value, content_type
+-- Production table has page, section, content_key as NOT NULL
+-- We need to provide values for those columns too
 
 -- Step 1: Add missing columns if they don't exist
 ALTER TABLE cms_content ADD COLUMN IF NOT EXISTS key VARCHAR UNIQUE;
@@ -10,16 +10,19 @@ ALTER TABLE cms_content ADD COLUMN IF NOT EXISTS metadata JSONB;
 ALTER TABLE cms_content ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;
 ALTER TABLE cms_content ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
 
--- Step 2: Migrate any existing data from old columns to new columns
-UPDATE cms_content 
-SET key = content_key, 
-    content = content_value 
-WHERE key IS NULL AND content_key IS NOT NULL;
+-- Step 2: Delete old entries for terms and privacy (if any)
+DELETE FROM cms_content WHERE content_key IN ('terms_conditions', 'privacy_policy');
+DELETE FROM cms_content WHERE key IN ('terms_conditions', 'privacy_policy');
 
--- Step 3: Insert Terms & Conditions
-INSERT INTO cms_content (id, key, title, content, is_active, sort_order) 
+-- Step 3: Insert Terms & Conditions (with all required columns)
+INSERT INTO cms_content (id, page, section, content_key, content_value, content_type, key, title, content, is_active, sort_order) 
 VALUES (
   gen_random_uuid()::text, 
+  'legal',
+  'terms',
+  'terms_conditions',
+  'terms_conditions',
+  'json',
   'terms_conditions', 
   'Terms & Conditions',
   '[
@@ -34,17 +37,17 @@ VALUES (
   ]',
   true,
   1
-)
-ON CONFLICT (key) DO UPDATE 
-SET content = EXCLUDED.content, 
-    title = EXCLUDED.title,
-    is_active = EXCLUDED.is_active,
-    updated_at = NOW();
+);
 
--- Step 4: Insert Privacy Policy
-INSERT INTO cms_content (id, key, title, content, is_active, sort_order) 
+-- Step 4: Insert Privacy Policy (with all required columns)
+INSERT INTO cms_content (id, page, section, content_key, content_value, content_type, key, title, content, is_active, sort_order) 
 VALUES (
   gen_random_uuid()::text, 
+  'legal',
+  'privacy',
+  'privacy_policy',
+  'privacy_policy',
+  'json',
   'privacy_policy', 
   'Privacy Policy',
   '[
@@ -60,12 +63,7 @@ VALUES (
   ]',
   true,
   2
-)
-ON CONFLICT (key) DO UPDATE 
-SET content = EXCLUDED.content, 
-    title = EXCLUDED.title,
-    is_active = EXCLUDED.is_active,
-    updated_at = NOW();
+);
 
 -- Step 5: Verify the data
 SELECT key, title, LEFT(content, 50) as content_preview, is_active 
