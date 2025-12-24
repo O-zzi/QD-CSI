@@ -252,7 +252,7 @@ export default function Facilities() {
                   Book Now
                 </Button>
               </Link>
-              <Link href="/#contact">
+              <Link href="/contact">
                 <Button variant="outline" data-testid="button-contact-us">
                   Contact Us
                 </Button>

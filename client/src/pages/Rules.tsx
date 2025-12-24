@@ -129,7 +129,7 @@ export default function Rules() {
                   on any point, please don't hesitate to contact us.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Link href="/#contact">
+                  <Link href="/contact">
                     <Button data-testid="button-contact-us">
                       Contact Us
                     </Button>

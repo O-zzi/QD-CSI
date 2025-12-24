@@ -31,42 +31,42 @@ export function Footer() {
   const copyrightYear = new Date().getFullYear();
 
   return (
-    <footer className="qd-footer relative overflow-hidden">
+    <footer className="qd-footer relative overflow-hidden bg-primary dark:bg-slate-900">
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 dark:opacity-20"
         style={{ backgroundImage: `url(${footerBg})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-[#111827]/95 to-[#111827]/80" />
+      <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/95 to-primary/80 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900/80" />
       <div className="qd-container relative z-10">
         <div className="flex flex-wrap justify-between gap-6 items-center">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer" data-testid="link-footer-logo">
               <div className="qd-logo-mark">{siteName.charAt(0)}</div>
               <div>
-                <div className="font-bold tracking-wider text-sm uppercase text-gray-200">{siteName}</div>
-                <div className="text-xs text-gray-400">{siteTagline}</div>
+                <div className="font-bold tracking-wider text-sm uppercase text-primary-foreground">{siteName}</div>
+                <div className="text-xs text-primary-foreground/70">{siteTagline}</div>
               </div>
             </div>
           </Link>
 
           <div className="flex flex-wrap gap-4">
             <Link href="/vision">
-              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-about">
+              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-about">
                 About Us
               </span>
             </Link>
             <Link href="/facilities">
-              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-facilities">
+              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-facilities">
                 Facilities
               </span>
             </Link>
             <Link href="/rules">
-              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-rules">
+              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-rules">
                 Rules & Safety
               </span>
             </Link>
             <Link href="/careers">
-              <span className="text-gray-400 hover:text-white transition-colors cursor-pointer" data-testid="link-footer-careers">
+              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-careers">
                 Careers
               </span>
             </Link>
@@ -106,13 +106,13 @@ export function Footer() {
           </div>
         </div>
 
-        <p className="text-center mt-6 text-gray-500 text-xs">
+        <p className="text-center mt-6 text-primary-foreground/60 text-xs">
           © {copyrightYear} {siteName} – All rights reserved.{" "}
-          <Link href="/terms" className="font-semibold hover:text-gray-300 cursor-pointer" data-testid="link-footer-terms">
+          <Link href="/terms" className="font-semibold hover:text-primary-foreground cursor-pointer" data-testid="link-footer-terms">
             Terms & Conditions
           </Link>
           {" | "}
-          <Link href="/privacy" className="font-semibold hover:text-gray-300 cursor-pointer" data-testid="link-footer-privacy">
+          <Link href="/privacy" className="font-semibold hover:text-primary-foreground cursor-pointer" data-testid="link-footer-privacy">
             Privacy Policy
           </Link>
         </p>

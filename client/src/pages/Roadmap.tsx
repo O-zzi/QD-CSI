@@ -265,7 +265,7 @@ export default function Roadmap() {
               Follow our progress and be the first to know about new developments, 
               preview events, and exclusive opportunities.
             </p>
-            <Link href="/#contact">
+            <Link href="/contact">
               <Button data-testid="button-register-interest">
                 Register Your Interest
               </Button>

@@ -31,7 +31,7 @@ const defaultNavLinks: NavLink[] = [
   { label: "Events & Academies", href: "/events" },
   { label: "Updates", href: "/roadmap" },
   { label: "Gallery", href: "/gallery" },
-  { label: "Contact", section: "contact" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export function Navbar({ onScrollTo }: NavbarProps) {
@@ -103,9 +103,12 @@ export function Navbar({ onScrollTo }: NavbarProps) {
       .filter(item => item.isVisible)
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
       .map(item => {
-        // Gallery should always go to /gallery page, not scroll to section
+        // Gallery and Contact should always go to their pages
         if (item.href === '/#gallery') {
           return { label: item.label, href: '/gallery' };
+        }
+        if (item.href === '/#contact') {
+          return { label: item.label, href: '/contact' };
         }
         if (item.href?.startsWith('/#')) {
           return { label: item.label, section: item.href.replace('/#', '') };
@@ -124,7 +127,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shadow-sm">
+    <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
       <div className="qd-container">
         <nav className="h-[70px] flex items-center justify-between gap-8">
           <Link href="/">
@@ -240,7 +243,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
         </nav>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden flex flex-col gap-2 pb-4 border-t border-gray-100 dark:border-slate-700 pt-4 animate-qd-fade-in">
+          <div className="lg:hidden flex flex-col gap-2 pb-4 border-t border-border pt-4 animate-qd-fade-in">
             {navLinks.map((link) => (
               link.href ? (
                 <Link key={link.label} href={link.href}>
@@ -263,7 +266,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
                 </button>
               )
             ))}
-            <div className="flex items-center justify-between border-t border-gray-100 dark:border-slate-700 pt-4 mt-4">
+            <div className="flex items-center justify-between border-t border-border pt-4 mt-4">
               <span className="text-sm text-muted-foreground">Theme</span>
               <ThemeToggle />
             </div>

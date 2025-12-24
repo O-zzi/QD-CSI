@@ -750,8 +750,6 @@
 
 /* Footer */
 .qd-footer {
-  background: #1f2933;
-  color: #d1d5db;
   padding: 2.5rem 0;
   font-size: 0.85rem;
 }
@@ -761,16 +759,16 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #374151;
+  background: hsl(var(--primary-foreground) / 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: hsl(var(--primary-foreground));
   transition: background 0.15s ease;
 }
 
 .qd-social-icon:hover {
-  background: var(--qd-primary);
+  background: hsl(var(--primary-foreground) / 0.3);
 }
 
 /* Dark mode overrides for Quarterdeck */
@@ -822,12 +820,12 @@
   border-color: #475569;
 }
 
-.dark .qd-footer {
-  background: #0f172a;
+.dark .qd-social-icon {
+  background: rgba(255, 255, 255, 0.15);
 }
 
-.dark .qd-social-icon {
-  background: #1e293b;
+.dark .qd-social-icon:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .dark .qd-btn-outline {
