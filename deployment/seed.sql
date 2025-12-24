@@ -87,6 +87,50 @@ VALUES
     ('Front Desk Executive', 'Customer Service', 'Islamabad', 'Full-time', 'First point of contact for members and guests. Manage bookings, handle inquiries, and ensure smooth facility access.', 'Excellent customer service skills|Computer proficient|Good communication in English and Urdu|Previous hospitality experience preferred', 'PKR 40,000 - 55,000/month', true, true)
 ON CONFLICT DO NOTHING;
 
+-- Operating Hours (generic hours for all days - 6 AM to 11 PM)
+-- Days: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday
+INSERT INTO operating_hours (id, venue_id, facility_id, day_of_week, open_time, close_time, slot_duration_minutes, is_holiday, is_closed)
+VALUES 
+    ('oh-sun', NULL, NULL, 0, '06:00', '23:00', 60, false, false),
+    ('oh-mon', NULL, NULL, 1, '06:00', '23:00', 60, false, false),
+    ('oh-tue', NULL, NULL, 2, '06:00', '23:00', 60, false, false),
+    ('oh-wed', NULL, NULL, 3, '06:00', '23:00', 60, false, false),
+    ('oh-thu', NULL, NULL, 4, '06:00', '23:00', 60, false, false),
+    ('oh-fri', NULL, NULL, 5, '06:00', '23:00', 60, false, false),
+    ('oh-sat', NULL, NULL, 6, '06:00', '23:00', 60, false, false)
+ON CONFLICT DO NOTHING;
+
+-- Sample Events (use subquery to get facility_id from slug)
+INSERT INTO events (id, facility_id, title, description, type, instructor, schedule_day, schedule_time, price, capacity, enrolled_count, image_url, slug, is_active)
+SELECT 
+    'event-1', 
+    (SELECT id FROM facilities WHERE slug = 'padel-tennis' LIMIT 1),
+    'Grand Opening Celebration',
+    'Join us for the grand opening of The Quarterdeck! Special exhibitions, free trials, and refreshments.',
+    'SOCIAL', NULL, 'Wednesday', '16:00', 0, 200, 0, '', 'grand-opening-celebration', true
+WHERE EXISTS (SELECT 1 FROM facilities WHERE slug = 'padel-tennis')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO events (id, facility_id, title, description, type, instructor, schedule_day, schedule_time, price, capacity, enrolled_count, image_url, slug, is_active)
+SELECT 
+    'event-2',
+    (SELECT id FROM facilities WHERE slug = 'padel-tennis' LIMIT 1),
+    'Padel Introductory Clinic',
+    'Learn the basics of Padel Tennis from our professional coaches. Equipment provided.',
+    'CLASS', 'Coach Ali', 'Saturday', '10:00', 2000, 16, 0, '', 'padel-introductory-clinic', true
+WHERE EXISTS (SELECT 1 FROM facilities WHERE slug = 'padel-tennis')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO events (id, facility_id, title, description, type, instructor, schedule_day, schedule_time, price, capacity, enrolled_count, image_url, slug, is_active)
+SELECT 
+    'event-3',
+    (SELECT id FROM facilities WHERE slug = 'padel-tennis' LIMIT 1),
+    'New Year Eve Party',
+    'Ring in 2026 at The Quarterdeck with live music, food, and festivities!',
+    'SOCIAL', NULL, 'Tuesday', '20:00', 5000, 150, 0, '', 'new-year-eve-party', true
+WHERE EXISTS (SELECT 1 FROM facilities WHERE slug = 'padel-tennis')
+ON CONFLICT DO NOTHING;
+
 -- Create admin user (update password hash after deployment)
 -- This creates an admin with a placeholder password - you MUST update this
 INSERT INTO users (id, email, password_hash, first_name, last_name, role, email_verified)
