@@ -8,7 +8,6 @@ import { GallerySection } from "@/components/landing/GallerySection";
 import { MembershipSection } from "@/components/landing/MembershipSection";
 import { RulesSection } from "@/components/landing/RulesSection";
 import { CareersSection } from "@/components/landing/CareersSection";
-import { ContactSection } from "@/components/landing/ContactSection";
 
 export default function Home() {
   return (
@@ -31,7 +30,6 @@ export default function Home() {
         <div className="qd-section-alt">
           <CareersSection />
         </div>
-        <ContactSection />
       </main>
       <Footer />
     </div>

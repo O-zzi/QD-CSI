@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Menu, X, ChevronDown, User, Settings, LogOut } from "lucide-react";
+import footerBg from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -31,7 +32,6 @@ const defaultNavLinks: NavLink[] = [
   { label: "Events & Academies", href: "/events" },
   { label: "Updates", href: "/roadmap" },
   { label: "Gallery", href: "/gallery" },
-  { label: "Contact", href: "/contact" },
 ];
 
 export function Navbar({ onScrollTo }: NavbarProps) {
@@ -127,8 +127,13 @@ export function Navbar({ onScrollTo }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[rgb(17_24_39_/_0.8)] backdrop-blur-md border-b border-white/10 shadow-sm">
-      <div className="qd-container">
+    <header className="sticky top-0 z-50 relative overflow-hidden">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+        style={{ backgroundImage: `url(${footerBg})` }}
+      />
+      <div className="absolute inset-0 bg-[rgb(17_24_39_/_0.9)]" />
+      <div className="qd-container relative z-10">
         <nav className="h-[70px] flex items-center justify-between gap-8">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer" data-testid="link-logo">

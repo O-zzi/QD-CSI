@@ -25,6 +25,7 @@ import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import ComingSoon from "@/pages/ComingSoon";
 import Contact from "@/pages/Contact";
+import FAQ from "@/pages/FAQ";
 import Updates from "@/pages/Updates";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/Login";
@@ -110,6 +111,7 @@ function PublicRoutes() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/coming-soon" component={ComingSoon} />
       <Route path="/contact" component={Contact} />
+      <Route path="/faq" component={FAQ} />
       <Route path="/updates" component={Updates} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />

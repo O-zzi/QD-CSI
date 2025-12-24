@@ -55,11 +55,6 @@ export function Footer() {
                 About Us
               </span>
             </Link>
-            <Link href="/facilities">
-              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-facilities">
-                Facilities
-              </span>
-            </Link>
             <Link href="/rules">
               <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-rules">
                 Rules & Safety
@@ -68,6 +63,11 @@ export function Footer() {
             <Link href="/careers">
               <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-careers">
                 Careers
+              </span>
+            </Link>
+            <Link href="/contact">
+              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-contact">
+                Contact
               </span>
             </Link>
           </div>
