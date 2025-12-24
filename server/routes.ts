@@ -40,6 +40,11 @@ import {
   insertPeakWindowSchema,
   insertHallActivitySchema,
   updateUserProfileSchema,
+  insertBlogSchema,
+  insertHeroSectionSchema,
+  insertCtaSchema,
+  insertTestimonialSchema,
+  insertEventGallerySchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
@@ -2559,6 +2564,360 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting navbar item:", error);
       res.status(500).json({ message: "Failed to delete navbar item" });
+    }
+  });
+
+  // ========== BLOG ROUTES ==========
+  app.get('/api/blogs', async (req, res) => {
+    try {
+      const blogs = await storage.getBlogs(true);
+      res.json(blogs);
+    } catch (error) {
+      console.error("Error fetching blogs:", error);
+      res.status(500).json({ message: "Failed to fetch blogs" });
+    }
+  });
+
+  app.get('/api/blogs/:slug', async (req, res) => {
+    try {
+      const blog = await storage.getBlogBySlug(req.params.slug);
+      if (!blog || !blog.isPublished) {
+        return res.status(404).json({ message: "Blog not found" });
+      }
+      res.json(blog);
+    } catch (error) {
+      console.error("Error fetching blog:", error);
+      res.status(500).json({ message: "Failed to fetch blog" });
+    }
+  });
+
+  app.get('/api/admin/blogs', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const blogs = await storage.getBlogs(false);
+      res.json(blogs);
+    } catch (error) {
+      console.error("Error fetching blogs:", error);
+      res.status(500).json({ message: "Failed to fetch blogs" });
+    }
+  });
+
+  app.post('/api/admin/blogs', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertBlogSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const blog = await storage.createBlog(result.data);
+      res.status(201).json(blog);
+    } catch (error) {
+      console.error("Error creating blog:", error);
+      res.status(500).json({ message: "Failed to create blog" });
+    }
+  });
+
+  app.patch('/api/admin/blogs/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertBlogSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateBlog(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Blog not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating blog:", error);
+      res.status(500).json({ message: "Failed to update blog" });
+    }
+  });
+
+  app.delete('/api/admin/blogs/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteBlog(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting blog:", error);
+      res.status(500).json({ message: "Failed to delete blog" });
+    }
+  });
+
+  // ========== HERO SECTION ROUTES ==========
+  app.get('/api/hero-sections', async (req, res) => {
+    try {
+      const heroes = await storage.getHeroSections();
+      res.json(heroes);
+    } catch (error) {
+      console.error("Error fetching hero sections:", error);
+      res.status(500).json({ message: "Failed to fetch hero sections" });
+    }
+  });
+
+  app.get('/api/hero-sections/:page', async (req, res) => {
+    try {
+      const hero = await storage.getHeroSection(req.params.page);
+      if (!hero) {
+        return res.status(404).json({ message: "Hero section not found" });
+      }
+      res.json(hero);
+    } catch (error) {
+      console.error("Error fetching hero section:", error);
+      res.status(500).json({ message: "Failed to fetch hero section" });
+    }
+  });
+
+  app.get('/api/admin/hero-sections', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const heroes = await storage.getHeroSections();
+      res.json(heroes);
+    } catch (error) {
+      console.error("Error fetching hero sections:", error);
+      res.status(500).json({ message: "Failed to fetch hero sections" });
+    }
+  });
+
+  app.post('/api/admin/hero-sections', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertHeroSectionSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const hero = await storage.createHeroSection(result.data);
+      res.status(201).json(hero);
+    } catch (error) {
+      console.error("Error creating hero section:", error);
+      res.status(500).json({ message: "Failed to create hero section" });
+    }
+  });
+
+  app.patch('/api/admin/hero-sections/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertHeroSectionSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateHeroSection(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Hero section not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating hero section:", error);
+      res.status(500).json({ message: "Failed to update hero section" });
+    }
+  });
+
+  app.delete('/api/admin/hero-sections/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteHeroSection(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting hero section:", error);
+      res.status(500).json({ message: "Failed to delete hero section" });
+    }
+  });
+
+  // ========== CTA ROUTES ==========
+  app.get('/api/ctas', async (req, res) => {
+    try {
+      const ctas = await storage.getCtas();
+      res.json(ctas);
+    } catch (error) {
+      console.error("Error fetching CTAs:", error);
+      res.status(500).json({ message: "Failed to fetch CTAs" });
+    }
+  });
+
+  app.get('/api/ctas/:key', async (req, res) => {
+    try {
+      const cta = await storage.getCta(req.params.key);
+      if (!cta) {
+        return res.status(404).json({ message: "CTA not found" });
+      }
+      res.json(cta);
+    } catch (error) {
+      console.error("Error fetching CTA:", error);
+      res.status(500).json({ message: "Failed to fetch CTA" });
+    }
+  });
+
+  app.get('/api/admin/ctas', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const ctas = await storage.getCtas();
+      res.json(ctas);
+    } catch (error) {
+      console.error("Error fetching CTAs:", error);
+      res.status(500).json({ message: "Failed to fetch CTAs" });
+    }
+  });
+
+  app.post('/api/admin/ctas', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertCtaSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const cta = await storage.createCta(result.data);
+      res.status(201).json(cta);
+    } catch (error) {
+      console.error("Error creating CTA:", error);
+      res.status(500).json({ message: "Failed to create CTA" });
+    }
+  });
+
+  app.patch('/api/admin/ctas/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertCtaSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateCta(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "CTA not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating CTA:", error);
+      res.status(500).json({ message: "Failed to update CTA" });
+    }
+  });
+
+  app.delete('/api/admin/ctas/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteCta(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting CTA:", error);
+      res.status(500).json({ message: "Failed to delete CTA" });
+    }
+  });
+
+  // ========== TESTIMONIAL ROUTES ==========
+  app.get('/api/testimonials', async (req, res) => {
+    try {
+      const testimonials = await storage.getTestimonials(true);
+      res.json(testimonials);
+    } catch (error) {
+      console.error("Error fetching testimonials:", error);
+      res.status(500).json({ message: "Failed to fetch testimonials" });
+    }
+  });
+
+  app.get('/api/testimonials/featured', async (req, res) => {
+    try {
+      const testimonials = await storage.getFeaturedTestimonials();
+      res.json(testimonials);
+    } catch (error) {
+      console.error("Error fetching featured testimonials:", error);
+      res.status(500).json({ message: "Failed to fetch featured testimonials" });
+    }
+  });
+
+  app.get('/api/admin/testimonials', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const testimonials = await storage.getTestimonials(false);
+      res.json(testimonials);
+    } catch (error) {
+      console.error("Error fetching testimonials:", error);
+      res.status(500).json({ message: "Failed to fetch testimonials" });
+    }
+  });
+
+  app.post('/api/admin/testimonials', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertTestimonialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const testimonial = await storage.createTestimonial(result.data);
+      res.status(201).json(testimonial);
+    } catch (error) {
+      console.error("Error creating testimonial:", error);
+      res.status(500).json({ message: "Failed to create testimonial" });
+    }
+  });
+
+  app.patch('/api/admin/testimonials/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertTestimonialSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateTestimonial(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Testimonial not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating testimonial:", error);
+      res.status(500).json({ message: "Failed to update testimonial" });
+    }
+  });
+
+  app.delete('/api/admin/testimonials/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteTestimonial(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting testimonial:", error);
+      res.status(500).json({ message: "Failed to delete testimonial" });
+    }
+  });
+
+  // ========== EVENT GALLERY ROUTES ==========
+  app.get('/api/events/:eventId/gallery', async (req, res) => {
+    try {
+      const images = await storage.getEventGallery(req.params.eventId);
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching event gallery:", error);
+      res.status(500).json({ message: "Failed to fetch event gallery" });
+    }
+  });
+
+  app.post('/api/admin/events/:eventId/gallery', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertEventGallerySchema.safeParse({ ...req.body, eventId: req.params.eventId });
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const image = await storage.createEventGalleryImage(result.data);
+      res.status(201).json(image);
+    } catch (error) {
+      console.error("Error creating event gallery image:", error);
+      res.status(500).json({ message: "Failed to create event gallery image" });
+    }
+  });
+
+  app.patch('/api/admin/event-gallery/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertEventGallerySchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateEventGalleryImage(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Gallery image not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating event gallery image:", error);
+      res.status(500).json({ message: "Failed to update event gallery image" });
+    }
+  });
+
+  app.delete('/api/admin/event-gallery/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteEventGalleryImage(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting event gallery image:", error);
+      res.status(500).json({ message: "Failed to delete event gallery image" });
     }
   });
 

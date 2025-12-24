@@ -599,6 +599,98 @@ export const adminAuditLogs = pgTable("admin_audit_logs", {
   index("idx_audit_created").on(table.createdAt),
 ]);
 
+// Blogs table (for blog posts)
+export const blogs = pgTable("blogs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: varchar("slug").unique().notNull(),
+  title: varchar("title").notNull(),
+  excerpt: text("excerpt"),
+  content: text("content"),
+  featuredImageUrl: varchar("featured_image_url"),
+  author: varchar("author"),
+  category: varchar("category"),
+  tags: text("tags").array(),
+  readTimeMinutes: integer("read_time_minutes").default(5),
+  publishedAt: timestamp("published_at"),
+  isPublished: boolean("is_published").default(false),
+  isFeatured: boolean("is_featured").default(false),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Hero Sections table (for page hero banners)
+export const heroSections = pgTable("hero_sections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  page: varchar("page").unique().notNull(), // 'landing', 'facilities', 'membership', 'events', etc.
+  title: varchar("title").notNull(),
+  subtitle: text("subtitle"),
+  description: text("description"),
+  backgroundImageUrl: varchar("background_image_url"),
+  backgroundVideoUrl: varchar("background_video_url"),
+  overlayOpacity: integer("overlay_opacity").default(50), // 0-100
+  ctaText: varchar("cta_text"),
+  ctaLink: varchar("cta_link"),
+  ctaSecondaryText: varchar("cta_secondary_text"),
+  ctaSecondaryLink: varchar("cta_secondary_link"),
+  alignment: varchar("alignment").default('center'), // 'left', 'center', 'right'
+  height: varchar("height").default('large'), // 'small', 'medium', 'large', 'full'
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// CTAs (Call to Action) table
+export const ctas = pgTable("ctas", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: varchar("key").unique().notNull(), // 'landing-membership', 'footer-newsletter', etc.
+  title: varchar("title").notNull(),
+  subtitle: text("subtitle"),
+  description: text("description"),
+  buttonText: varchar("button_text"),
+  buttonLink: varchar("button_link"),
+  secondaryButtonText: varchar("secondary_button_text"),
+  secondaryButtonLink: varchar("secondary_button_link"),
+  backgroundImageUrl: varchar("background_image_url"),
+  backgroundColor: varchar("background_color"),
+  style: varchar("style").default('default'), // 'default', 'gradient', 'image', 'minimal'
+  page: varchar("page"), // which page this CTA appears on
+  section: varchar("section"), // section within the page
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Testimonials table
+export const testimonials = pgTable("testimonials", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  title: varchar("title"), // job title or role
+  company: varchar("company"),
+  avatarUrl: varchar("avatar_url"),
+  quote: text("quote").notNull(),
+  rating: integer("rating").default(5), // 1-5 stars
+  facilityId: varchar("facility_id").references(() => facilities.id, { onDelete: 'set null' }),
+  isFeatured: boolean("is_featured").default(false),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Event Galleries table (for event/academy image galleries)
+export const eventGalleries = pgTable("event_galleries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").references(() => events.id, { onDelete: 'cascade' }),
+  imageUrl: varchar("image_url").notNull(),
+  caption: text("caption"),
+  altText: varchar("alt_text"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   membership: one(memberships, {
@@ -881,6 +973,35 @@ export const insertFacilityAddOnSchema = createInsertSchema(facilityAddOns).omit
   createdAt: true,
 });
 
+export const insertBlogSchema = createInsertSchema(blogs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertHeroSectionSchema = createInsertSchema(heroSections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCtaSchema = createInsertSchema(ctas).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTestimonialSchema = createInsertSchema(testimonials).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEventGallerySchema = createInsertSchema(eventGalleries).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -984,3 +1105,18 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 export type AdminAuditLog = typeof adminAuditLogs.$inferSelect;
 export type InsertAdminAuditLog = z.infer<typeof insertAdminAuditLogSchema>;
+
+export type Blog = typeof blogs.$inferSelect;
+export type InsertBlog = z.infer<typeof insertBlogSchema>;
+
+export type HeroSection = typeof heroSections.$inferSelect;
+export type InsertHeroSection = z.infer<typeof insertHeroSectionSchema>;
+
+export type Cta = typeof ctas.$inferSelect;
+export type InsertCta = z.infer<typeof insertCtaSchema>;
+
+export type Testimonial = typeof testimonials.$inferSelect;
+export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
+
+export type EventGallery = typeof eventGalleries.$inferSelect;
+export type InsertEventGallery = z.infer<typeof insertEventGallerySchema>;

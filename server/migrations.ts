@@ -24,6 +24,113 @@ export async function runStartupMigrations() {
     `);
     logger.info("membership_tier_definitions table created/verified", { source: "migrations" });
 
+    // Create blogs table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS blogs (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        slug VARCHAR UNIQUE NOT NULL,
+        title VARCHAR NOT NULL,
+        excerpt TEXT,
+        content TEXT,
+        featured_image_url VARCHAR,
+        author VARCHAR,
+        category VARCHAR,
+        tags TEXT[],
+        read_time_minutes INTEGER DEFAULT 5,
+        published_at TIMESTAMP,
+        is_published BOOLEAN DEFAULT false,
+        is_featured BOOLEAN DEFAULT false,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("blogs table created/verified", { source: "migrations" });
+
+    // Create hero_sections table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS hero_sections (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        page VARCHAR UNIQUE NOT NULL,
+        title VARCHAR NOT NULL,
+        subtitle TEXT,
+        description TEXT,
+        background_image_url VARCHAR,
+        background_video_url VARCHAR,
+        overlay_opacity INTEGER DEFAULT 50,
+        cta_text VARCHAR,
+        cta_link VARCHAR,
+        cta_secondary_text VARCHAR,
+        cta_secondary_link VARCHAR,
+        alignment VARCHAR DEFAULT 'center',
+        height VARCHAR DEFAULT 'large',
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("hero_sections table created/verified", { source: "migrations" });
+
+    // Create ctas table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ctas (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        key VARCHAR UNIQUE NOT NULL,
+        title VARCHAR NOT NULL,
+        subtitle TEXT,
+        description TEXT,
+        button_text VARCHAR,
+        button_link VARCHAR,
+        secondary_button_text VARCHAR,
+        secondary_button_link VARCHAR,
+        background_image_url VARCHAR,
+        background_color VARCHAR,
+        style VARCHAR DEFAULT 'default',
+        page VARCHAR,
+        section VARCHAR,
+        sort_order INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("ctas table created/verified", { source: "migrations" });
+
+    // Create testimonials table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS testimonials (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        name VARCHAR NOT NULL,
+        title VARCHAR,
+        company VARCHAR,
+        avatar_url VARCHAR,
+        quote TEXT NOT NULL,
+        rating INTEGER DEFAULT 5,
+        facility_id VARCHAR REFERENCES facilities(id) ON DELETE SET NULL,
+        is_featured BOOLEAN DEFAULT false,
+        is_active BOOLEAN DEFAULT true,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("testimonials table created/verified", { source: "migrations" });
+
+    // Create event_galleries table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS event_galleries (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        event_id VARCHAR NOT NULL,
+        image_url VARCHAR NOT NULL,
+        caption VARCHAR,
+        alt_text VARCHAR,
+        sort_order INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("event_galleries table created/verified", { source: "migrations" });
+
     // Add metadata column to notifications if not exists
     await pool.query(`
       ALTER TABLE notifications 

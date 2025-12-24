@@ -33,6 +33,11 @@ import {
   hallActivities,
   notifications,
   adminAuditLogs,
+  blogs,
+  heroSections,
+  ctas,
+  testimonials,
+  eventGalleries,
   type User,
   type UpsertUser,
   type Membership,
@@ -96,6 +101,16 @@ import {
   type InsertAdminAuditLog,
   type InsertUser,
   type UpdateUserProfile,
+  type Blog,
+  type InsertBlog,
+  type HeroSection,
+  type InsertHeroSection,
+  type Cta,
+  type InsertCta,
+  type Testimonial,
+  type InsertTestimonial,
+  type EventGallery,
+  type InsertEventGallery,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
@@ -321,6 +336,42 @@ export interface IStorage {
   // Admin Audit Log operations
   createAuditLog(data: InsertAdminAuditLog): Promise<AdminAuditLog>;
   getAuditLogs(limit?: number): Promise<AdminAuditLog[]>;
+  
+  // Blog operations
+  getBlogs(publishedOnly?: boolean): Promise<Blog[]>;
+  getBlog(id: string): Promise<Blog | undefined>;
+  getBlogBySlug(slug: string): Promise<Blog | undefined>;
+  createBlog(data: InsertBlog): Promise<Blog>;
+  updateBlog(id: string, data: Partial<InsertBlog>): Promise<Blog | undefined>;
+  deleteBlog(id: string): Promise<void>;
+  
+  // Hero Section operations
+  getHeroSections(): Promise<HeroSection[]>;
+  getHeroSection(page: string): Promise<HeroSection | undefined>;
+  createHeroSection(data: InsertHeroSection): Promise<HeroSection>;
+  updateHeroSection(id: string, data: Partial<InsertHeroSection>): Promise<HeroSection | undefined>;
+  deleteHeroSection(id: string): Promise<void>;
+  
+  // CTA operations
+  getCtas(): Promise<Cta[]>;
+  getCta(key: string): Promise<Cta | undefined>;
+  getCtasByPage(page: string): Promise<Cta[]>;
+  createCta(data: InsertCta): Promise<Cta>;
+  updateCta(id: string, data: Partial<InsertCta>): Promise<Cta | undefined>;
+  deleteCta(id: string): Promise<void>;
+  
+  // Testimonial operations
+  getTestimonials(activeOnly?: boolean): Promise<Testimonial[]>;
+  getFeaturedTestimonials(): Promise<Testimonial[]>;
+  createTestimonial(data: InsertTestimonial): Promise<Testimonial>;
+  updateTestimonial(id: string, data: Partial<InsertTestimonial>): Promise<Testimonial | undefined>;
+  deleteTestimonial(id: string): Promise<void>;
+  
+  // Event Gallery operations
+  getEventGallery(eventId: string): Promise<EventGallery[]>;
+  createEventGalleryImage(data: InsertEventGallery): Promise<EventGallery>;
+  updateEventGalleryImage(id: string, data: Partial<InsertEventGallery>): Promise<EventGallery | undefined>;
+  deleteEventGalleryImage(id: string): Promise<void>;
   
   // Health check
   healthCheck(): Promise<boolean>;
@@ -1407,6 +1458,165 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(adminAuditLogs)
       .orderBy(desc(adminAuditLogs.createdAt))
       .limit(limit);
+  }
+
+  // Blog operations
+  async getBlogs(publishedOnly: boolean = false): Promise<Blog[]> {
+    if (publishedOnly) {
+      return await db.select().from(blogs)
+        .where(eq(blogs.isPublished, true))
+        .orderBy(desc(blogs.publishedAt));
+    }
+    return await db.select().from(blogs).orderBy(desc(blogs.createdAt));
+  }
+
+  async getBlog(id: string): Promise<Blog | undefined> {
+    const [blog] = await db.select().from(blogs).where(eq(blogs.id, id));
+    return blog;
+  }
+
+  async getBlogBySlug(slug: string): Promise<Blog | undefined> {
+    const [blog] = await db.select().from(blogs).where(eq(blogs.slug, slug));
+    return blog;
+  }
+
+  async createBlog(data: InsertBlog): Promise<Blog> {
+    const [blog] = await db.insert(blogs).values(data).returning();
+    return blog;
+  }
+
+  async updateBlog(id: string, data: Partial<InsertBlog>): Promise<Blog | undefined> {
+    const [updated] = await db
+      .update(blogs)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(blogs.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBlog(id: string): Promise<void> {
+    await db.delete(blogs).where(eq(blogs.id, id));
+  }
+
+  // Hero Section operations
+  async getHeroSections(): Promise<HeroSection[]> {
+    return await db.select().from(heroSections).where(eq(heroSections.isActive, true));
+  }
+
+  async getHeroSection(page: string): Promise<HeroSection | undefined> {
+    const [hero] = await db.select().from(heroSections).where(eq(heroSections.page, page));
+    return hero;
+  }
+
+  async createHeroSection(data: InsertHeroSection): Promise<HeroSection> {
+    const [hero] = await db.insert(heroSections).values(data).returning();
+    return hero;
+  }
+
+  async updateHeroSection(id: string, data: Partial<InsertHeroSection>): Promise<HeroSection | undefined> {
+    const [updated] = await db
+      .update(heroSections)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(heroSections.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteHeroSection(id: string): Promise<void> {
+    await db.delete(heroSections).where(eq(heroSections.id, id));
+  }
+
+  // CTA operations
+  async getCtas(): Promise<Cta[]> {
+    return await db.select().from(ctas).where(eq(ctas.isActive, true)).orderBy(asc(ctas.sortOrder));
+  }
+
+  async getCta(key: string): Promise<Cta | undefined> {
+    const [cta] = await db.select().from(ctas).where(eq(ctas.key, key));
+    return cta;
+  }
+
+  async getCtasByPage(page: string): Promise<Cta[]> {
+    return await db.select().from(ctas)
+      .where(and(eq(ctas.page, page), eq(ctas.isActive, true)))
+      .orderBy(asc(ctas.sortOrder));
+  }
+
+  async createCta(data: InsertCta): Promise<Cta> {
+    const [cta] = await db.insert(ctas).values(data).returning();
+    return cta;
+  }
+
+  async updateCta(id: string, data: Partial<InsertCta>): Promise<Cta | undefined> {
+    const [updated] = await db
+      .update(ctas)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(ctas.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCta(id: string): Promise<void> {
+    await db.delete(ctas).where(eq(ctas.id, id));
+  }
+
+  // Testimonial operations
+  async getTestimonials(activeOnly: boolean = false): Promise<Testimonial[]> {
+    if (activeOnly) {
+      return await db.select().from(testimonials)
+        .where(eq(testimonials.isActive, true))
+        .orderBy(asc(testimonials.sortOrder));
+    }
+    return await db.select().from(testimonials).orderBy(asc(testimonials.sortOrder));
+  }
+
+  async getFeaturedTestimonials(): Promise<Testimonial[]> {
+    return await db.select().from(testimonials)
+      .where(and(eq(testimonials.isFeatured, true), eq(testimonials.isActive, true)))
+      .orderBy(asc(testimonials.sortOrder));
+  }
+
+  async createTestimonial(data: InsertTestimonial): Promise<Testimonial> {
+    const [testimonial] = await db.insert(testimonials).values(data).returning();
+    return testimonial;
+  }
+
+  async updateTestimonial(id: string, data: Partial<InsertTestimonial>): Promise<Testimonial | undefined> {
+    const [updated] = await db
+      .update(testimonials)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(testimonials.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTestimonial(id: string): Promise<void> {
+    await db.delete(testimonials).where(eq(testimonials.id, id));
+  }
+
+  // Event Gallery operations
+  async getEventGallery(eventId: string): Promise<EventGallery[]> {
+    return await db.select().from(eventGalleries)
+      .where(and(eq(eventGalleries.eventId, eventId), eq(eventGalleries.isActive, true)))
+      .orderBy(asc(eventGalleries.sortOrder));
+  }
+
+  async createEventGalleryImage(data: InsertEventGallery): Promise<EventGallery> {
+    const [image] = await db.insert(eventGalleries).values(data).returning();
+    return image;
+  }
+
+  async updateEventGalleryImage(id: string, data: Partial<InsertEventGallery>): Promise<EventGallery | undefined> {
+    const [updated] = await db
+      .update(eventGalleries)
+      .set(data)
+      .where(eq(eventGalleries.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteEventGalleryImage(id: string): Promise<void> {
+    await db.delete(eventGalleries).where(eq(eventGalleries.id, id));
   }
 
   async healthCheck(): Promise<boolean> {

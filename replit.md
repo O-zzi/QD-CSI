@@ -22,6 +22,15 @@ The backend uses Express.js and Node.js with WebSocket capabilities. **Authentic
 
 A PostgreSQL database, managed by Drizzle ORM and Drizzle Kit, defines core tables such as `users`, `memberships`, `facilities`, `bookings`, `events`, `leaderboard`, and `cms_content`. Relationships support various operational flows, and PostgreSQL enums with Drizzle-Zod integration ensure type safety. Dedicated tables manage multi-venue support, construction timelines, and site-wide CMS fields.
 
+**Phase 2 CMS Expansion Tables (added December 2024):**
+- `blogs` - Full blog/news article management with slugs, categories, tags, and publishing workflow
+- `hero_sections` - Per-page hero banner configuration with background images/videos and CTAs
+- `ctas` - Call-to-action components with styling options and page/section placement
+- `testimonials` - Customer testimonials with ratings and facility associations
+- `event_galleries` - Image galleries for events with captions and ordering
+
+All new CMS tables have complete CRUD APIs with admin protection and Zod validation.
+
 ### Admin Dashboard
 
 An `/admin` panel provides role-based access (ADMIN, SUPER_ADMIN) for managing CMS content, facilities, pricing, announcements, careers, rules, and gallery images. All admin API endpoints are protected and use Zod for validation. It includes CRUD operations for dynamic membership tier definitions with configurable properties like discounts and guest passes, and an interface for payment verification.
