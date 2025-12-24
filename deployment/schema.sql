@@ -449,6 +449,8 @@ CREATE TABLE IF NOT EXISTS operating_hours (
     day_of_week INTEGER NOT NULL,
     open_time VARCHAR NOT NULL,
     close_time VARCHAR NOT NULL,
+    slot_duration_minutes INTEGER DEFAULT 60,
+    is_holiday BOOLEAN DEFAULT false,
     is_closed BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()

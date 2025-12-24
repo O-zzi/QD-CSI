@@ -198,6 +198,24 @@ export async function registerRoutes(
     }
   });
 
+  // Logout route - clears session cookie
+  app.post('/api/auth/logout', (req: any, res) => {
+    try {
+      if (req.session) {
+        req.session.destroy((err: any) => {
+          if (err) {
+            logger.error('Session destroy error:', err);
+          }
+        });
+      }
+      res.clearCookie('connect.sid');
+      res.json({ success: true, message: 'Logged out successfully' });
+    } catch (error) {
+      logger.error('Logout error:', error);
+      res.json({ success: true, message: 'Logged out' });
+    }
+  });
+
   // Session heartbeat for all authenticated users - uses isAuthenticated for OIDC token refresh and timeout enforcement
   app.post('/api/session/heartbeat', isAuthenticated, sessionHeartbeat);
 
