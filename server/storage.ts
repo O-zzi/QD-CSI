@@ -16,6 +16,8 @@ import {
   membershipTierDefinitions,
   careers,
   rules,
+  faqCategories,
+  faqItems,
   venues,
   facilityVenues,
   constructionPhases,
@@ -60,6 +62,10 @@ import {
   type InsertCareer,
   type Rule,
   type InsertRule,
+  type FaqCategory,
+  type InsertFaqCategory,
+  type FaqItem,
+  type InsertFaqItem,
   type Venue,
   type InsertVenue,
   type FacilityVenue,
@@ -196,6 +202,19 @@ export interface IStorage {
   createRule(data: InsertRule): Promise<Rule>;
   updateRule(id: string, data: Partial<InsertRule>): Promise<Rule | undefined>;
   deleteRule(id: string): Promise<void>;
+  
+  // FAQ operations
+  getFaqCategories(): Promise<FaqCategory[]>;
+  getActiveFaqCategories(): Promise<FaqCategory[]>;
+  createFaqCategory(data: InsertFaqCategory): Promise<FaqCategory>;
+  updateFaqCategory(id: string, data: Partial<InsertFaqCategory>): Promise<FaqCategory | undefined>;
+  deleteFaqCategory(id: string): Promise<void>;
+  
+  getFaqItems(categoryId?: string): Promise<FaqItem[]>;
+  getActiveFaqItems(categoryId?: string): Promise<FaqItem[]>;
+  createFaqItem(data: InsertFaqItem): Promise<FaqItem>;
+  updateFaqItem(id: string, data: Partial<InsertFaqItem>): Promise<FaqItem | undefined>;
+  deleteFaqItem(id: string): Promise<void>;
   
   // Facility admin operations
   createFacility(data: InsertFacility): Promise<Facility>;
@@ -853,6 +872,65 @@ export class DatabaseStorage implements IStorage {
 
   async deleteRule(id: string): Promise<void> {
     await db.delete(rules).where(eq(rules.id, id));
+  }
+
+  // FAQ operations
+  async getFaqCategories(): Promise<FaqCategory[]> {
+    return await db.select().from(faqCategories).orderBy(asc(faqCategories.sortOrder));
+  }
+
+  async getActiveFaqCategories(): Promise<FaqCategory[]> {
+    return await db.select().from(faqCategories).where(eq(faqCategories.isActive, true)).orderBy(asc(faqCategories.sortOrder));
+  }
+
+  async createFaqCategory(data: InsertFaqCategory): Promise<FaqCategory> {
+    const [category] = await db.insert(faqCategories).values(data).returning();
+    return category;
+  }
+
+  async updateFaqCategory(id: string, data: Partial<InsertFaqCategory>): Promise<FaqCategory | undefined> {
+    const [updated] = await db
+      .update(faqCategories)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(faqCategories.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteFaqCategory(id: string): Promise<void> {
+    await db.delete(faqCategories).where(eq(faqCategories.id, id));
+  }
+
+  async getFaqItems(categoryId?: string): Promise<FaqItem[]> {
+    if (categoryId) {
+      return await db.select().from(faqItems).where(eq(faqItems.categoryId, categoryId)).orderBy(asc(faqItems.sortOrder));
+    }
+    return await db.select().from(faqItems).orderBy(asc(faqItems.sortOrder));
+  }
+
+  async getActiveFaqItems(categoryId?: string): Promise<FaqItem[]> {
+    if (categoryId) {
+      return await db.select().from(faqItems).where(and(eq(faqItems.isActive, true), eq(faqItems.categoryId, categoryId))).orderBy(asc(faqItems.sortOrder));
+    }
+    return await db.select().from(faqItems).where(eq(faqItems.isActive, true)).orderBy(asc(faqItems.sortOrder));
+  }
+
+  async createFaqItem(data: InsertFaqItem): Promise<FaqItem> {
+    const [item] = await db.insert(faqItems).values(data).returning();
+    return item;
+  }
+
+  async updateFaqItem(id: string, data: Partial<InsertFaqItem>): Promise<FaqItem | undefined> {
+    const [updated] = await db
+      .update(faqItems)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(faqItems.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteFaqItem(id: string): Promise<void> {
+    await db.delete(faqItems).where(eq(faqItems.id, id));
   }
 
   // Facility admin operations

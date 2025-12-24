@@ -403,6 +403,29 @@ export const rules = pgTable("rules", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// FAQ Categories table
+export const faqCategories = pgTable("faq_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  icon: varchar("icon").default('help-circle'),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// FAQ Items table
+export const faqItems = pgTable("faq_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categoryId: varchar("category_id").notNull().references(() => faqCategories.id, { onDelete: 'cascade' }),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Venues table
 export const venues = pgTable("venues", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -741,6 +764,18 @@ export const insertRuleSchema = createInsertSchema(rules).omit({
   updatedAt: true,
 });
 
+export const insertFaqCategorySchema = createInsertSchema(faqCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFaqItemSchema = createInsertSchema(faqItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertVenueSchema = createInsertSchema(venues).omit({
   id: true,
   createdAt: true,
@@ -884,6 +919,12 @@ export type InsertCareer = z.infer<typeof insertCareerSchema>;
 
 export type Rule = typeof rules.$inferSelect;
 export type InsertRule = z.infer<typeof insertRuleSchema>;
+
+export type FaqCategory = typeof faqCategories.$inferSelect;
+export type InsertFaqCategory = z.infer<typeof insertFaqCategorySchema>;
+
+export type FaqItem = typeof faqItems.$inferSelect;
+export type InsertFaqItem = z.infer<typeof insertFaqItemSchema>;
 
 export type Venue = typeof venues.$inferSelect;
 export type InsertVenue = z.infer<typeof insertVenueSchema>;

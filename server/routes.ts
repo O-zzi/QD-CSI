@@ -22,6 +22,8 @@ import {
   insertMembershipTierDefinitionSchema,
   insertCareerSchema,
   insertRuleSchema,
+  insertFaqCategorySchema,
+  insertFaqItemSchema,
   insertFacilitySchema,
   insertFacilityAddOnSchema,
   insertVenueSchema,
@@ -342,6 +344,46 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching rules:", error);
       res.status(500).json({ message: "Failed to fetch rules" });
+    }
+  });
+
+  // ========== PUBLIC FAQ ROUTES ==========
+  app.get('/api/faq/categories', async (req, res) => {
+    try {
+      const categories = await storage.getActiveFaqCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching FAQ categories:", error);
+      res.status(500).json({ message: "Failed to fetch FAQ categories" });
+    }
+  });
+
+  app.get('/api/faq/items', async (req, res) => {
+    try {
+      const { categoryId } = req.query;
+      const items = await storage.getActiveFaqItems(categoryId as string | undefined);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching FAQ items:", error);
+      res.status(500).json({ message: "Failed to fetch FAQ items" });
+    }
+  });
+
+  app.get('/api/faq', async (req, res) => {
+    try {
+      const categories = await storage.getActiveFaqCategories();
+      const items = await storage.getActiveFaqItems();
+      
+      // Group items by category
+      const faqData = categories.map(category => ({
+        ...category,
+        items: items.filter(item => item.categoryId === category.id)
+      }));
+      
+      res.json(faqData);
+    } catch (error) {
+      console.error("Error fetching FAQs:", error);
+      res.status(500).json({ message: "Failed to fetch FAQs" });
     }
   });
 
@@ -1229,6 +1271,112 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting rule:", error);
       res.status(500).json({ message: "Failed to delete rule" });
+    }
+  });
+
+  // Admin FAQ routes
+  app.get('/api/admin/faq/categories', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const categories = await storage.getFaqCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching FAQ categories:", error);
+      res.status(500).json({ message: "Failed to fetch FAQ categories" });
+    }
+  });
+
+  app.post('/api/admin/faq/categories', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertFaqCategorySchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const category = await storage.createFaqCategory(result.data);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating FAQ category:", error);
+      res.status(500).json({ message: "Failed to create FAQ category" });
+    }
+  });
+
+  app.patch('/api/admin/faq/categories/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertFaqCategorySchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateFaqCategory(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "FAQ category not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating FAQ category:", error);
+      res.status(500).json({ message: "Failed to update FAQ category" });
+    }
+  });
+
+  app.delete('/api/admin/faq/categories/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteFaqCategory(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting FAQ category:", error);
+      res.status(500).json({ message: "Failed to delete FAQ category" });
+    }
+  });
+
+  app.get('/api/admin/faq/items', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { categoryId } = req.query;
+      const items = await storage.getFaqItems(categoryId as string | undefined);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching FAQ items:", error);
+      res.status(500).json({ message: "Failed to fetch FAQ items" });
+    }
+  });
+
+  app.post('/api/admin/faq/items', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertFaqItemSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const item = await storage.createFaqItem(result.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating FAQ item:", error);
+      res.status(500).json({ message: "Failed to create FAQ item" });
+    }
+  });
+
+  app.patch('/api/admin/faq/items/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertFaqItemSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateFaqItem(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "FAQ item not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating FAQ item:", error);
+      res.status(500).json({ message: "Failed to update FAQ item" });
+    }
+  });
+
+  app.delete('/api/admin/faq/items/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteFaqItem(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting FAQ item:", error);
+      res.status(500).json({ message: "Failed to delete FAQ item" });
     }
   });
 

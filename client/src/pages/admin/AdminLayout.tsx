@@ -21,7 +21,8 @@ import {
   Search,
   Users,
   MapPin,
-  ShieldCheck
+  ShieldCheck,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -44,6 +45,7 @@ function getNavItems(basePath: string) {
     { path: `${basePath}/announcements`, label: "Announcements", icon: Bell },
     { path: `${basePath}/careers`, label: "Careers", icon: Briefcase },
     { path: `${basePath}/rules`, label: "Rules & Safety", icon: FileText },
+    { path: `${basePath}/faq`, label: "FAQ", icon: HelpCircle },
     { path: `${basePath}/policies`, label: "Privacy & Terms", icon: ShieldCheck },
     { path: `${basePath}/gallery`, label: "Gallery", icon: Image },
     { path: `${basePath}/site-images`, label: "Site Images", icon: Image },
