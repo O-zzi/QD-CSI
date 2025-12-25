@@ -1,0 +1,42 @@
+
+[u805618386@my-kul-web2051 the-sports-collective]$ ls -la ~/domains/thequarterdeck.pk/
+ls -la ~/domains/thequarterdeck.pk/public_html/
+total 12
+drwxr-xr-x  3 u805618386 o1007739533 4096 Dec 24 15:01 .
+drwxr-xr-x  7 u805618386 o1007739533 4096 Dec 24 15:02 ..
+-rw-r--r--  1 u805618386 o1007739533    0 Dec 24 15:01 DO_NOT_UPLOAD_HERE
+drwxr-xr-x 14 u805618386 o1007739533 4096 Dec 25 09:15 public_html
+total 2088
+drwxr-xr-x  14 u805618386 o1007739533    4096 Dec 25 09:15 .
+drwxr-xr-x   3 u805618386 o1007739533    4096 Dec 24 15:01 ..
+drwxr-xr-x   3 u805618386 o1007739533    4096 Dec 25 09:14 attached_assets
+drwx------   5 u805618386 o1007739533    4096 Dec 25 09:14 .builds
+drwxr-xr-x   4 u805618386 o1007739533    4096 Dec 25 09:14 client
+-rw-r--r--   1 u805618386 o1007739533     459 Dec 25 09:14 components.json
+drwxr-xr-x   2 u805618386 o1007739533    4096 Dec 25 09:14 deployment
+-rw-r--r--   1 u805618386 o1007739533   12114 Dec 25 09:14 DEPLOYMENT_ROADMAP.md
+-rw-r--r--   1 u805618386 o1007739533    4093 Dec 25 09:14 design_guidelines.md
+drwxr-xr-x   3 u805618386 o1007739533    4096 Dec 25 09:15 dist
+drwxr-xr-x   2 u805618386 o1007739533    4096 Dec 25 09:14 docs
+-rw-r--r--   1 u805618386 o1007739533     325 Dec 25 09:14 drizzle.config.ts
+-rw-r--r--   1 u805618386 o1007739533    2082 Dec 25 09:14 .env.example
+drwxr-xr-x   8 u805618386 o1007739533    4096 Dec 25 09:14 .git
+-rw-r--r--   1 u805618386 o1007739533      95 Dec 25 09:14 .gitignore
+-rw-r--r--   1 u805618386 o1007739533     199 Dec 25 09:15 .htaccess
+drwxr-xr-x 341 u805618386 o1007739533   12288 Dec 25 09:14 node_modules
+-rw-r--r--   1 u805618386 o1007739533    4057 Dec 25 09:14 package.json
+-rw-r--r--   1 u805618386 o1007739533  344356 Dec 25 09:14 package-lock.json
+-rw-r--r--   1 u805618386 o1007739533      80 Dec 25 09:14 postcss.config.js
+-rw-r--r--   1 u805618386 o1007739533     963 Dec 25 09:14 .replit
+-rw-r--r--   1 u805618386 o1007739533    6335 Dec 25 09:14 replit.md
+drwxr-xr-x   2 u805618386 o1007739533    4096 Dec 25 09:14 script
+drwxr-xr-x   2 u805618386 o1007739533    4096 Dec 25 09:14 scripts
+drwxr-xr-x   3 u805618386 o1007739533    4096 Dec 25 09:14 server
+-rw-r--r--   1 u805618386 o1007739533     997 Dec 25 09:14 server.cjs
+-rw-r--r--   1 u805618386 o1007739533     897 Dec 25 09:14 server.js
+drwxr-xr-x   2 u805618386 o1007739533    4096 Dec 25 09:14 shared
+-rw-r--r--   1 u805618386 o1007739533 1570836 Dec 25 09:22 stderr.log
+-rw-r--r--   1 u805618386 o1007739533    4050 Dec 25 09:14 tailwind.config.ts
+-rw-r--r--   1 u805618386 o1007739533     657 Dec 25 09:14 tsconfig.json
+-rw-r--r--   1 u805618386 o1007739533    1080 Dec 25 09:14 vite.config.ts
+[u805618386@my-kul-web2051 the-sports-collective]$
