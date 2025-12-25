@@ -199,6 +199,7 @@ export default function Login() {
                   <Turnstile
                     ref={turnstileRef}
                     siteKey={turnstileSiteKey}
+                    options={{ theme: 'dark' }}
                     onSuccess={(token) => setTurnstileToken(token)}
                     onError={() => setTurnstileToken(null)}
                     onExpire={() => setTurnstileToken(null)}
