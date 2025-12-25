@@ -1,0 +1,36 @@
+ cat ~/logs/error.log | tail -50
+cat: /home/u805618386/logs/error.log: No such file or directory
+[u805618386@my-kul-web2051 public_html]$ ^C
+[u805618386@my-kul-web2051 public_html]$ # Check for logs directories
+ls -la ~/.logs/
+ls -la ~/domains/thequarterdeck.pk/logs/
+ls -la /var/log/apache2/ 2>/dev/null
+ls -la /var/log/nginx/ 2>/dev/null
+
+# Check stderr.log in tmp
+cat ~/domains/thequarterdeck.pk/public_html/tmp/stderr.log 2>/dev/null
+total 768
+drwxr-xr-x  2 u805618386 o1007739533   4096 Sep 12 15:42 .
+drwx--x--- 16 u805618386 apache        4096 Dec 25 07:43 ..
+-rw-r--r--  1 u805618386 o1007739533 729955 Nov 12 13:29 error_log_diabesity_life
+-rw-r--r--  1 u805618386 o1007739533  28344 Nov 24 01:08 mail.log
+ls: cannot access '/home/u805618386/domains/thequarterdeck.pk/logs/': No such file or directory
+[u805618386@my-kul-web2051 public_html]$ cd ~/domains/thequarterdeck.pk/public_html
+PORT=3000 node app.cjs
+[dotenv@17.2.3] injecting env (7) from dist/.env -- tip: ⚙️  override existing env vars with { override: true }
+{"level":"info","message":"Validating environment variables...","service":"quarterdeck-api","source":"env","timestamp":"2025-12-25 08:26:08"}
+{"level":"warn","message":"LOG_LEVEL not set, using default: info","service":"quarterdeck-api","source":"env","timestamp":"2025-12-25 08:26:08"}
+{"level":"info","message":"Environment validation passed","service":"quarterdeck-api","source":"env","timestamp":"2025-12-25 08:26:08"}
+{"databaseConfigured":true,"emailConfigured":false,"level":"info","message":"Environment summary","nodeEnv":"production","port":"3000","replitDeployment":false,"service":"quarterdeck-api","sessionSecretConfigured":true,"source":"startup","timestamp":"2025-12-25 08:26:08","turnstileConfigured":false}
+{"level":"info","message":"Stripe disabled - using offline payment system for Pakistan market","service":"quarterdeck-api","source":"express","timestamp":"2025-12-25 08:26:08"}
+{"level":"info","message":"Security: Helmet headers and rate limiting enabled","service":"quarterdeck-api","source":"express","timestamp":"2025-12-25 08:26:08"}
+{"level":"info","message":"Running startup migrations...","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-25 08:26:08"}
+{"level":"info","message":"membership_tier_definitions table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-25 08:26:08"}
+{"level":"info","message":"blogs table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-25 08:26:08"}
+{"level":"info","message":"hero_sections table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-25 08:26:09"}
+{"level":"info","message":"ctas table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-25 08:26:09"}
+{"level":"info","message":"testimonials table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-25 08:26:09"}
+{"level":"info","message":"event_galleries table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-25 08:26:09"}
+{"level":"info","message":"All startup migrations completed successfully","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-25 08:26:09"}
+[auth] Using memory session store (set USE_PG_SESSION_STORE=true to use PostgreSQL)
+{"level":"info","message":"serving on port 3000","service":"quarterdeck-api","source":"express","timestamp":"2025-12-25 08:26:09"}
