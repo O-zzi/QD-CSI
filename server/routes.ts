@@ -198,7 +198,7 @@ export async function registerRoutes(
     }
   });
 
-  // Logout route - clears session cookie
+  // Logout route - clears session cookie (POST)
   app.post('/api/auth/logout', (req: any, res) => {
     try {
       if (req.session) {
@@ -213,6 +213,24 @@ export async function registerRoutes(
     } catch (error) {
       logger.error('Logout error:', error);
       res.json({ success: true, message: 'Logged out' });
+    }
+  });
+
+  // Logout route - GET version for browser redirects
+  app.get('/api/logout', (req: any, res) => {
+    try {
+      if (req.session) {
+        req.session.destroy((err: any) => {
+          if (err) {
+            logger.error('Session destroy error:', err);
+          }
+        });
+      }
+      res.clearCookie('connect.sid');
+      res.redirect('/');
+    } catch (error) {
+      logger.error('Logout error:', error);
+      res.redirect('/');
     }
   });
 
