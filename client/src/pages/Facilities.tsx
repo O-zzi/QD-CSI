@@ -123,14 +123,16 @@ export default function Facilities() {
   });
 
   const facilityList: FacilityDisplay[] = dbFacilities && dbFacilities.length > 0 
-    ? dbFacilities.map(f => ({
-        ...f,
-        courtCount: f.resourceCount || f.courtCount || 1,
-        operatingHours: f.operatingHours || "6:00 AM - 11:00 PM",
-        maxPlayers: f.maxPlayers || f.minPlayers || 4,
-        basePrice: String(f.basePrice || 0),
-        isActive: f.status !== 'CLOSED',
-      }))
+    ? dbFacilities
+        .filter(f => f.slug !== 'bridge-room') // Hide Bridge Room from public view
+        .map(f => ({
+          ...f,
+          courtCount: f.resourceCount || f.courtCount || 1,
+          operatingHours: f.operatingHours || "6:00 AM - 11:00 PM",
+          maxPlayers: f.maxPlayers || f.minPlayers || 4,
+          basePrice: String(f.basePrice || 0),
+          isActive: f.status !== 'CLOSED',
+        }))
     : defaultFacilities;
 
   const activeFacilities = facilityList.filter(f => f.isActive);

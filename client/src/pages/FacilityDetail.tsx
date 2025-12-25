@@ -180,6 +180,27 @@ export default function FacilityDetail() {
     return discounts;
   }, [pricingTiers]);
 
+  // Block access to Bridge Room (hidden from public view)
+  if (slug === 'bridge-room') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-bold mb-4">Facility Not Found</h2>
+            <p className="text-muted-foreground mb-6">
+              The facility you're looking for doesn't exist or has been removed.
+            </p>
+            <Link href="/facilities">
+              <Button>
+                View All Facilities
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const defaultData = defaultFacilities[slug || ""];
   const facility = dbFacility 
     ? {
