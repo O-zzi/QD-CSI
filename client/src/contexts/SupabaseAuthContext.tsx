@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session, AuthError, Provider } from '@supabase/supabase-js';
-import { supabase, isSupabaseAuthConfigured, getSupabaseClient } from '@/lib/supabase';
+import { isSupabaseAuthConfigured, getSupabaseClient, loadSupabaseConfig } from '@/lib/supabase';
 import { queryClient } from '@/lib/queryClient';
 
 export type OAuthProvider = 'github' | 'twitter' | 'facebook';
@@ -32,16 +32,35 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     isLoading: true,
     isAuthenticated: false,
   });
+  
+  const [isConfigured, setIsConfigured] = useState(isSupabaseAuthConfigured());
+  const [configLoaded, setConfigLoaded] = useState(false);
 
-  const isConfigured = isSupabaseAuthConfigured();
-
+  // Load Supabase config from API on mount
   useEffect(() => {
-    if (!isConfigured || !supabase) {
+    loadSupabaseConfig().then(() => {
+      setConfigLoaded(true);
+      setIsConfigured(isSupabaseAuthConfigured());
+    });
+  }, []);
+
+  // Initialize Supabase auth after config is loaded
+  useEffect(() => {
+    if (!configLoaded) return;
+    
+    if (!isConfigured) {
       setState(prev => ({ ...prev, isLoading: false }));
       return;
     }
 
-    const client = supabase;
+    let client;
+    try {
+      client = getSupabaseClient();
+    } catch (error) {
+      console.error('Failed to get Supabase client:', error);
+      setState(prev => ({ ...prev, isLoading: false }));
+      return;
+    }
     
     client.auth.getSession().then(({ data: { session } }) => {
       setState({
@@ -75,7 +94,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     });
 
     return () => subscription.unsubscribe();
-  }, [isConfigured]);
+  }, [configLoaded, isConfigured]);
 
   const syncUserToBackend = async (session: Session) => {
     try {

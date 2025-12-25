@@ -142,8 +142,8 @@ export async function registerRoutes(
   app.get('/api/public-config', (_req, res) => {
     res.json({
       turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || process.env.VITE_TURNSTILE_SITE_KEY || null,
-      supabaseUrl: process.env.VITE_SUPABASE_URL || null,
-      supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY || null,
+      supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || null,
+      supabaseAnonKey: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || null,
     });
   });
 
