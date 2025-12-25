@@ -113,6 +113,7 @@ export const facilities = pgTable("facilities", {
   resourceCount: integer("resource_count").default(1),
   requiresCertification: boolean("requires_certification").default(false),
   isRestricted: boolean("is_restricted").default(false),
+  isHidden: boolean("is_hidden").default(false),
   status: facilityStatusEnum("status").default('PLANNED'),
   imageUrl: varchar("image_url"),
   createdAt: timestamp("created_at").defaultNow(),

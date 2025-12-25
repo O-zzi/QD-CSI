@@ -138,6 +138,15 @@ export async function runStartupMigrations() {
     `).catch(() => {
       // Column might already exist or table structure differs
     });
+
+    // Add is_hidden column to facilities if not exists
+    await pool.query(`
+      ALTER TABLE facilities 
+      ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN DEFAULT false
+    `).catch(() => {
+      // Column might already exist
+    });
+    logger.info("facilities.is_hidden column verified", { source: "migrations" });
     
     // Seed default tier definitions if table is empty
     const { rows } = await pool.query(`SELECT COUNT(*) as count FROM membership_tier_definitions`);

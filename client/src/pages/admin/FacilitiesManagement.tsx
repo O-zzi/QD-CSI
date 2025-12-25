@@ -48,6 +48,7 @@ export default function FacilitiesManagement() {
     resourceCount: 1,
     requiresCertification: false,
     isRestricted: false,
+    isHidden: false,
     status: "PLANNED" as "OPENING_SOON" | "PLANNED" | "ACTIVE",
     imageUrl: "",
   });
@@ -238,6 +239,7 @@ export default function FacilitiesManagement() {
       resourceCount: 1,
       requiresCertification: false,
       isRestricted: false,
+      isHidden: false,
       status: "PLANNED",
       imageUrl: "",
     });
@@ -366,6 +368,7 @@ export default function FacilitiesManagement() {
       resourceCount: facility.resourceCount || 1,
       requiresCertification: facility.requiresCertification || false,
       isRestricted: facility.isRestricted || false,
+      isHidden: facility.isHidden || false,
       status: facility.status || "PLANNED",
       imageUrl: facility.imageUrl || "",
     });
@@ -646,6 +649,15 @@ export default function FacilitiesManagement() {
                         onCheckedChange={(checked) => setFormData({ ...formData, isRestricted: checked })}
                       />
                       <Label htmlFor="isRestricted">Restricted Access</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="isHidden"
+                        checked={formData.isHidden}
+                        onCheckedChange={(checked) => setFormData({ ...formData, isHidden: checked })}
+                        data-testid="switch-is-hidden"
+                      />
+                      <Label htmlFor="isHidden">Hide from Public</Label>
                     </div>
                   </div>
                   <div className="flex justify-end gap-2">

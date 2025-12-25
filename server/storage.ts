@@ -132,6 +132,7 @@ export interface IStorage {
 
   // Facility operations
   getFacilities(): Promise<Facility[]>;
+  getVisibleFacilities(): Promise<Facility[]>;
   getFacility(id: string): Promise<Facility | undefined>;
   getFacilityBySlug(slug: string): Promise<Facility | undefined>;
   getFacilityAddOns(facilityId: string): Promise<FacilityAddOn[]>;
@@ -517,6 +518,12 @@ export class DatabaseStorage implements IStorage {
   // Facility operations
   async getFacilities(): Promise<Facility[]> {
     return await db.select().from(facilities).orderBy(asc(facilities.name));
+  }
+
+  async getVisibleFacilities(): Promise<Facility[]> {
+    return await db.select().from(facilities)
+      .where(eq(facilities.isHidden, false))
+      .orderBy(asc(facilities.name));
   }
 
   async getFacility(id: string): Promise<Facility | undefined> {

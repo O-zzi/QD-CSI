@@ -123,9 +123,7 @@ export default function Facilities() {
   });
 
   const facilityList: FacilityDisplay[] = dbFacilities && dbFacilities.length > 0 
-    ? dbFacilities
-        .filter(f => f.slug !== 'bridge-room') // Hide Bridge Room from public view
-        .map(f => ({
+    ? dbFacilities.map(f => ({
           ...f,
           courtCount: f.resourceCount || f.courtCount || 1,
           operatingHours: f.operatingHours || "6:00 AM - 11:00 PM",

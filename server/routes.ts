@@ -360,7 +360,8 @@ export async function registerRoutes(
   // ========== FACILITY ROUTES ==========
   app.get('/api/facilities', async (req, res) => {
     try {
-      const facilities = await storage.getFacilities();
+      // Public endpoint - only return visible facilities
+      const facilities = await storage.getVisibleFacilities();
       res.json(facilities);
     } catch (error) {
       console.error("Error fetching facilities:", error);
@@ -372,7 +373,7 @@ export async function registerRoutes(
     try {
       const { slug } = req.params;
       const facility = await storage.getFacilityBySlug(slug);
-      if (!facility) {
+      if (!facility || facility.isHidden) {
         return res.status(404).json({ message: "Facility not found" });
       }
       res.json(facility);
