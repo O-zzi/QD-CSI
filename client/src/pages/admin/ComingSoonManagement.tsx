@@ -93,7 +93,7 @@ export default function ComingSoonManagement() {
 
   const saveMutation = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: string }) => {
-      return await apiRequest("POST", "/api/admin/cms", { key, value });
+      return await apiRequest("POST", "/api/admin/cms", { key, content: value });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/cms"] });
@@ -122,7 +122,7 @@ export default function ComingSoonManagement() {
 
   const handleSaveAll = async () => {
     const promises = Array.from(editedFields).map((key) =>
-      apiRequest("POST", "/api/admin/cms", { key, value: formData[key] })
+      apiRequest("POST", "/api/admin/cms", { key, content: formData[key] })
     );
     try {
       await Promise.all(promises);
