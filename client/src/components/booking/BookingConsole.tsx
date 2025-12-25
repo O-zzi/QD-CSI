@@ -408,7 +408,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     },
   });
   
-  // Generate time slots dynamically from operating hours - no fallback
+  // Generate time slots dynamically from operating hours - filtered by selected duration
   const TIME_SLOTS = useMemo(() => {
     // Priority: 1) facility-specific hours for day, 2) venue-specific hours for day, 3) generic day hours
     const facilityHours = selectedFacilityDbId 
@@ -435,7 +435,11 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     let currentMinutes = openHour * 60 + openMinute;
     const closeMinutes = closeHour * 60 + closeMinute;
     
-    while (currentMinutes < closeMinutes) {
+    // Only show slots where the booking can fit before closing time
+    // e.g., if closing at 23:00 and duration is 120 min, last slot is 21:00
+    const lastValidStartMinutes = closeMinutes - selectedDuration;
+    
+    while (currentMinutes <= lastValidStartMinutes) {
       const hour = Math.floor(currentMinutes / 60);
       const minute = currentMinutes % 60;
       slots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
@@ -443,7 +447,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     }
     
     return slots;
-  }, [apiOperatingHours, selectedDayOfWeek, selectedFacilityDbId, selectedVenueDbId]);
+  }, [apiOperatingHours, selectedDayOfWeek, selectedFacilityDbId, selectedVenueDbId, selectedDuration]);
 
   // Fetch facility add-ons from API for selected facility
   const { data: apiAddOns = [] } = useQuery<FacilityAddOnData[]>({
