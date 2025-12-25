@@ -1,31 +1,29 @@
 /**
- * Production entry point for Passenger (ES Module)
+ * Production entry point for Passenger
  * 
- * This file is the entry point for Hostinger VPS with Passenger.
- * Passenger expects a server.js file in the root directory.
+ * Uses dynamic import to load the CommonJS bundle.
+ * This works with both ESM and Passenger's loader.
  */
-
-import { createRequire } from 'module';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { existsSync } from 'fs';
-
-const require = createRequire(import.meta.url);
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-// Try to load dotenv if available (for local dev), skip if not installed
-try {
-  const envPath = join(__dirname, '.env');
-  if (existsSync(envPath)) {
-    require('dotenv').config({ path: envPath });
-  }
-} catch (e) {
-  // dotenv not installed or .env not found - environment variables should be set externally
-  console.log('Note: dotenv not available, using system environment variables');
-}
 
 // Set production environment
 process.env.NODE_ENV = 'production';
 
-// Start the compiled server (CommonJS bundle)
-require('./dist/index.cjs');
+// Use dynamic import to load the compiled CommonJS server
+// This is an immediately invoked async function that Passenger can handle
+(async () => {
+  try {
+    // Import the compiled CommonJS bundle using createRequire
+    const { createRequire } = await import('module');
+    const { fileURLToPath } = await import('url');
+    const { dirname, join } = await import('path');
+    
+    const require = createRequire(import.meta.url);
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    
+    // Start the compiled server
+    require('./dist/index.cjs');
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+})();
