@@ -1,6 +1,6 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, writeFile, copyFile } from "fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -59,6 +59,15 @@ async function buildAll() {
     external: externals,
     logLevel: "info",
   });
+
+  // Create dist/index.js for Hostinger Passenger (requires .js extension)
+  console.log("creating Passenger-compatible entry point...");
+  await copyFile("dist/index.cjs", "dist/index.js");
+  
+  // Create dist/package.json to force CommonJS mode for .js files in dist/
+  await writeFile("dist/package.json", JSON.stringify({ type: "commonjs" }));
+  
+  console.log("build complete!");
 }
 
 buildAll().catch((err) => {
