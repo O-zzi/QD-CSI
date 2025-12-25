@@ -501,7 +501,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     }
     
     return apiFacilities
-      .filter(f => f.status === 'ACTIVE')
+      .filter(f => f.status === 'ACTIVE' && f.slug !== 'bridge-room')
       .map(f => ({
         id: f.slug,
         label: f.name,
@@ -520,9 +520,9 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       });
   }, [apiFacilities]);
   
-  // ALL facilities (including PLANNED) for events display
+  // ALL facilities (including PLANNED) for events display - excluding bridge-room (hidden for now)
   const ALL_FACILITIES = useMemo(() => {
-    return apiFacilities.map(f => ({
+    return apiFacilities.filter(f => f.slug !== 'bridge-room').map(f => ({
       id: f.slug,
       label: f.name,
       count: f.resourceCount || 1,

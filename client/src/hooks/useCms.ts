@@ -64,7 +64,7 @@ export function useCmsFields(pageSlug: string, section?: string) {
 export const CMS_DEFAULTS: Record<string, string> = {
   // Hero Section
   hero_title: 'A bright, premium <span class="qd-hero-highlight">multi-sport arena</span> built for play, performance & community.',
-  hero_subtitle: 'The Quarterdeck brings state-of-the-art Padel Tennis, Squash, an Air Rifle Range, a Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience into a single, purpose-built complex. We are setting the new standard for indoor sports and recreation in Islamabad.',
+  hero_subtitle: 'The Quarterdeck brings state-of-the-art Padel Tennis, Squash, an Air Rifle Range, a Multipurpose Hall, and an Open Cafe/Bar experience into a single, purpose-built complex. We are setting the new standard for indoor sports and recreation in Islamabad.',
   hero_eyebrow: 'Target Launch: December 25, 2025',
   hero_launch_date: '2025-12-25',
   hero_cta_1: 'Explore Facilities',
@@ -106,7 +106,7 @@ export const CMS_DEFAULTS: Record<string, string> = {
   founding_tier_description: 'For early supporters and investors who believe in our vision.',
   founding_tier_price: 'PKR 35,000',
   founding_tier_period: '/month',
-  founding_tier_features: 'Lifetime priority booking (14-day window)|25% discount on all court bookings|10 guest passes per month|Access to exclusive Bridge Room|Permanent credit bonus (10%)|VIP parking & locker|Invitation to all exclusive events|Founding member recognition wall',
+  founding_tier_features: 'Lifetime priority booking (14-day window)|25% discount on all court bookings|10 guest passes per month|Permanent credit bonus (10%)|VIP parking & locker|Invitation to all exclusive events|Founding member recognition wall',
   
   // Gold Member
   gold_tier_name: 'Gold Membership',
@@ -191,8 +191,8 @@ export const CMS_DEFAULTS: Record<string, string> = {
   
   // Coming Soon Page
   coming_soon_title: 'Something Amazing Is Coming',
-  coming_soon_subtitle: 'Opening December 2025: Padel Courts & Cafe/Bar. Construction continues through 2026 for our 3-floor building with Multipurpose Hall, Bridge Room & Air Rifle Range.',
-  coming_soon_description: 'The Quarterdeck will feature world-class Padel Tennis courts, Squash facilities, an Air Rifle Range, Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience.',
+  coming_soon_subtitle: 'Opening December 2025: Padel Courts & Cafe/Bar. Construction continues through 2026 for our 3-floor building with Multipurpose Hall & Air Rifle Range.',
+  coming_soon_description: 'The Quarterdeck will feature world-class Padel Tennis courts, Squash facilities, an Air Rifle Range, Multipurpose Hall, and an Open Cafe/Bar experience.',
   coming_soon_cta: 'Join the Waitlist',
   coming_soon_progress_label: 'Construction Progress',
   coming_soon_launch_date: '2025-12-25',

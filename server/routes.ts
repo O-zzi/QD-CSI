@@ -795,7 +795,7 @@ export async function registerRoutes(
       const CMS_DEFAULTS: Record<string, { title: string; content: string }> = {
         // Hero Section
         hero_title: { title: 'Hero Title', content: 'A bright, premium <span class="qd-hero-highlight">multi-sport arena</span> built for play, performance & community.' },
-        hero_subtitle: { title: 'Hero Subtitle', content: 'The Quarterdeck brings state-of-the-art Padel Tennis, Squash, an Air Rifle Range, a Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience into a single, purpose-built complex. We are setting the new standard for indoor sports and recreation in Islamabad.' },
+        hero_subtitle: { title: 'Hero Subtitle', content: 'The Quarterdeck brings state-of-the-art Padel Tennis, Squash, an Air Rifle Range, a Multipurpose Hall, and an Open Cafe/Bar experience into a single, purpose-built complex. We are setting the new standard for indoor sports and recreation in Islamabad.' },
         hero_eyebrow: { title: 'Hero Eyebrow', content: 'Target Launch: Q4 2026' },
         hero_launch_date: { title: 'Launch Date', content: '2026-10-01' },
         hero_cta_1: { title: 'Hero CTA 1', content: 'Explore Facilities' },
@@ -879,7 +879,7 @@ export async function registerRoutes(
         // Coming Soon Page
         coming_soon_title: { title: 'Coming Soon Title', content: 'Coming Soon' },
         coming_soon_subtitle: { title: 'Coming Soon Subtitle', content: 'Pakistan\'s Premier Sports & Recreation Complex is under construction.' },
-        coming_soon_description: { title: 'Coming Soon Description', content: 'The Quarterdeck will feature world-class Padel Tennis courts, Squash facilities, an Air Rifle Range, Multipurpose Hall, Bridge Room, and an Open Cafe/Bar experience.' },
+        coming_soon_description: { title: 'Coming Soon Description', content: 'The Quarterdeck will feature world-class Padel Tennis courts, Squash facilities, an Air Rifle Range, Multipurpose Hall, and an Open Cafe/Bar experience.' },
         coming_soon_cta: { title: 'Coming Soon CTA', content: 'Join the Waitlist' },
         
         // Site Settings

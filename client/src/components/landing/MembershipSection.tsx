@@ -36,7 +36,6 @@ const defaultMembershipTiers = [
       "Lifetime priority booking (14-day window)",
       "25% discount on off-peak bookings (10 AM - 5 PM)",
       "10 guest passes per month",
-      "Access to exclusive Bridge Room",
       "Permanent credit bonus (10%)",
       "VIP parking & locker",
       "Invitation to all exclusive events",

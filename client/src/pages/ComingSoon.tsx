@@ -199,7 +199,7 @@ export default function ComingSoon() {
             </div>
 
             <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {['Padel Tennis', 'Squash', 'Air Rifle', 'Bridge Room'].map((facility) => (
+              {['Padel Tennis', 'Squash', 'Air Rifle', 'Multipurpose Hall'].map((facility) => (
                 <div key={facility} className="flex items-center gap-2 text-white/80">
                   <CheckCircle className="w-4 h-4 text-cyan-400 flex-shrink-0" />
                   <span className="text-sm">{facility}</span>

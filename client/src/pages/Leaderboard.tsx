@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Medal, Target, Swords } from "lucide-react";
+import { Trophy, Medal, Target } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -18,7 +18,6 @@ const FACILITIES = [
   { id: 'padel', name: 'Padel', icon: Target },
   { id: 'squash', name: 'Squash', icon: Target },
   { id: 'rifle', name: 'Air Rifle', icon: Target },
-  { id: 'bridge', name: 'Bridge', icon: Swords },
 ];
 
 export default function Leaderboard() {

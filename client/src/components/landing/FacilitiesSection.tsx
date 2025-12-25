@@ -95,18 +95,6 @@ const defaultFacilities: FacilityDisplay[] = [
     image: hallImage,
   },
   {
-    id: "bridge",
-    slug: "bridge-room",
-    name: "Bridge Room",
-    icon: Spade,
-    category: "Mind Sport",
-    status: "planned",
-    statusLabel: "Planned",
-    description: "The Mind Sport Lounge: A quiet, temperature-controlled space designed for comfort and concentration, perfect for Bridge, Chess, and other table-based mind sports and social gatherings.",
-    footer: "Table-based bookings",
-    image: bridgeImage,
-  },
-  {
     id: "cafe",
     slug: "cafe-bar",
     name: "Open Cafe/Bar",
