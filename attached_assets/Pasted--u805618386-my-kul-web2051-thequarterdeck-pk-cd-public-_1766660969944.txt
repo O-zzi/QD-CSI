@@ -1,0 +1,36 @@
+
+[u805618386@my-kul-web2051 thequarterdeck.pk]$ cd public_html
+ls -la
+total 2736
+drwxr-xr-x  14 u805618386 o1007739533    4096 Dec 25 10:56 .
+drwxr-xr-x   3 u805618386 o1007739533    4096 Dec 24 15:01 ..
+drwxr-xr-x   3 u805618386 o1007739533    4096 Dec 25 10:44 attached_assets
+drwx------   5 u805618386 o1007739533    4096 Dec 25 10:44 .builds
+drwxr-xr-x   4 u805618386 o1007739533    4096 Dec 25 10:44 client
+-rw-r--r--   1 u805618386 o1007739533     459 Dec 25 10:44 components.json
+drwxr-xr-x   2 u805618386 o1007739533    4096 Dec 25 10:44 deployment
+-rw-r--r--   1 u805618386 o1007739533   12114 Dec 25 10:44 DEPLOYMENT_ROADMAP.md
+-rw-r--r--   1 u805618386 o1007739533    4093 Dec 25 10:44 design_guidelines.md
+drwxr-xr-x   3 u805618386 o1007739533    4096 Dec 25 10:44 dist
+drwxr-xr-x   2 u805618386 o1007739533    4096 Dec 25 10:44 docs
+-rw-r--r--   1 u805618386 o1007739533     325 Dec 25 10:44 drizzle.config.ts
+-rw-r--r--   1 u805618386 o1007739533    2082 Dec 25 10:44 .env.example
+drwxr-xr-x   8 u805618386 o1007739533    4096 Dec 25 10:44 .git
+-rw-r--r--   1 u805618386 o1007739533      95 Dec 25 10:44 .gitignore
+-rw-r--r--   1 u805618386 o1007739533     199 Dec 25 10:44 .htaccess
+drwxr-xr-x 341 u805618386 o1007739533   12288 Dec 25 10:44 node_modules
+-rw-r--r--   1 u805618386 o1007739533    4057 Dec 25 10:44 package.json
+-rw-r--r--   1 u805618386 o1007739533  344356 Dec 25 10:44 package-lock.json
+-rw-r--r--   1 u805618386 o1007739533      80 Dec 25 10:44 postcss.config.js
+-rw-r--r--   1 u805618386 o1007739533     963 Dec 25 10:44 .replit
+-rw-r--r--   1 u805618386 o1007739533    6335 Dec 25 10:44 replit.md
+drwxr-xr-x   2 u805618386 o1007739533    4096 Dec 25 10:44 script
+drwxr-xr-x   2 u805618386 o1007739533    4096 Dec 25 10:44 scripts
+drwxr-xr-x   3 u805618386 o1007739533    4096 Dec 25 10:44 server
+-rw-r--r--   1 u805618386 o1007739533     997 Dec 25 10:44 server.cjs
+-rw-r--r--   1 u805618386 o1007739533     897 Dec 25 10:44 server.js
+drwxr-xr-x   2 u805618386 o1007739533    4096 Dec 25 10:44 shared
+-rw-r--r--   1 u805618386 o1007739533 2228411 Dec 25 11:08 stderr.log
+-rw-r--r--   1 u805618386 o1007739533    4050 Dec 25 10:44 tailwind.config.ts
+-rw-r--r--   1 u805618386 o1007739533     657 Dec 25 10:44 tsconfig.json
+-rw-r--r--   1 u805618386 o1007739533    1080 Dec 25 10:44 vite.co
