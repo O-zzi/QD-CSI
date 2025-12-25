@@ -364,12 +364,12 @@ export const siteSettings = pgTable("site_settings", {
 // Site Images table (for managing images across the website)
 export const siteImages = pgTable("site_images", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  key: varchar("key").unique().notNull(),
-  imageUrl: text("image_url").notNull(),
+  key: varchar("key").unique(),
+  imageUrl: text("image_url"),
   alt: varchar("alt"),
   title: varchar("title"),
   description: text("description"),
-  page: varchar("page").notNull(), // 'landing', 'facilities', 'coming-soon', etc
+  page: varchar("page"), // 'landing', 'facilities', 'coming-soon', etc
   section: varchar("section"), // 'hero', 'gallery', 'facility-padel', etc
   dimensions: varchar("dimensions"), // recommended dimensions like '1920x1080'
   isActive: boolean("is_active").default(true),

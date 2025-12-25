@@ -68,6 +68,7 @@ export function getSession() {
       sameSite: isProduction ? 'none' : 'lax',
       maxAge: sessionTtl,
       path: '/',
+      domain: isProduction ? '.thequarterdeck.pk' : undefined,
     },
   });
 }
