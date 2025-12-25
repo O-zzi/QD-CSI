@@ -35,8 +35,20 @@ const allowlist = [
 async function buildAll() {
   await rm("dist", { recursive: true, force: true });
 
+  // Create temporary .env.production for Vite to pick up VITE_ prefixed vars
+  const envFilePath = "client/.env.production";
+  const envVars = [
+    `VITE_TURNSTILE_SITE_KEY=${process.env.VITE_TURNSTILE_SITE_KEY || ''}`,
+  ].join('\n');
+  await writeFile(envFilePath, envVars);
+  console.log("created temporary client/.env.production for build");
+
   console.log("building client...");
   await viteBuild();
+
+  // Clean up temporary env file
+  await rm(envFilePath, { force: true });
+  console.log("cleaned up temporary env file");
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
