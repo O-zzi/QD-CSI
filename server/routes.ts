@@ -138,6 +138,15 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Public config endpoint (no auth required) - returns non-sensitive config for frontend
+  app.get('/api/public-config', (_req, res) => {
+    res.json({
+      turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || process.env.VITE_TURNSTILE_SITE_KEY || null,
+      supabaseUrl: process.env.VITE_SUPABASE_URL || null,
+      supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY || null,
+    });
+  });
+
   // Health check endpoint (no auth required)
   app.get('/api/health', async (_req, res) => {
     try {

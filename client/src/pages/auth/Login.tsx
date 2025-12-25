@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -21,8 +21,6 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
-
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -30,7 +28,19 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string | null>(null);
   const turnstileRef = useRef<TurnstileInstance>(null);
+
+  useEffect(() => {
+    fetch('/api/public-config')
+      .then(res => res.json())
+      .then(data => {
+        if (data.turnstileSiteKey) {
+          setTurnstileSiteKey(data.turnstileSiteKey);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),

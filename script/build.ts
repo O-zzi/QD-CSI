@@ -36,9 +36,16 @@ async function buildAll() {
   await rm("dist", { recursive: true, force: true });
 
   // Create temporary .env.production for Vite to pick up VITE_ prefixed vars
+  // Check both VITE_TURNSTILE_SITE_KEY and TURNSTILE_SITE_KEY for fallback
   const envFilePath = "client/.env.production";
+  const turnstileKey = process.env.VITE_TURNSTILE_SITE_KEY || process.env.TURNSTILE_SITE_KEY || '';
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
   const envVars = [
-    `VITE_TURNSTILE_SITE_KEY=${process.env.VITE_TURNSTILE_SITE_KEY || ''}`,
+    `VITE_TURNSTILE_SITE_KEY=${turnstileKey}`,
+    `VITE_SUPABASE_URL=${supabaseUrl}`,
+    `VITE_SUPABASE_ANON_KEY=${supabaseAnonKey}`,
+    `VITE_USE_SUPABASE_AUTH=true`,
   ].join('\n');
   await writeFile(envFilePath, envVars);
   console.log("created temporary client/.env.production for build");
