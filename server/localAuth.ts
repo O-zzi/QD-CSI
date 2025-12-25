@@ -409,6 +409,21 @@ export async function setupAuth(app: Express) {
     });
   });
 
+  app.get("/api/logout", (req: Request, res: Response) => {
+    req.logout((err) => {
+      if (err) {
+        console.error('[auth] Logout error:', err);
+      }
+      req.session.destroy((destroyErr) => {
+        if (destroyErr) {
+          console.error('[auth] Session destroy error:', destroyErr);
+        }
+        res.clearCookie('connect.sid');
+        return res.redirect('/');
+      });
+    });
+  });
+
   app.post("/api/auth/forgot-password", async (req: Request, res: Response) => {
     try {
       const { email, turnstileToken } = req.body;
