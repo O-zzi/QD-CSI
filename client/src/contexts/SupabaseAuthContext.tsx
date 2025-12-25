@@ -33,36 +33,51 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     isAuthenticated: false,
   });
   
-  const [isConfigured, setIsConfigured] = useState(isSupabaseAuthConfigured());
+  const [isConfigured, setIsConfigured] = useState(false);
   const [configLoaded, setConfigLoaded] = useState(false);
 
   // Load Supabase config from API on mount
   useEffect(() => {
+    console.log('[Auth] Loading Supabase config...');
     loadSupabaseConfig().then(() => {
+      const configured = isSupabaseAuthConfigured();
+      console.log('[Auth] Config loaded, isConfigured:', configured);
       setConfigLoaded(true);
-      setIsConfigured(isSupabaseAuthConfigured());
+      setIsConfigured(configured);
     });
   }, []);
 
   // Initialize Supabase auth after config is loaded
   useEffect(() => {
-    if (!configLoaded) return;
+    if (!configLoaded) {
+      console.log('[Auth] Waiting for config to load...');
+      return;
+    }
     
     if (!isConfigured) {
+      console.log('[Auth] Supabase not configured, skipping auth init');
       setState(prev => ({ ...prev, isLoading: false }));
       return;
     }
 
+    console.log('[Auth] Initializing auth...');
     let client;
     try {
       client = getSupabaseClient();
     } catch (error) {
-      console.error('Failed to get Supabase client:', error);
+      console.error('[Auth] Failed to get Supabase client:', error);
       setState(prev => ({ ...prev, isLoading: false }));
       return;
     }
     
-    client.auth.getSession().then(({ data: { session } }) => {
+    console.log('[Auth] Getting session...');
+    client.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('[Auth] getSession result:', { 
+        hasSession: !!session, 
+        user: session?.user?.email,
+        error: error?.message 
+      });
+      
       setState({
         user: session?.user ?? null,
         session,
@@ -71,11 +86,14 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
       });
       
       if (session?.user) {
+        console.log('[Auth] User found, syncing to backend...');
         syncUserToBackend(session);
       }
     });
 
     const { data: { subscription } } = client.auth.onAuthStateChange(async (event, session) => {
+      console.log('[Auth] onAuthStateChange:', event, session?.user?.email);
+      
       setState({
         user: session?.user ?? null,
         session,
@@ -84,11 +102,13 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
       });
 
       if (event === 'SIGNED_IN' && session) {
+        console.log('[Auth] User signed in, syncing to backend...');
         await syncUserToBackend(session);
         queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       }
       
       if (event === 'SIGNED_OUT') {
+        console.log('[Auth] User signed out');
         queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       }
     });
@@ -98,7 +118,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
 
   const syncUserToBackend = async (session: Session) => {
     try {
-      await fetch('/api/auth/sync', {
+      const response = await fetch('/api/auth/sync', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,8 +131,9 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
           lastName: session.user.user_metadata?.lastName || session.user.user_metadata?.last_name,
         }),
       });
+      console.log('[Auth] Sync response:', response.status);
     } catch (error) {
-      console.error('Failed to sync user to backend:', error);
+      console.error('[Auth] Failed to sync user to backend:', error);
     }
   };
 
@@ -140,14 +161,27 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
 
   const signIn = useCallback(async (email: string, password: string) => {
     if (!isConfigured) {
+      console.log('[Auth] signIn failed - not configured');
       return { error: { message: 'Supabase not configured' } as AuthError };
     }
 
+    console.log('[Auth] signIn called for:', email);
     const client = getSupabaseClient();
-    const { error } = await client.auth.signInWithPassword({
+    const { data, error } = await client.auth.signInWithPassword({
       email,
       password,
     });
+
+    if (error) {
+      console.log('[Auth] signIn error:', error.message);
+    } else {
+      console.log('[Auth] signIn success:', data.user?.email);
+      console.log('[Auth] Session stored in localStorage');
+      
+      // Verify session is in localStorage
+      const storedSession = localStorage.getItem('quarterdeck-auth');
+      console.log('[Auth] Stored session exists:', !!storedSession);
+    }
 
     return { error };
   }, [isConfigured]);
@@ -155,10 +189,12 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   const signOut = useCallback(async () => {
     if (!isConfigured) return;
     
+    console.log('[Auth] signOut called');
     const client = getSupabaseClient();
     await client.auth.signOut();
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     queryClient.clear();
+    localStorage.removeItem('quarterdeck-auth');
   }, [isConfigured]);
 
   const resetPassword = useCallback(async (email: string) => {
@@ -203,8 +239,6 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     return { error };
   }, [isConfigured]);
 
-  const useSupabaseAuthEnabled = isConfigured && import.meta.env.VITE_USE_SUPABASE_AUTH === 'true';
-
   return (
     <AuthContext.Provider
       value={{
@@ -216,7 +250,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
         resetPassword,
         updatePassword,
         isSupabaseConfigured: isConfigured,
-        useSupabaseAuth: useSupabaseAuthEnabled,
+        useSupabaseAuth: isConfigured,
       }}
     >
       {children}
