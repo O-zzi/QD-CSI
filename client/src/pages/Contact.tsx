@@ -6,11 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
   MapPin, Phone, Mail, Clock, Send, MessageSquare, 
-  Users, Calendar, Building2, ChevronRight, Loader2,
-  Facebook, Instagram, Twitter
+  Users, Calendar, Building2, ChevronDown, Loader2,
+  Facebook, Instagram, Twitter, HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -355,25 +356,53 @@ export default function Contact() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Frequently Asked</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <HelpCircle className="w-5 h-5" />
+                    Frequently Asked
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <Link href="/booking" className="flex items-center justify-between p-2 rounded-md hover-elevate cursor-pointer" data-testid="link-faq-booking">
-                    <span className="text-sm">How do I book a facility?</span>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </Link>
-                  <Link href="/membership" className="flex items-center justify-between p-2 rounded-md hover-elevate cursor-pointer" data-testid="link-faq-membership">
-                    <span className="text-sm">What membership options are available?</span>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </Link>
-                  <Link href="/rules" className="flex items-center justify-between p-2 rounded-md hover-elevate cursor-pointer" data-testid="link-faq-rules">
-                    <span className="text-sm">What are the facility rules?</span>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </Link>
-                  <Link href="/events" className="flex items-center justify-between p-2 rounded-md hover-elevate cursor-pointer" data-testid="link-faq-events">
-                    <span className="text-sm">How do I join events?</span>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </Link>
+                <CardContent className="space-y-1">
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="booking" className="border-b-0">
+                      <AccordionTrigger className="text-sm py-3 hover:no-underline" data-testid="faq-booking">
+                        How do I book a facility?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground">
+                        You can book facilities through our booking page. Simply select the facility, choose your preferred date and time slot, and confirm your reservation. Members get priority booking windows based on their tier.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="membership" className="border-b-0">
+                      <AccordionTrigger className="text-sm py-3 hover:no-underline" data-testid="faq-membership">
+                        What membership options are available?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground">
+                        We offer Founding Member, Gold, Silver, and Pay-to-Play options. Each tier includes different benefits like booking windows, discounts, and guest passes. Visit our membership page for details.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="rules" className="border-b-0">
+                      <AccordionTrigger className="text-sm py-3 hover:no-underline" data-testid="faq-rules">
+                        What are the facility rules?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground">
+                        All members must follow our facility guidelines including proper attire, court etiquette, and safety protocols. Visit our Rules page for the complete list.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="events" className="border-b-0">
+                      <AccordionTrigger className="text-sm py-3 hover:no-underline" data-testid="faq-events">
+                        How do I join events?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground">
+                        Check our Events page for upcoming tournaments and activities. Members can register directly through the event details page. Some events may have limited spots.
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                  <div className="pt-3 border-t">
+                    <Link href="/faq">
+                      <Button variant="outline" size="sm" className="w-full" data-testid="link-view-more-faq">
+                        View All FAQs
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             </div>
