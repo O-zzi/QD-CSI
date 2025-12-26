@@ -75,18 +75,12 @@ export function Navbar({ onScrollTo }: NavbarProps) {
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
   const scrollToSection = (id: string) => {
+    setMobileMenuOpen(false);
     if (location !== "/") {
-      // Navigate to home page with hash, then scroll after navigation
-      setLocation(`/#${id}`);
-      // After navigation, scroll to element after a brief delay
-      setTimeout(() => {
-        const el = document.getElementById(id);
-        if (el) {
-          const yOffset = -80;
-          const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-          window.scrollTo({ top: y, behavior: "smooth" });
-        }
-      }, 100);
+      // Navigate to home page first, then scroll after navigation
+      setLocation("/");
+      // Store the target section in sessionStorage for the home page to handle
+      sessionStorage.setItem('scrollToSection', id);
       return;
     }
     const el = document.getElementById(id);
@@ -94,8 +88,25 @@ export function Navbar({ onScrollTo }: NavbarProps) {
     const yOffset = -80;
     const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
     window.scrollTo({ top: y, behavior: "smooth" });
-    setMobileMenuOpen(false);
   };
+  
+  // Handle scroll-to-section from other pages
+  useEffect(() => {
+    if (location === "/") {
+      const sectionId = sessionStorage.getItem('scrollToSection');
+      if (sectionId) {
+        sessionStorage.removeItem('scrollToSection');
+        setTimeout(() => {
+          const el = document.getElementById(sectionId);
+          if (el) {
+            const yOffset = -80;
+            const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: "smooth" });
+          }
+        }, 100);
+      }
+    }
+  }, [location]);
 
   const getSetting = (key: string, fallback: string = "") => {
     return siteSettings?.[key] || fallback;
