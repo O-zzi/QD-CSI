@@ -35,7 +35,7 @@ type SignupForm = z.infer<typeof signupSchema>;
 export default function Signup() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { signUp, isSupabaseConfigured } = useSupabaseAuth();
+  const { signUp, isSupabaseConfigured, isLoading: authLoading } = useSupabaseAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -118,6 +118,18 @@ export default function Signup() {
       setIsLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!isSupabaseConfigured) {
     return (
