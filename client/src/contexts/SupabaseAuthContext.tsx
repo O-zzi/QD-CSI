@@ -187,14 +187,40 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   }, [isConfigured]);
 
   const signOut = useCallback(async () => {
-    if (!isConfigured) return;
-    
     console.log('[Auth] signOut called');
-    const client = getSupabaseClient();
-    await client.auth.signOut();
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    
+    // Clear state immediately
+    setState({
+      user: null,
+      session: null,
+      isLoading: false,
+      isAuthenticated: false,
+    });
+    
+    // Clear query cache
     queryClient.clear();
+    
+    // Clear localStorage
     localStorage.removeItem('quarterdeck-auth');
+    
+    // Sign out from Supabase if configured
+    if (isConfigured) {
+      try {
+        const client = getSupabaseClient();
+        await client.auth.signOut();
+      } catch (error) {
+        console.error('[Auth] Supabase signOut error:', error);
+      }
+    }
+    
+    // Sign out from backend session
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (error) {
+      console.error('[Auth] Backend logout error:', error);
+    }
+    
+    console.log('[Auth] signOut complete');
   }, [isConfigured]);
 
   const resetPassword = useCallback(async (email: string) => {

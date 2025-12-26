@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AdminLayout } from "./AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -52,9 +52,8 @@ export default function BrandingManagement() {
   const [faviconUrl, setFaviconUrl] = useState("");
   const [siteName, setSiteName] = useState("");
   const [siteTagline, setSiteTagline] = useState("");
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
-  const { data: siteSettings, isLoading: settingsLoading } = useQuery<SiteSetting[]>({
+  const { data: siteSettings, isLoading: settingsLoading, dataUpdatedAt } = useQuery<SiteSetting[]>({
     queryKey: ["/api/admin/site-settings"],
   });
 
@@ -62,15 +61,19 @@ export default function BrandingManagement() {
     queryKey: ["/api/admin/navbar-items"],
   });
 
-  if (siteSettings && !settingsLoaded) {
-    const getSettingValue = (key: string) => siteSettings.find(s => s.key === key)?.value || "";
-    setLogoUrl(getSettingValue("logo_main_url"));
-    setLogoDarkUrl(getSettingValue("logo_dark_url"));
-    setFaviconUrl(getSettingValue("favicon_url"));
-    setSiteName(getSettingValue("site_name") || "The Quarterdeck");
-    setSiteTagline(getSettingValue("site_tagline") || "Sports & Recreation Complex");
-    setSettingsLoaded(true);
-  }
+  // Helper to get setting value
+  const getSettingValue = (key: string) => siteSettings?.find(s => s.key === key)?.value || "";
+  
+  // Sync form state when data changes (including after save)
+  useEffect(() => {
+    if (siteSettings && !settingsLoading) {
+      setLogoUrl(getSettingValue("logo_main_url"));
+      setLogoDarkUrl(getSettingValue("logo_dark_url"));
+      setFaviconUrl(getSettingValue("favicon_url"));
+      setSiteName(getSettingValue("site_name") || "The Quarterdeck");
+      setSiteTagline(getSettingValue("site_tagline") || "Sports & Recreation Complex");
+    }
+  }, [siteSettings, settingsLoading, dataUpdatedAt]);
 
   const saveBrandingMutation = useMutation({
     mutationFn: async (settings: { key: string; value: string; label: string; category: string }[]) => {
