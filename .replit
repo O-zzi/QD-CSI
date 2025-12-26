@@ -47,3 +47,7 @@ integrations = ["javascript_log_in_with_replit:1.0.0", "javascript_database:1.0.
 USE_PG_SESSION_STORE = "true"
 VITE_USE_SUPABASE_AUTH = "true"
 VITE_TURNSTILE_SITE_KEY = "${TURNSTILE_SITE_KEY}"
+SMTP_HOST = "smtp.hostinger.com"
+SMTP_PORT = "465"
+SMTP_USER = "noreply@thequarterdeck.pk"
+EMAIL_FROM = "\"The Quarterdeck\" <noreply@thequarterdeck.pk>"

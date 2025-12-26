@@ -126,8 +126,14 @@ These records are configured in your DNS provider (e.g., Cloudflare, Namecheap, 
 - Stripe client libraries are present for future integration but currently disabled.
 
 **Email Notifications:**
-- Resend API for transactional emails (e.g., booking confirmations, payment status, event registrations, membership updates).
+- Nodemailer with Hostinger SMTP for transactional emails (e.g., booking confirmations, payment status, event registrations, membership updates).
 - Email templates configured for various notifications.
+- Required environment variables:
+  - `SMTP_HOST` - SMTP server hostname (default: smtp.hostinger.com)
+  - `SMTP_PORT` - SMTP port (default: 465 for SSL)
+  - `SMTP_USER` - SMTP username (e.g., noreply@thequarterdeck.pk)
+  - `SMTP_PASS` - SMTP password (stored as secret)
+  - `EMAIL_FROM` - Sender display name and email (default: "The Quarterdeck" <noreply@thequarterdeck.pk>)
 
 **Utility Libraries:**
 - `nanoid`

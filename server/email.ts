@@ -1,53 +1,62 @@
 import type { Booking, User, Event } from "@shared/schema";
 import logger from "./logger";
+import nodemailer from "nodemailer";
 
 interface EmailService {
-  sendEmail(to: string, subject: string, html: string): Promise<boolean>;
+  sendEmail(to: string, subject: string, html: string, replyTo?: string): Promise<boolean>;
 }
 
-class ResendEmailService implements EmailService {
-  private apiKey: string;
+class NodemailerEmailService implements EmailService {
+  private transporter: nodemailer.Transporter;
   private fromEmail: string;
+  private isConfigured: boolean;
 
   constructor() {
-    this.apiKey = process.env.RESEND_API_KEY || '';
-    this.fromEmail = process.env.EMAIL_FROM || 'The Quarterdeck <onboarding@resend.dev>';
+    const smtpHost = process.env.SMTP_HOST || 'smtp.hostinger.com';
+    const smtpPort = parseInt(process.env.SMTP_PORT || '465', 10);
+    const smtpUser = process.env.SMTP_USER || '';
+    const smtpPass = process.env.SMTP_PASS || '';
+    this.fromEmail = process.env.EMAIL_FROM || '"The Quarterdeck" <noreply@thequarterdeck.pk>';
+    
+    this.isConfigured = !!(smtpUser && smtpPass);
+
+    this.transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
   }
 
-  async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+  async sendEmail(to: string, subject: string, html: string, replyTo?: string): Promise<boolean> {
     logger.debug('Attempting to send email', { 
       source: 'email',
       to, 
       subject,
-      apiKeyConfigured: !!this.apiKey 
+      smtpConfigured: this.isConfigured 
     });
     
-    if (!this.apiKey) {
-      logger.warn('Resend API key not configured', { source: 'email', to, subject });
+    if (!this.isConfigured) {
+      logger.warn('SMTP credentials not configured (SMTP_USER/SMTP_PASS)', { source: 'email', to, subject });
       return false;
     }
 
     try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: this.fromEmail,
-          to: [to],
-          subject,
-          html,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        logger.error('Failed to send email', { source: 'email', to, error: errorText });
-        return false;
+      const mailOptions: nodemailer.SendMailOptions = {
+        from: this.fromEmail,
+        to,
+        subject,
+        html,
+      };
+      
+      if (replyTo) {
+        mailOptions.replyTo = replyTo;
       }
 
+      await this.transporter.sendMail(mailOptions);
       logger.info('Email sent successfully', { source: 'email', to, subject });
       return true;
     } catch (error) {
@@ -57,7 +66,7 @@ class ResendEmailService implements EmailService {
   }
 }
 
-const emailService = new ResendEmailService();
+const emailService = new NodemailerEmailService();
 
 const baseStyles = `
   <style>
