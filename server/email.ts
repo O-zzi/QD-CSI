@@ -636,11 +636,13 @@ export async function sendContactFormEmail(submission: { name: string; email: st
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@thequarterdeck.pk';
   console.log('[email] Contact form - ADMIN_EMAIL env:', process.env.ADMIN_EMAIL ? 'SET' : 'NOT SET');
   console.log('[email] Contact form - Sending to:', adminEmail);
+  console.log('[email] Contact form - Reply-To:', submission.email);
   const html = emailTemplates.contactFormSubmission(submission);
   return emailService.sendEmail(
     adminEmail,
     `New Contact Form Submission from ${submission.name}`,
-    html
+    html,
+    submission.email
   );
 }
 
