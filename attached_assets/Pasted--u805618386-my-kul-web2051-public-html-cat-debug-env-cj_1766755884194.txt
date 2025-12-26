@@ -1,0 +1,53 @@
+[u805618386@my-kul-web2051 public_html]$ cat > debug-env.cjs << 'EOF'
+const fs = require('fs');
+const path = require('path');
+
+const envPath = path.join(__dirname, '.env');
+const debugOut = [];
+
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  envContent.split('\n').forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key && valueParts.length > 0) {
+        const k = key.trim();
+        const v = valueParts.join('=').trim();
+        debugOut.push(`Line ${idx+1}: ${k} = ${v.substring(0,30)}...`);
+      }
+    }
+  });
+}
+
+debugOut.push('');
+debugOut.push('Final check:');
+debugOut.push('SUPABASE_URL: ' + (process.env.SUPABASE_URL ? 'SET' : 'MISSING'));
+debugOut.push('SUPABASE_ANON_KEY: ' + (process.env.SUPABASE_ANON_KEY ? 'SET' : 'MISSING'));
+
+fs.writeFileSync('env-debug.txt', debugOut.join('\n'));
+console.log('Done - check env-debug.txt');
+EOF
+
+node debug-env.cjs && cat env-debug.txt
+Done - check env-debug.txt
+Line 1: DATABASE_URL = postgresql://postgres:kKFYxZxN...
+Line 2: SESSION_SECRET = Q6sCtt6IA7zVKj4pI6e9zFudV0Id5D...
+Line 3: SUPABASE_URL = https://ttnwtyixezjjubdcquhg.s...
+Line 4: SUPABASE_SERVICE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...
+Line 5: SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...
+Line 6: VITE_SUPABASE_URL = https://ttnwtyixezjjubdcquhg.s...
+Line 7: VITE_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...
+Line 8: ADMIN_PATH = manage-qd2025-secure...
+Line 9: TURNSTILE_SECRET_KEY = 0x4AAAAAACH3Rm_GQGy6mzyPEzo2QR...
+Line 10: VITE_TURNSTILE_SITE_KEY = 0x4AAAAAACH3Rro7rzcnIGQw...
+Line 11: SMTP_HOST = smtp.hostinger.com...
+Line 12: SMTP_PORT = 465...
+Line 13: SMTP_USER = admin@thequarterdeck.pk...
+Line 14: SMTP_PASS = QD-CSI-2026-pk...
+Line 15: EMAIL_FROM = "The Quarterdeck" <admin@thequ...
+Line 16: NODE_ENV = production...
+
+Final check:
+SUPABASE_URL: SET
+SUPABASE_ANON_KEY: MISSING[u805618386@my-kul-web2051 public_html]$
