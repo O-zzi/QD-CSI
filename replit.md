@@ -54,6 +54,39 @@ The system supports optional integration with Supabase for Storage, Auth, and Re
 - **Supabase Auth:** A hybrid approach where Supabase Auth coexists with Passport.js. Supabase users are synced to PostgreSQL, and backend validates Supabase JWTs.
 - **Supabase Realtime:** Provides live updates for bookings, notifications, and events, integrating with React Query for cache invalidation.
 
+### Email Configuration (Supabase Auth)
+
+**Email Verification Flow:**
+- Users must verify their email address before accessing authenticated features
+- If email is not verified, login will fail with a clear "verify your email" message
+- The `/api/auth/sync` endpoint returns 403 if email is unverified, preventing backend session creation
+
+**Customizing Email Templates (Branding):**
+1. Go to Supabase Dashboard > Authentication > Email Templates
+2. Customize the following templates with Quarterdeck branding:
+   - **Confirm signup** - Email verification link
+   - **Reset password** - Password reset link
+   - **Magic Link** - Passwordless login (if enabled)
+3. Update the "From" email address in Supabase Dashboard > Authentication > SMTP Settings
+4. For custom sender domain (e.g., noreply@thequarterdeck.pk), configure a custom SMTP server
+
+**Custom SMTP Setup (for branded sender):**
+1. Go to Supabase Dashboard > Authentication > SMTP Settings
+2. Enable "Custom SMTP"
+3. Configure with your SMTP provider details:
+   - Host, Port, Username, Password
+   - Sender name: "The Quarterdeck"
+   - Sender email: noreply@thequarterdeck.pk
+4. Recommended SMTP providers: Resend, SendGrid, Amazon SES, Mailgun
+
+**DNS Records for Custom Email Domain:**
+If using custom domain for sending emails (e.g., @thequarterdeck.pk):
+1. **SPF Record** - Add TXT record: `v=spf1 include:_spf.your-email-provider.com ~all`
+2. **DKIM Record** - Add TXT record provided by your email service
+3. **DMARC Record** - Add TXT record: `v=DMARC1; p=quarantine; rua=mailto:admin@thequarterdeck.pk`
+
+These records are configured in your DNS provider (e.g., Cloudflare, Namecheap, GoDaddy).
+
 ## External Dependencies
 
 **Authentication & Session Management:**
