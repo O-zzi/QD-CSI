@@ -113,7 +113,7 @@ import {
   type InsertEventGallery,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, sql } from "drizzle-orm";
+import { eq, and, or, desc, asc, sql } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -171,6 +171,7 @@ export interface IStorage {
   // Event operations
   getEvents(): Promise<Event[]>;
   getEvent(id: string): Promise<Event | undefined>;
+  getEventBySlugOrId(identifier: string): Promise<Event | undefined>;
   getEventsByFacility(facilityId: string): Promise<Event[]>;
   createEvent(data: InsertEvent): Promise<Event>;
   updateEvent(id: string, data: Partial<InsertEvent>): Promise<Event | undefined>;
@@ -688,6 +689,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(events)
       .where(eq(events.id, id));
+    return event;
+  }
+
+  async getEventBySlugOrId(identifier: string): Promise<Event | undefined> {
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(or(eq(events.slug, identifier), eq(events.id, identifier)));
     return event;
   }
 

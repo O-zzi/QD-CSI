@@ -91,7 +91,7 @@ export default function Contact() {
 
   const quickLinks = [
     { icon: Calendar, title: "Book a Facility", description: "Reserve courts, halls, and more", href: "/booking" },
-    { icon: Users, title: "Membership", description: "Join The Quarterdeck community", href: "/#membership" },
+    { icon: Users, title: "Membership", description: "Join The Quarterdeck community", href: "/membership" },
     { icon: Building2, title: "Our Facilities", description: "Explore what we offer", href: "/facilities" },
   ];
 
@@ -362,7 +362,7 @@ export default function Contact() {
                     <span className="text-sm">How do I book a facility?</span>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </Link>
-                  <Link href="/#membership" className="flex items-center justify-between p-2 rounded-md hover-elevate cursor-pointer" data-testid="link-faq-membership">
+                  <Link href="/membership" className="flex items-center justify-between p-2 rounded-md hover-elevate cursor-pointer" data-testid="link-faq-membership">
                     <span className="text-sm">What membership options are available?</span>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </Link>

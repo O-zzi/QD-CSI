@@ -720,6 +720,20 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/events/:identifier', async (req, res) => {
+    try {
+      const { identifier } = req.params;
+      const event = await storage.getEventBySlugOrId(identifier);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      res.json(event);
+    } catch (error) {
+      console.error("Error fetching event:", error);
+      res.status(500).json({ message: "Failed to fetch event" });
+    }
+  });
+
   // ========== LEADERBOARD ROUTES ==========
   app.get('/api/leaderboard', async (req, res) => {
     try {

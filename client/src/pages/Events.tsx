@@ -178,12 +178,16 @@ export default function Events() {
               
               return (
                 <Card key={event.id} className="overflow-hidden hover-elevate" data-testid={`card-event-${event.id}`}>
-                  <div className="h-40 bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
-                    <Trophy className="w-16 h-16 text-amber-400/50" />
-                  </div>
+                  <Link href={`/events/${event.slug || event.id}`}>
+                    <div className="h-40 bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center cursor-pointer">
+                      <Trophy className="w-16 h-16 text-amber-400/50" />
+                    </div>
+                  </Link>
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-lg">{event.title}</CardTitle>
+                      <Link href={`/events/${event.slug || event.id}`}>
+                        <CardTitle className="text-lg cursor-pointer hover:text-primary transition-colors">{event.title}</CardTitle>
+                      </Link>
                       <Badge className={eventTypeColors[event.type] || eventTypeColors.SOCIAL}>
                         {event.type}
                       </Badge>
@@ -225,33 +229,44 @@ export default function Events() {
                         PKR {event.price?.toLocaleString() || 'Free'}
                       </div>
                       
-                      {registered ? (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleCancel(event.id)}
-                          disabled={isProcessing}
-                          data-testid={`button-cancel-event-${event.id}`}
-                        >
-                          {isProcessing ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <>
-                              <Check className="w-4 h-4 mr-1" />
-                              Registered
-                            </>
-                          )}
-                        </Button>
-                      ) : (
-                        <Button 
-                          size="sm" 
-                          onClick={() => openRegistrationDialog(event)}
-                          disabled={isFull}
-                          data-testid={`button-register-event-${event.id}`}
-                        >
-                          {isFull ? 'Full' : 'Register'}
-                        </Button>
-                      )}
+                      <div className="flex gap-2">
+                        <Link href={`/events/${event.slug || event.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            data-testid={`button-view-event-${event.id}`}
+                          >
+                            View
+                          </Button>
+                        </Link>
+                        {registered ? (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={(e) => { e.stopPropagation(); handleCancel(event.id); }}
+                            disabled={isProcessing}
+                            data-testid={`button-cancel-event-${event.id}`}
+                          >
+                            {isProcessing ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Check className="w-4 h-4 mr-1" />
+                                Registered
+                              </>
+                            )}
+                          </Button>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            onClick={(e) => { e.stopPropagation(); openRegistrationDialog(event); }}
+                            disabled={isFull}
+                            data-testid={`button-register-event-${event.id}`}
+                          >
+                            {isFull ? 'Full' : 'Register'}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

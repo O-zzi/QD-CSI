@@ -31,7 +31,7 @@ const defaultNavLinks: NavLink[] = [
   { label: "Facilities", href: "/facilities" },
   { label: "Events & Academies", href: "/events" },
   { label: "Updates", href: "/roadmap" },
-  { label: "Gallery", href: "/gallery" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export function Navbar({ onScrollTo }: NavbarProps) {

@@ -13,6 +13,7 @@ import Home from "@/pages/Home";
 import Booking from "@/pages/Booking";
 import Profile from "@/pages/Profile";
 import Events from "@/pages/Events";
+import EventDetail from "@/pages/EventDetail";
 import Leaderboard from "@/pages/Leaderboard";
 import Gallery from "@/pages/Gallery";
 import Vision from "@/pages/Vision";
@@ -26,6 +27,7 @@ import Privacy from "@/pages/Privacy";
 import ComingSoon from "@/pages/ComingSoon";
 import Contact from "@/pages/Contact";
 import FAQ from "@/pages/FAQ";
+import Membership from "@/pages/Membership";
 import Updates from "@/pages/Updates";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/Login";
@@ -103,6 +105,7 @@ function PublicRoutes() {
     <Switch>
       <Route path="/booking" component={Booking} />
       <Route path="/profile" component={Profile} />
+      <Route path="/events/:slug" component={EventDetail} />
       <Route path="/events" component={Events} />
       <Route path="/leaderboard" component={Leaderboard} />
       <Route path="/gallery" component={Gallery} />
@@ -117,6 +120,7 @@ function PublicRoutes() {
       <Route path="/coming-soon" component={ComingSoon} />
       <Route path="/contact" component={Contact} />
       <Route path="/faq" component={FAQ} />
+      <Route path="/membership" component={Membership} />
       <Route path="/updates" component={Updates} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />

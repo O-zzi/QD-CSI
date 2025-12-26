@@ -123,7 +123,9 @@ export default function Facilities() {
   });
 
   const facilityList: FacilityDisplay[] = dbFacilities && dbFacilities.length > 0 
-    ? dbFacilities.map(f => ({
+    ? dbFacilities
+        .filter(f => !f.isHidden) // Filter out hidden facilities (like Bridge Room)
+        .map(f => ({
           ...f,
           courtCount: f.resourceCount || f.courtCount || 1,
           operatingHours: f.operatingHours || "6:00 AM - 11:00 PM",

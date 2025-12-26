@@ -314,9 +314,9 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     },
   });
 
-  // Transform venues to simple city list - no fallback, show loading if empty
+  // Transform venues to simple city list - fallback to Islamabad if API empty
   const VENUES = useMemo(() => {
-    if (apiVenues.length === 0) return [];
+    if (apiVenues.length === 0) return ['Islamabad'];
     return apiVenues.map(v => v.city);
   }, [apiVenues]);
 
@@ -698,7 +698,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   };
 
   const bookingSummary = useMemo(() => {
-    if (!selectedStartTime) return null;
+    if (!selectedStartTime || !selectedFacility) return null;
     const fac = selectedFacility;
     const perMinutePrice = fac.basePrice / 60;
     let base = perMinutePrice * selectedDuration;
@@ -1072,7 +1072,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                 {FACILITIES.map((fac) => {
                   const FacIcon = fac.icon;
                   const isSelected = selectedFacility.id === fac.id;
-                  const restricted = fac.restricted && userProfile.membershipTier !== 'Founding';
+                  const restricted = fac.restricted && userProfile.membershipTier !== 'FOUNDING';
                   return (
                     <button
                       key={fac.id}

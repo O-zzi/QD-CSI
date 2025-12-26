@@ -76,7 +76,7 @@ export default function FAQ() {
         />
 
         <section className="py-12 md:py-16">
-          <div className="qd-container">
+          <div className="qd-container max-w-5xl mx-auto">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
