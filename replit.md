@@ -20,7 +20,12 @@ The backend uses Express.js and Node.js with WebSocket capabilities. **Authentic
 
 ### Database Architecture
 
+**Production Database:** Supabase PostgreSQL (hosted at ttnwtyixezjjubdcquhg.supabase.co)
+**Development Database:** Replit PostgreSQL (separate from production)
+
 A PostgreSQL database, managed by Drizzle ORM and Drizzle Kit, defines core tables such as `users`, `memberships`, `facilities`, `bookings`, `events`, `leaderboard`, and `cms_content`. Relationships support various operational flows, and PostgreSQL enums with Drizzle-Zod integration ensure type safety. Dedicated tables manage multi-venue support, construction timelines, and site-wide CMS fields.
+
+**IMPORTANT:** Development and Production databases are separate. Changes to data in development DO NOT affect production. Schema migrations run automatically on server startup via `server/migrations.ts`.
 
 **Phase 2 CMS Expansion Tables (added December 2024):**
 - `blogs` - Full blog/news article management with slugs, categories, tags, and publishing workflow
