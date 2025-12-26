@@ -954,6 +954,27 @@ export async function registerRoutes(
     }
   });
 
+  // Seed images with defaults (admin only)
+  app.post('/api/admin/images/seed', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { seedAllImages } = await import('./seeds/seedImages');
+      const seedResult = await seedAllImages();
+      res.json({ 
+        message: "Image seeding complete",
+        result: seedResult,
+        locations: {
+          siteImages: "Admin > Site Images - Global images (hero, footer, navbar)",
+          heroSections: "Admin > Hero Sections - Per-page hero backgrounds",
+          facilities: "Admin > Facilities - Each facility's imageUrl field",
+          gallery: "Admin > Gallery - Gallery images"
+        }
+      });
+    } catch (error) {
+      console.error("Error seeding images:", error);
+      res.status(500).json({ message: "Failed to seed images" });
+    }
+  });
+
   // Admin Announcements routes
   app.get('/api/admin/announcements', isAuthenticated, isAdmin, async (req, res) => {
     try {

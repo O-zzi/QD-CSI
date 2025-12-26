@@ -1,7 +1,9 @@
 import { Link } from "wouter";
 import { Instagram, Facebook, Linkedin, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import footerBg from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
+import { useMemo } from "react";
+import footerBgDefault from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
+import type { SiteImage } from "@shared/schema";
 
 export function Footer() {
   const { data: siteSettings, isLoading } = useQuery<Record<string, string>>({
@@ -18,6 +20,22 @@ export function Footer() {
     },
     staleTime: 1000 * 60 * 5,
   });
+
+  const { data: siteImages = [] } = useQuery<SiteImage[]>({
+    queryKey: ['/api/site-images', 'global'],
+    queryFn: async () => {
+      const res = await fetch('/api/site-images?page=global');
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const footerBg = useMemo(() => {
+    if (!Array.isArray(siteImages)) return footerBgDefault;
+    const img = siteImages.find(img => img.section === 'footer' && img.isActive);
+    return img?.imageUrl || footerBgDefault;
+  }, [siteImages]);
 
   const getSetting = (key: string, fallback: string = "") => {
     return siteSettings?.[key] || fallback;

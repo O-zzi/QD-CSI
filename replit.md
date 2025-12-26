@@ -35,6 +35,40 @@ All new CMS tables have complete CRUD APIs with admin protection and Zod validat
 
 An `/admin` panel provides role-based access (ADMIN, SUPER_ADMIN) for managing CMS content, facilities, pricing, announcements, careers, rules, and gallery images. All admin API endpoints are protected and use Zod for validation. It includes CRUD operations for dynamic membership tier definitions with configurable properties like discounts and guest passes, and an interface for payment verification.
 
+### CMS Image Management
+
+All images on the site are database-driven and editable via the admin panel. No images are hardcoded in the frontend.
+
+**Image Locations (Admin Panel):**
+
+1. **Site Images** (`/admin` > Site Images)
+   - `landing_hero_background` - Main hero background on homepage (1920x1080)
+   - `footer_background` - Footer section background (1920x400)
+   - `navbar_background` - Navigation bar texture (1920x100)
+   - Key fields: `key`, `imageUrl`, `page`, `section`, `dimensions`
+
+2. **Hero Sections** (`/admin` > Hero Sections)
+   - Per-page hero banners with background images/videos
+   - Pages: facilities, events, contact, careers, membership, gallery, roadmap, faq, rules, leaderboard
+   - Key fields: `page`, `backgroundImageUrl`, `backgroundVideoUrl`, `title`, `subtitle`, `overlayOpacity`
+
+3. **Facility Images** (`/admin` > Facilities)
+   - Each facility has an `imageUrl` field for its card/page image
+   - Facilities: padel-tennis, squash, air-rifle-range, bridge-room, multipurpose-hall, cafe-bar
+
+4. **Gallery Images** (`/admin` > Gallery)
+   - Construction progress photos and architectural renders
+   - Key fields: `imageUrl`, `caption`, `category`, `sortOrder`
+
+5. **Event Images** (`/admin` > Events)
+   - Each event has `imageUrl` plus an event gallery
+   - Event galleries managed via Admin > Events > [Event] > Gallery
+
+**Image Seeding:**
+- Run `POST /api/admin/images/seed` to populate default images
+- Seed script: `server/seeds/seedImages.ts`
+- Uses stock images from `attached_assets/stock_images/`
+
 ### Key Features
 
 - **Event Registration:** Authenticated users can register and cancel event participation.
