@@ -1,4 +1,4 @@
-PassengerAppRoot /home/u805618386/domains/palegreen-heron-229617.hostingersite.com/public_html
+PassengerAppRoot /home/u805618386/domains/thequarterdeck.pk/public_html
 PassengerAppType node
 PassengerNodejs /opt/alt/alt-nodejs20/root/bin/node
 PassengerStartupFile server.js
