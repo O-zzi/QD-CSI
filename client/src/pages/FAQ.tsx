@@ -71,12 +71,11 @@ export default function FAQ() {
           testId="text-faq-title"
         />
 
-        <PageBreadcrumb 
-          items={[{ label: "FAQ" }]} 
-        />
-
         <section className="py-12 md:py-16">
           <div className="qd-container max-w-5xl mx-auto">
+            <PageBreadcrumb 
+              items={[{ label: "FAQ" }]} 
+            />
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />

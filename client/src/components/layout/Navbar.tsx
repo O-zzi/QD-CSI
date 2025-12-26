@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Menu, X, ChevronDown, User, Settings, LogOut } from "lucide-react";
@@ -37,7 +37,7 @@ const defaultNavLinks: NavLink[] = [
 export function Navbar({ onScrollTo }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
 
   const { data: siteSettings } = useQuery<Record<string, string>>({
     queryKey: ['/api/site-settings'],
@@ -76,7 +76,17 @@ export function Navbar({ onScrollTo }: NavbarProps) {
 
   const scrollToSection = (id: string) => {
     if (location !== "/") {
-      window.location.href = `/#${id}`;
+      // Navigate to home page with hash, then scroll after navigation
+      setLocation(`/#${id}`);
+      // After navigation, scroll to element after a brief delay
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) {
+          const yOffset = -80;
+          const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }
+      }, 100);
       return;
     }
     const el = document.getElementById(id);
@@ -120,7 +130,7 @@ export function Navbar({ onScrollTo }: NavbarProps) {
   const handleNavClick = (link: NavLink) => {
     if (link.href) {
       setMobileMenuOpen(false);
-      window.location.href = link.href;
+      setLocation(link.href);
     } else if (link.section) {
       scrollToSection(link.section);
     }
