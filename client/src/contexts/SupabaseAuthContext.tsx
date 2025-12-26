@@ -14,7 +14,7 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   signUp: (email: string, password: string, metadata?: { firstName?: string; lastName?: string }) => Promise<{ error: AuthError | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signIn: (email: string, password: string) => Promise<{ error?: AuthError | { message: string }; requiresEmailVerification?: boolean }>;
   signInWithOAuth: (provider: OAuthProvider) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
@@ -116,7 +116,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     return () => subscription.unsubscribe();
   }, [configLoaded, isConfigured]);
 
-  const syncUserToBackend = async (session: Session) => {
+  const syncUserToBackend = async (session: Session): Promise<{ success: boolean; requiresEmailVerification?: boolean; error?: string }> => {
     try {
       const response = await fetch('/api/auth/sync', {
         method: 'POST',
@@ -132,8 +132,22 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
         }),
       });
       console.log('[Auth] Sync response:', response.status);
+      
+      if (response.status === 403) {
+        const data = await response.json();
+        console.log('[Auth] Email verification required:', data.message);
+        return { success: false, requiresEmailVerification: true, error: data.message };
+      }
+      
+      if (!response.ok) {
+        const data = await response.json();
+        return { success: false, error: data.message || 'Sync failed' };
+      }
+      
+      return { success: true };
     } catch (error) {
       console.error('[Auth] Failed to sync user to backend:', error);
+      return { success: false, error: 'Network error during sync' };
     }
   };
 
@@ -159,7 +173,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     return { error };
   }, [isConfigured]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string): Promise<{ error?: AuthError | { message: string }; requiresEmailVerification?: boolean }> => {
     if (!isConfigured) {
       console.log('[Auth] signIn failed - not configured');
       return { error: { message: 'Supabase not configured' } as AuthError };
@@ -174,16 +188,30 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
 
     if (error) {
       console.log('[Auth] signIn error:', error.message);
-    } else {
-      console.log('[Auth] signIn success:', data.user?.email);
-      console.log('[Auth] Session stored in localStorage');
+      return { error };
+    }
+    
+    console.log('[Auth] signIn success:', data.user?.email);
+    
+    // Sync to backend - this establishes the session
+    if (data.session) {
+      const syncResult = await syncUserToBackend(data.session);
       
-      // Verify session is in localStorage
-      const storedSession = localStorage.getItem('quarterdeck-auth');
-      console.log('[Auth] Stored session exists:', !!storedSession);
+      if (!syncResult.success) {
+        if (syncResult.requiresEmailVerification) {
+          console.log('[Auth] Email verification required, signing out...');
+          await client.auth.signOut();
+          localStorage.removeItem('quarterdeck-auth');
+          return { 
+            error: { message: 'Please verify your email address before signing in. Check your inbox for a verification link.' },
+            requiresEmailVerification: true 
+          };
+        }
+        return { error: { message: syncResult.error || 'Failed to establish session' } };
+      }
     }
 
-    return { error };
+    return {};
   }, [isConfigured]);
 
   const signOut = useCallback(async () => {

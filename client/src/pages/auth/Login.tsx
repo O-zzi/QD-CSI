@@ -71,14 +71,22 @@ export default function Login() {
 
     setIsLoading(true);
     try {
-      const { error } = await signIn(data.email, data.password);
+      const { error, requiresEmailVerification } = await signIn(data.email, data.password);
       
       if (error) {
-        toast({
-          title: "Login failed",
-          description: error.message || "Invalid email or password",
-          variant: "destructive",
-        });
+        if (requiresEmailVerification) {
+          toast({
+            title: "Email Verification Required",
+            description: "Please check your inbox and verify your email address before signing in.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Login failed",
+            description: error.message || "Invalid email or password",
+            variant: "destructive",
+          });
+        }
         turnstileRef.current?.reset();
         setTurnstileToken(null);
       } else {
