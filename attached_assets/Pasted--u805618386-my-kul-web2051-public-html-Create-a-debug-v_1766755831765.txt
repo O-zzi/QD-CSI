@@ -1,0 +1,45 @@
+[u805618386@my-kul-web2051 public_html]$ # Create a debug version that writes to file                                                                                                                                                        cat > debug-env.js << 'EOF'
+const fs = require('fs');F'
+const path = require('path');
+const path = require('path');
+const envPath = path.join(__dirname, '.env');
+const debugOut = [];.join(__dirname, '.env');
+const debugOut = [];
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  envContent.split('\n').forEach((line, idx) => {f8');
+    const trimmed = line.trim();((line, idx) => {
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key && valueParts.length > 0) {d.split('=');
+        const k = key.trim();ength > 0) {
+        const v = valueParts.join('=').trim();
+        debugOut.push(`Line ${idx+1}: ${k} = ${v.substring(0,20)}...`);
+      } debugOut.push(`Line ${idx+1}: ${k} = ${v.substring(0,20)}...`);
+    } }
+  });
+} });
+}
+debugOut.push('');
+debugOut.push('Final process.env check:');
+debugOut.push(`SUPABASE_URL: ${process.env.SUPABASE_URL ? 'SET' : 'MISSING'}`);
+debugOut.push(`SUPABASE_ANON_KEY: ${process.env.SUPABASE_ANON_KEY ? 'SET' : 'MISSING'}`);
+debugOut.push(`SUPABASE_ANON_KEY: ${process.env.SUPABASE_ANON_KEY ? 'SET' : 'MIS                                                                                                                                                             fs.writeFileSync('env-debug.txt', debugOut.join('\n'));
+console.log('Debug written to env-debug.txt');
+EOFwriteFileSync('env-debug.txt', debugOut.join('\n'));
+console.log('Debug written to env-debug.txt');
+node debug-env.js
+cat env-debug.txt
+file:///home/u805618386/domains/thequarterdeck.pk/public_html/debug-env.js:1
+const fs = require('fs');
+           ^
+
+ReferenceError: require is not defined in ES module scope, you can use import instead
+This file is being treated as an ES module because it has a '.js' file extension and '/home/u805618386/domains/thequarterdeck.pk/public_html/package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.
+    at file:///home/u805618386/domains/thequarterdeck.pk/public_html/debug-env.js:1:12
+    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v20.19.6
+cat: env-debug.txt: No such file or directory
