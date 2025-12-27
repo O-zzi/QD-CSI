@@ -2,6 +2,12 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 import renderExterior1 from "@assets/stock_images/architectural_render_b118ee78.jpg";
 import renderExterior2 from "@assets/stock_images/architectural_render_cd4dce75.jpg";
@@ -46,29 +52,46 @@ export function GallerySection() {
           </Link>
         </div>
 
-        <div className="qd-gallery-grid">
-          {galleryItems.map((item, index) => (
-            <Link key={index} href={`/gallery?category=${item.category}`}>
-              <div
-                className="qd-gallery-item relative overflow-hidden group cursor-pointer"
-                data-testid={`gallery-item-${index}`}
-              >
-                <img 
-                  src={item.image} 
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <span className="text-sm text-white font-medium">{item.title}</span>
-                  <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${item.type === "render" ? "bg-blue-500/80" : "bg-amber-500/80"} text-white uppercase tracking-wide`}>
-                    {item.type}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          plugins={[
+            Autoplay({
+              delay: 3500,
+              stopOnInteraction: true,
+              stopOnMouseEnter: true,
+            }),
+          ]}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {galleryItems.map((item, index) => (
+              <CarouselItem key={index} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                <Link href={`/gallery?category=${item.category}`}>
+                  <div
+                    className="relative aspect-[4/3] rounded-xl overflow-hidden group cursor-pointer"
+                    data-testid={`gallery-item-${index}`}
+                  >
+                    <img 
+                      src={item.image} 
+                      alt={item.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <span className="text-sm text-white font-medium">{item.title}</span>
+                      <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${item.type === "render" ? "bg-blue-500/80" : "bg-amber-500/80"} text-white uppercase tracking-wide`}>
+                        {item.type}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
       </div>
     </section>
   );
