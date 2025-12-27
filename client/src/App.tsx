@@ -57,6 +57,7 @@ import MembersManagement from "@/pages/admin/MembersManagement";
 import SiteSettingsManagement from "@/pages/admin/SiteSettingsManagement";
 import HeroSectionsManagement from "@/pages/admin/HeroSectionsManagement";
 import CTAsManagement from "@/pages/admin/CTAsManagement";
+import VenuesManagement from "@/pages/admin/VenuesManagement";
 
 function AdminRoutes() {
   const { adminPath, isAuthorized, isLoading } = useAdminPath();
@@ -75,6 +76,7 @@ function AdminRoutes() {
     <Switch>
       <Route path={`${base}/homepage`} component={HomepageManagement} />
       <Route path={`${base}/coming-soon`} component={ComingSoonManagement} />
+      <Route path={`${base}/venues`} component={VenuesManagement} />
       <Route path={`${base}/facilities`} component={FacilitiesManagement} />
       <Route path={`${base}/roadmap`} component={RoadmapManagement} />
       <Route path={`${base}/events`} component={EventsManagement} />

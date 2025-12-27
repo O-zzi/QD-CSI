@@ -22,7 +22,8 @@ import {
   Users,
   MousePointer2,
   ShieldCheck,
-  HelpCircle
+  HelpCircle,
+  MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -37,6 +38,7 @@ function getNavItems(basePath: string) {
     { path: `${basePath}/branding`, label: "Branding & Nav", icon: Palette },
     { path: `${basePath}/homepage`, label: "Site Content", icon: Home },
     { path: `${basePath}/coming-soon`, label: "Coming Soon", icon: Clock },
+    { path: `${basePath}/venues`, label: "Venues & Locations", icon: MapPin },
     { path: `${basePath}/facilities`, label: "Facilities", icon: Building2 },
     { path: `${basePath}/bookings`, label: "Bookings", icon: CreditCard },
     { path: `${basePath}/members`, label: "Members", icon: Users },
