@@ -55,6 +55,9 @@ import {
   insertComparisonFeatureSchema,
   insertMemberBenefitSchema,
   insertCareerBenefitSchema,
+  insertCertificationSchema,
+  insertCertificationClassSchema,
+  insertUserCertificationSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
@@ -2299,6 +2302,304 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting facility venue:", error);
       res.status(500).json({ message: "Failed to delete facility venue" });
+    }
+  });
+
+  // Admin Certifications routes
+  app.get('/api/admin/certifications', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const certs = await storage.getCertifications();
+      res.json(certs);
+    } catch (error) {
+      console.error("Error fetching certifications:", error);
+      res.status(500).json({ message: "Failed to fetch certifications" });
+    }
+  });
+
+  app.get('/api/admin/certifications/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const cert = await storage.getCertification(req.params.id);
+      if (!cert) {
+        return res.status(404).json({ message: "Certification not found" });
+      }
+      res.json(cert);
+    } catch (error) {
+      console.error("Error fetching certification:", error);
+      res.status(500).json({ message: "Failed to fetch certification" });
+    }
+  });
+
+  app.post('/api/admin/certifications', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminId = (req as any).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin authentication required" });
+      }
+      
+      const result = insertCertificationSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const cert = await storage.createCertification(result.data);
+      logAdminAction(adminId, 'CREATE', 'certification', cert.id, { name: cert.name });
+      res.status(201).json(cert);
+    } catch (error) {
+      console.error("Error creating certification:", error);
+      res.status(500).json({ message: "Failed to create certification" });
+    }
+  });
+
+  app.patch('/api/admin/certifications/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminId = (req as any).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin authentication required" });
+      }
+      
+      const partialSchema = insertCertificationSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateCertification(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Certification not found" });
+      }
+      logAdminAction(adminId, 'UPDATE', 'certification', req.params.id, result.data);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating certification:", error);
+      res.status(500).json({ message: "Failed to update certification" });
+    }
+  });
+
+  app.delete('/api/admin/certifications/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminId = (req as any).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin authentication required" });
+      }
+      
+      await storage.deleteCertification(req.params.id);
+      logAdminAction(adminId, 'DELETE', 'certification', req.params.id, {});
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting certification:", error);
+      res.status(500).json({ message: "Failed to delete certification" });
+    }
+  });
+
+  // Admin Certification Classes routes
+  app.get('/api/admin/certification-classes', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { certificationId } = req.query;
+      const classes = await storage.getCertificationClasses(certificationId as string | undefined);
+      res.json(classes);
+    } catch (error) {
+      console.error("Error fetching certification classes:", error);
+      res.status(500).json({ message: "Failed to fetch certification classes" });
+    }
+  });
+
+  app.post('/api/admin/certification-classes', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminId = (req as any).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin authentication required" });
+      }
+      
+      const result = insertCertificationClassSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const cls = await storage.createCertificationClass(result.data);
+      logAdminAction(adminId, 'CREATE', 'certification_class', cls.id, { title: cls.title });
+      res.status(201).json(cls);
+    } catch (error) {
+      console.error("Error creating certification class:", error);
+      res.status(500).json({ message: "Failed to create certification class" });
+    }
+  });
+
+  app.patch('/api/admin/certification-classes/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminId = (req as any).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin authentication required" });
+      }
+      
+      const partialSchema = insertCertificationClassSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateCertificationClass(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Certification class not found" });
+      }
+      logAdminAction(adminId, 'UPDATE', 'certification_class', req.params.id, result.data);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating certification class:", error);
+      res.status(500).json({ message: "Failed to update certification class" });
+    }
+  });
+
+  app.delete('/api/admin/certification-classes/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminId = (req as any).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin authentication required" });
+      }
+      
+      await storage.deleteCertificationClass(req.params.id);
+      logAdminAction(adminId, 'DELETE', 'certification_class', req.params.id, {});
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting certification class:", error);
+      res.status(500).json({ message: "Failed to delete certification class" });
+    }
+  });
+
+  // Admin User Certifications routes (for verification and management)
+  app.get('/api/admin/user-certifications', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { status } = req.query;
+      const userCerts = await storage.getAllUserCertifications(status as string | undefined);
+      res.json(userCerts);
+    } catch (error) {
+      console.error("Error fetching user certifications:", error);
+      res.status(500).json({ message: "Failed to fetch user certifications" });
+    }
+  });
+
+  app.post('/api/admin/user-certifications', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminId = (req as any).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin authentication required" });
+      }
+      
+      const baseResult = insertUserCertificationSchema.pick({
+        userId: true,
+        certificationId: true,
+        notes: true,
+      }).extend({
+        expiresAt: z.string().optional().nullable(),
+      }).safeParse(req.body);
+      
+      if (!baseResult.success) {
+        return res.status(400).json({ message: "Invalid data", errors: baseResult.error.errors });
+      }
+      
+      const { userId, certificationId, expiresAt, notes } = baseResult.data;
+      const cert = await storage.getCertification(certificationId);
+      if (!cert) {
+        return res.status(404).json({ message: "Certification not found" });
+      }
+      
+      const expiry: Date | null = expiresAt ? new Date(expiresAt) : (cert.validityMonths ? new Date(Date.now() + cert.validityMonths * 30 * 24 * 60 * 60 * 1000) : null);
+      const userCert = await storage.issueUserCertification({
+        userId,
+        certificationId,
+        expiresAt: expiry,
+        issuedBy: adminId,
+        notes: notes || null,
+        status: 'ACTIVE',
+      });
+      logAdminAction(adminId, 'CREATE', 'user_certification', userCert.id, { userId, certificationId });
+      res.status(201).json(userCert);
+    } catch (error) {
+      console.error("Error issuing user certification:", error);
+      res.status(500).json({ message: "Failed to issue user certification" });
+    }
+  });
+
+  app.patch('/api/admin/user-certifications/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminId = (req as any).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin authentication required" });
+      }
+      
+      const partialSchema = insertUserCertificationSchema.partial().extend({
+        expiresAt: z.union([z.string(), z.date(), z.null()]).optional(),
+      });
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      
+      const updateData: Partial<InsertUserCertification> = { ...result.data };
+      if (result.data.expiresAt !== undefined) {
+        updateData.expiresAt = result.data.expiresAt 
+          ? (typeof result.data.expiresAt === 'string' ? new Date(result.data.expiresAt) : result.data.expiresAt)
+          : null;
+      }
+      
+      const updated = await storage.updateUserCertification(req.params.id, updateData);
+      if (!updated) {
+        return res.status(404).json({ message: "User certification not found" });
+      }
+      logAdminAction(adminId, 'UPDATE', 'user_certification', req.params.id, result.data);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating user certification:", error);
+      res.status(500).json({ message: "Failed to update user certification" });
+    }
+  });
+
+  app.post('/api/admin/user-certifications/:id/revoke', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminId = (req as any).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ message: "Admin authentication required" });
+      }
+      
+      const revokeSchema = z.object({
+        notes: z.string().optional().nullable(),
+      });
+      const result = revokeSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      
+      const revokeNotes = `Revoked by admin (${adminId}) at ${new Date().toISOString()}. ${result.data.notes || ''}`.trim();
+      const revoked = await storage.revokeUserCertification(req.params.id, revokeNotes);
+      if (!revoked) {
+        return res.status(404).json({ message: "User certification not found" });
+      }
+      logAdminAction(adminId, 'REVOKE', 'user_certification', req.params.id, { notes: revokeNotes, revokedBy: adminId, revokedAt: new Date().toISOString() });
+      res.json(revoked);
+    } catch (error) {
+      console.error("Error revoking user certification:", error);
+      res.status(500).json({ message: "Failed to revoke user certification" });
+    }
+  });
+
+  // Public API for certifications (users can view available certifications)
+  app.get('/api/certifications', async (req, res) => {
+    try {
+      const certs = await storage.getCertifications();
+      res.json(certs.filter(c => c.isActive));
+    } catch (error) {
+      console.error("Error fetching certifications:", error);
+      res.status(500).json({ message: "Failed to fetch certifications" });
+    }
+  });
+
+  // User's own certifications
+  app.get('/api/my-certifications', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      const userCerts = await storage.getUserCertifications(userId);
+      res.json(userCerts);
+    } catch (error) {
+      console.error("Error fetching user certifications:", error);
+      res.status(500).json({ message: "Failed to fetch user certifications" });
     }
   });
 

@@ -126,6 +126,16 @@ import {
   type InsertMemberBenefit,
   type CareerBenefit,
   type InsertCareerBenefit,
+  type Certification,
+  type InsertCertification,
+  type CertificationClass,
+  type InsertCertificationClass,
+  type UserCertification,
+  type InsertUserCertification,
+  certifications,
+  certificationClasses,
+  userCertifications,
+  certificationEnrollments,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql } from "drizzle-orm";
@@ -423,6 +433,27 @@ export interface IStorage {
   createCareerBenefit(data: InsertCareerBenefit): Promise<CareerBenefit>;
   updateCareerBenefit(id: string, data: Partial<InsertCareerBenefit>): Promise<CareerBenefit | undefined>;
   deleteCareerBenefit(id: string): Promise<void>;
+  
+  // Certification operations
+  getCertifications(): Promise<Certification[]>;
+  getCertification(id: string): Promise<Certification | undefined>;
+  createCertification(data: InsertCertification): Promise<Certification>;
+  updateCertification(id: string, data: Partial<InsertCertification>): Promise<Certification | undefined>;
+  deleteCertification(id: string): Promise<void>;
+  
+  // Certification Class operations
+  getCertificationClasses(certificationId?: string): Promise<CertificationClass[]>;
+  getCertificationClass(id: string): Promise<CertificationClass | undefined>;
+  createCertificationClass(data: InsertCertificationClass): Promise<CertificationClass>;
+  updateCertificationClass(id: string, data: Partial<InsertCertificationClass>): Promise<CertificationClass | undefined>;
+  deleteCertificationClass(id: string): Promise<void>;
+  
+  // User Certification operations
+  getUserCertifications(userId: string): Promise<UserCertification[]>;
+  getAllUserCertifications(status?: string): Promise<UserCertification[]>;
+  issueUserCertification(data: InsertUserCertification): Promise<UserCertification>;
+  updateUserCertification(id: string, data: Partial<InsertUserCertification>): Promise<UserCertification | undefined>;
+  revokeUserCertification(id: string, notes?: string): Promise<UserCertification | undefined>;
   
   // Health check
   healthCheck(): Promise<boolean>;
@@ -1867,6 +1898,120 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCareerBenefit(id: string): Promise<void> {
     await db.delete(careerBenefits).where(eq(careerBenefits.id, id));
+  }
+  
+  // Certification operations
+  async getCertifications(): Promise<Certification[]> {
+    return await db.select().from(certifications)
+      .orderBy(asc(certifications.sortOrder));
+  }
+
+  async getCertification(id: string): Promise<Certification | undefined> {
+    const [cert] = await db.select().from(certifications)
+      .where(eq(certifications.id, id));
+    return cert;
+  }
+
+  async createCertification(data: InsertCertification): Promise<Certification> {
+    const [cert] = await db.insert(certifications).values(data).returning();
+    return cert;
+  }
+
+  async updateCertification(id: string, data: Partial<InsertCertification>): Promise<Certification | undefined> {
+    const [updated] = await db
+      .update(certifications)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(certifications.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCertification(id: string): Promise<void> {
+    await db.delete(certifications).where(eq(certifications.id, id));
+  }
+  
+  // Certification Class operations
+  async getCertificationClasses(certificationId?: string): Promise<CertificationClass[]> {
+    if (certificationId) {
+      return await db.select().from(certificationClasses)
+        .where(eq(certificationClasses.certificationId, certificationId))
+        .orderBy(asc(certificationClasses.scheduledDate));
+    }
+    return await db.select().from(certificationClasses)
+      .orderBy(asc(certificationClasses.scheduledDate));
+  }
+
+  async getCertificationClass(id: string): Promise<CertificationClass | undefined> {
+    const [cls] = await db.select().from(certificationClasses)
+      .where(eq(certificationClasses.id, id));
+    return cls;
+  }
+
+  async createCertificationClass(data: InsertCertificationClass): Promise<CertificationClass> {
+    const [cls] = await db.insert(certificationClasses).values(data).returning();
+    return cls;
+  }
+
+  async updateCertificationClass(id: string, data: Partial<InsertCertificationClass>): Promise<CertificationClass | undefined> {
+    const [updated] = await db
+      .update(certificationClasses)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(certificationClasses.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCertificationClass(id: string): Promise<void> {
+    await db.delete(certificationClasses).where(eq(certificationClasses.id, id));
+  }
+  
+  // User Certification operations
+  async getUserCertifications(userId: string): Promise<UserCertification[]> {
+    return await db.select().from(userCertifications)
+      .where(eq(userCertifications.userId, userId))
+      .orderBy(desc(userCertifications.issuedAt));
+  }
+
+  async getAllUserCertifications(status?: string): Promise<UserCertification[]> {
+    if (status) {
+      return await db.select().from(userCertifications)
+        .where(eq(userCertifications.status, status))
+        .orderBy(desc(userCertifications.createdAt));
+    }
+    return await db.select().from(userCertifications)
+      .orderBy(desc(userCertifications.createdAt));
+  }
+
+  async issueUserCertification(data: InsertUserCertification): Promise<UserCertification> {
+    const certNumber = `QD-CERT-${Date.now().toString(36).toUpperCase()}`;
+    const [cert] = await db.insert(userCertifications).values({
+      ...data,
+      certificateNumber: certNumber,
+      issuedAt: new Date(),
+    }).returning();
+    return cert;
+  }
+
+  async updateUserCertification(id: string, data: Partial<InsertUserCertification>): Promise<UserCertification | undefined> {
+    const [updated] = await db
+      .update(userCertifications)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(userCertifications.id, id))
+      .returning();
+    return updated;
+  }
+
+  async revokeUserCertification(id: string, notes?: string): Promise<UserCertification | undefined> {
+    const [revoked] = await db
+      .update(userCertifications)
+      .set({ 
+        status: 'REVOKED', 
+        notes: notes || 'Revoked by admin',
+        updatedAt: new Date() 
+      })
+      .where(eq(userCertifications.id, id))
+      .returning();
+    return revoked;
   }
 
   async healthCheck(): Promise<boolean> {
