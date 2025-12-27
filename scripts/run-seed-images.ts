@@ -104,7 +104,10 @@ async function seedImages() {
     const existingGallery = await db.select().from(galleryImages);
     if (existingGallery.length === 0) {
       for (const g of galleryData) {
-        await db.insert(galleryImages).values(g);
+        await db.insert(galleryImages).values({
+          ...g,
+          title: g.caption,
+        });
         console.log(`  Created gallery: ${g.caption}`);
       }
     } else {
