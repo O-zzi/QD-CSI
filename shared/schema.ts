@@ -116,6 +116,15 @@ export const facilities = pgTable("facilities", {
   isHidden: boolean("is_hidden").default(false),
   status: facilityStatusEnum("status").default('PLANNED'),
   imageUrl: varchar("image_url"),
+  // Extended CMS fields
+  aboutContent: text("about_content"),
+  features: text("features").array(),
+  amenities: text("amenities").array(),
+  keywords: text("keywords").array(),
+  quickInfo: jsonb("quick_info").$type<{ label: string; value: string; icon?: string }[]>(),
+  pricingNotes: text("pricing_notes"),
+  certificationInfo: text("certification_info"),
+  galleryImages: text("gallery_images").array(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -303,6 +312,10 @@ export const pricingTiers = pgTable("pricing_tiers", {
   isPopular: boolean("is_popular").default(false),
   sortOrder: integer("sort_order").default(0),
   isActive: boolean("is_active").default(true),
+  // Extended CMS fields
+  tagline: varchar("tagline"),
+  description: text("description"),
+  isClosed: boolean("is_closed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -693,6 +706,143 @@ export const eventGalleries = pgTable("event_galleries", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Membership Application Status Enum
+export const membershipApplicationStatusEnum = pgEnum('membership_application_status', ['PENDING', 'APPROVED', 'REJECTED']);
+
+// Membership Applications table (for payment verification workflow)
+export const membershipApplications = pgTable("membership_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  tierDesired: membershipTierEnum("tier_desired").notNull(),
+  paymentMethod: varchar("payment_method").default('bank_transfer'),
+  paymentAmount: integer("payment_amount").default(0),
+  paymentProofUrl: varchar("payment_proof_url"),
+  paymentReference: varchar("payment_reference"),
+  status: membershipApplicationStatusEnum("status").default('PENDING'),
+  adminNotes: text("admin_notes"),
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Certifications table (types of certifications available)
+export const certifications = pgTable("certifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: varchar("slug").unique().notNull(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  facilityId: varchar("facility_id").references(() => facilities.id, { onDelete: 'set null' }),
+  validityMonths: integer("validity_months").default(12),
+  requirements: text("requirements"),
+  icon: varchar("icon"),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Certification Classes table (scheduled classes for certification)
+export const certificationClasses = pgTable("certification_classes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  certificationId: varchar("certification_id").notNull().references(() => certifications.id, { onDelete: 'cascade' }),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  instructor: varchar("instructor"),
+  scheduledDate: timestamp("scheduled_date"),
+  duration: integer("duration").default(60),
+  capacity: integer("capacity").default(10),
+  enrolledCount: integer("enrolled_count").default(0),
+  price: integer("price").default(0),
+  location: varchar("location"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Certification Class Enrollments table
+export const certificationEnrollments = pgTable("certification_enrollments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  classId: varchar("class_id").notNull().references(() => certificationClasses.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  status: varchar("status").default('ENROLLED'),
+  completedAt: timestamp("completed_at"),
+  score: integer("score"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User Certifications table (issued certifications)
+export const userCertifications = pgTable("user_certifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  certificationId: varchar("certification_id").notNull().references(() => certifications.id, { onDelete: 'cascade' }),
+  certificateNumber: varchar("certificate_number").unique(),
+  issuedAt: timestamp("issued_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+  status: varchar("status").default('ACTIVE'),
+  issuedBy: varchar("issued_by").references(() => users.id),
+  proofDocumentUrl: varchar("proof_document_url"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Page Content table (for CMS content on specific pages like Vision, About, etc.)
+export const pageContent = pgTable("page_content", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  page: varchar("page").notNull(),
+  section: varchar("section").notNull(),
+  key: varchar("key").notNull(),
+  title: varchar("title"),
+  content: text("content"),
+  icon: varchar("icon"),
+  imageUrl: varchar("image_url"),
+  metadata: jsonb("metadata"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Comparison Features table (for membership comparison)
+export const comparisonFeatures = pgTable("comparison_features", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  feature: varchar("feature").notNull(),
+  foundingValue: varchar("founding_value"),
+  goldValue: varchar("gold_value"),
+  silverValue: varchar("silver_value"),
+  guestValue: varchar("guest_value"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Member Benefits table (for "Why Become a Member" section)
+export const memberBenefits = pgTable("member_benefits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  icon: varchar("icon").notNull(),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Career Benefits table (for "Why Work Here" section)
+export const careerBenefits = pgTable("career_benefits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  icon: varchar("icon").notNull(),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   membership: one(memberships, {
@@ -1004,6 +1154,59 @@ export const insertEventGallerySchema = createInsertSchema(eventGalleries).omit(
   createdAt: true,
 });
 
+export const insertMembershipApplicationSchema = createInsertSchema(membershipApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCertificationSchema = createInsertSchema(certifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCertificationClassSchema = createInsertSchema(certificationClasses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCertificationEnrollmentSchema = createInsertSchema(certificationEnrollments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserCertificationSchema = createInsertSchema(userCertifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPageContentSchema = createInsertSchema(pageContent).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertComparisonFeatureSchema = createInsertSchema(comparisonFeatures).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMemberBenefitSchema = createInsertSchema(memberBenefits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCareerBenefitSchema = createInsertSchema(careerBenefits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -1122,3 +1325,30 @@ export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
 
 export type EventGallery = typeof eventGalleries.$inferSelect;
 export type InsertEventGallery = z.infer<typeof insertEventGallerySchema>;
+
+export type MembershipApplication = typeof membershipApplications.$inferSelect;
+export type InsertMembershipApplication = z.infer<typeof insertMembershipApplicationSchema>;
+
+export type Certification = typeof certifications.$inferSelect;
+export type InsertCertification = z.infer<typeof insertCertificationSchema>;
+
+export type CertificationClass = typeof certificationClasses.$inferSelect;
+export type InsertCertificationClass = z.infer<typeof insertCertificationClassSchema>;
+
+export type CertificationEnrollment = typeof certificationEnrollments.$inferSelect;
+export type InsertCertificationEnrollment = z.infer<typeof insertCertificationEnrollmentSchema>;
+
+export type UserCertification = typeof userCertifications.$inferSelect;
+export type InsertUserCertification = z.infer<typeof insertUserCertificationSchema>;
+
+export type PageContent = typeof pageContent.$inferSelect;
+export type InsertPageContent = z.infer<typeof insertPageContentSchema>;
+
+export type ComparisonFeature = typeof comparisonFeatures.$inferSelect;
+export type InsertComparisonFeature = z.infer<typeof insertComparisonFeatureSchema>;
+
+export type MemberBenefit = typeof memberBenefits.$inferSelect;
+export type InsertMemberBenefit = z.infer<typeof insertMemberBenefitSchema>;
+
+export type CareerBenefit = typeof careerBenefits.$inferSelect;
+export type InsertCareerBenefit = z.infer<typeof insertCareerBenefitSchema>;

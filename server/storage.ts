@@ -38,6 +38,11 @@ import {
   ctas,
   testimonials,
   eventGalleries,
+  membershipApplications,
+  pageContent,
+  comparisonFeatures,
+  memberBenefits,
+  careerBenefits,
   type User,
   type UpsertUser,
   type Membership,
@@ -111,6 +116,16 @@ import {
   type InsertTestimonial,
   type EventGallery,
   type InsertEventGallery,
+  type MembershipApplication,
+  type InsertMembershipApplication,
+  type PageContent,
+  type InsertPageContent,
+  type ComparisonFeature,
+  type InsertComparisonFeature,
+  type MemberBenefit,
+  type InsertMemberBenefit,
+  type CareerBenefit,
+  type InsertCareerBenefit,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, sql } from "drizzle-orm";
@@ -374,6 +389,40 @@ export interface IStorage {
   createEventGalleryImage(data: InsertEventGallery): Promise<EventGallery>;
   updateEventGalleryImage(id: string, data: Partial<InsertEventGallery>): Promise<EventGallery | undefined>;
   deleteEventGalleryImage(id: string): Promise<void>;
+  
+  // Membership Application operations
+  getMembershipApplications(status?: string): Promise<MembershipApplication[]>;
+  getMembershipApplication(id: string): Promise<MembershipApplication | undefined>;
+  getUserMembershipApplications(userId: string): Promise<MembershipApplication[]>;
+  createMembershipApplication(data: InsertMembershipApplication): Promise<MembershipApplication>;
+  updateMembershipApplication(id: string, data: Partial<InsertMembershipApplication>): Promise<MembershipApplication | undefined>;
+  approveMembershipApplication(id: string, adminId: string, notes?: string): Promise<MembershipApplication | undefined>;
+  rejectMembershipApplication(id: string, adminId: string, notes?: string): Promise<MembershipApplication | undefined>;
+  
+  // Page Content operations
+  getPageContent(page: string, section?: string): Promise<PageContent[]>;
+  getPageContentByKey(page: string, section: string, key: string): Promise<PageContent | undefined>;
+  createPageContent(data: InsertPageContent): Promise<PageContent>;
+  updatePageContent(id: string, data: Partial<InsertPageContent>): Promise<PageContent | undefined>;
+  deletePageContent(id: string): Promise<void>;
+  
+  // Comparison Feature operations
+  getComparisonFeatures(): Promise<ComparisonFeature[]>;
+  createComparisonFeature(data: InsertComparisonFeature): Promise<ComparisonFeature>;
+  updateComparisonFeature(id: string, data: Partial<InsertComparisonFeature>): Promise<ComparisonFeature | undefined>;
+  deleteComparisonFeature(id: string): Promise<void>;
+  
+  // Member Benefit operations
+  getMemberBenefits(): Promise<MemberBenefit[]>;
+  createMemberBenefit(data: InsertMemberBenefit): Promise<MemberBenefit>;
+  updateMemberBenefit(id: string, data: Partial<InsertMemberBenefit>): Promise<MemberBenefit | undefined>;
+  deleteMemberBenefit(id: string): Promise<void>;
+  
+  // Career Benefit operations
+  getCareerBenefits(): Promise<CareerBenefit[]>;
+  createCareerBenefit(data: InsertCareerBenefit): Promise<CareerBenefit>;
+  updateCareerBenefit(id: string, data: Partial<InsertCareerBenefit>): Promise<CareerBenefit | undefined>;
+  deleteCareerBenefit(id: string): Promise<void>;
   
   // Health check
   healthCheck(): Promise<boolean>;
@@ -1633,6 +1682,191 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEventGalleryImage(id: string): Promise<void> {
     await db.delete(eventGalleries).where(eq(eventGalleries.id, id));
+  }
+
+  // Membership Application operations
+  async getMembershipApplications(status?: string): Promise<MembershipApplication[]> {
+    if (status) {
+      return await db.select().from(membershipApplications)
+        .where(eq(membershipApplications.status, status as any))
+        .orderBy(desc(membershipApplications.createdAt));
+    }
+    return await db.select().from(membershipApplications).orderBy(desc(membershipApplications.createdAt));
+  }
+
+  async getMembershipApplication(id: string): Promise<MembershipApplication | undefined> {
+    const [application] = await db.select().from(membershipApplications)
+      .where(eq(membershipApplications.id, id));
+    return application;
+  }
+
+  async getUserMembershipApplications(userId: string): Promise<MembershipApplication[]> {
+    return await db.select().from(membershipApplications)
+      .where(eq(membershipApplications.userId, userId))
+      .orderBy(desc(membershipApplications.createdAt));
+  }
+
+  async createMembershipApplication(data: InsertMembershipApplication): Promise<MembershipApplication> {
+    const [application] = await db.insert(membershipApplications).values(data).returning();
+    return application;
+  }
+
+  async updateMembershipApplication(id: string, data: Partial<InsertMembershipApplication>): Promise<MembershipApplication | undefined> {
+    const [updated] = await db
+      .update(membershipApplications)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(membershipApplications.id, id))
+      .returning();
+    return updated;
+  }
+
+  async approveMembershipApplication(id: string, adminId: string, notes?: string): Promise<MembershipApplication | undefined> {
+    const [updated] = await db
+      .update(membershipApplications)
+      .set({
+        status: 'APPROVED' as any,
+        reviewedBy: adminId,
+        reviewedAt: new Date(),
+        adminNotes: notes,
+        updatedAt: new Date()
+      })
+      .where(eq(membershipApplications.id, id))
+      .returning();
+    return updated;
+  }
+
+  async rejectMembershipApplication(id: string, adminId: string, notes?: string): Promise<MembershipApplication | undefined> {
+    const [updated] = await db
+      .update(membershipApplications)
+      .set({
+        status: 'REJECTED' as any,
+        reviewedBy: adminId,
+        reviewedAt: new Date(),
+        adminNotes: notes,
+        updatedAt: new Date()
+      })
+      .where(eq(membershipApplications.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Page Content operations
+  async getPageContent(page: string, section?: string): Promise<PageContent[]> {
+    if (section) {
+      return await db.select().from(pageContent)
+        .where(and(
+          eq(pageContent.page, page),
+          eq(pageContent.section, section),
+          eq(pageContent.isActive, true)
+        ))
+        .orderBy(asc(pageContent.sortOrder));
+    }
+    return await db.select().from(pageContent)
+      .where(and(eq(pageContent.page, page), eq(pageContent.isActive, true)))
+      .orderBy(asc(pageContent.sortOrder));
+  }
+
+  async getPageContentByKey(page: string, section: string, key: string): Promise<PageContent | undefined> {
+    const [content] = await db.select().from(pageContent)
+      .where(and(
+        eq(pageContent.page, page),
+        eq(pageContent.section, section),
+        eq(pageContent.key, key)
+      ));
+    return content;
+  }
+
+  async createPageContent(data: InsertPageContent): Promise<PageContent> {
+    const [content] = await db.insert(pageContent).values(data).returning();
+    return content;
+  }
+
+  async updatePageContent(id: string, data: Partial<InsertPageContent>): Promise<PageContent | undefined> {
+    const [updated] = await db
+      .update(pageContent)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(pageContent.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePageContent(id: string): Promise<void> {
+    await db.delete(pageContent).where(eq(pageContent.id, id));
+  }
+
+  // Comparison Feature operations
+  async getComparisonFeatures(): Promise<ComparisonFeature[]> {
+    return await db.select().from(comparisonFeatures)
+      .where(eq(comparisonFeatures.isActive, true))
+      .orderBy(asc(comparisonFeatures.sortOrder));
+  }
+
+  async createComparisonFeature(data: InsertComparisonFeature): Promise<ComparisonFeature> {
+    const [feature] = await db.insert(comparisonFeatures).values(data).returning();
+    return feature;
+  }
+
+  async updateComparisonFeature(id: string, data: Partial<InsertComparisonFeature>): Promise<ComparisonFeature | undefined> {
+    const [updated] = await db
+      .update(comparisonFeatures)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(comparisonFeatures.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteComparisonFeature(id: string): Promise<void> {
+    await db.delete(comparisonFeatures).where(eq(comparisonFeatures.id, id));
+  }
+
+  // Member Benefit operations
+  async getMemberBenefits(): Promise<MemberBenefit[]> {
+    return await db.select().from(memberBenefits)
+      .where(eq(memberBenefits.isActive, true))
+      .orderBy(asc(memberBenefits.sortOrder));
+  }
+
+  async createMemberBenefit(data: InsertMemberBenefit): Promise<MemberBenefit> {
+    const [benefit] = await db.insert(memberBenefits).values(data).returning();
+    return benefit;
+  }
+
+  async updateMemberBenefit(id: string, data: Partial<InsertMemberBenefit>): Promise<MemberBenefit | undefined> {
+    const [updated] = await db
+      .update(memberBenefits)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(memberBenefits.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteMemberBenefit(id: string): Promise<void> {
+    await db.delete(memberBenefits).where(eq(memberBenefits.id, id));
+  }
+
+  // Career Benefit operations
+  async getCareerBenefits(): Promise<CareerBenefit[]> {
+    return await db.select().from(careerBenefits)
+      .where(eq(careerBenefits.isActive, true))
+      .orderBy(asc(careerBenefits.sortOrder));
+  }
+
+  async createCareerBenefit(data: InsertCareerBenefit): Promise<CareerBenefit> {
+    const [benefit] = await db.insert(careerBenefits).values(data).returning();
+    return benefit;
+  }
+
+  async updateCareerBenefit(id: string, data: Partial<InsertCareerBenefit>): Promise<CareerBenefit | undefined> {
+    const [updated] = await db
+      .update(careerBenefits)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(careerBenefits.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCareerBenefit(id: string): Promise<void> {
+    await db.delete(careerBenefits).where(eq(careerBenefits.id, id));
   }
 
   async healthCheck(): Promise<boolean> {

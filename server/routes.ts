@@ -12,6 +12,11 @@ import {
   sendWelcomeEmail,
   sendContactFormEmail,
   sendCareerApplicationEmail,
+  sendAdminNewUserAlert,
+  sendAdminMembershipSelectionAlert,
+  sendAdminPaymentSubmissionAlert,
+  sendMembershipApprovedEmail,
+  sendMembershipRejectedEmail,
 } from "./email";
 import { 
   insertBookingSchema,
@@ -45,6 +50,11 @@ import {
   insertCtaSchema,
   insertTestimonialSchema,
   insertEventGallerySchema,
+  insertMembershipApplicationSchema,
+  insertPageContentSchema,
+  insertComparisonFeatureSchema,
+  insertMemberBenefitSchema,
+  insertCareerBenefitSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
@@ -1461,6 +1471,443 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting rule:", error);
       res.status(500).json({ message: "Failed to delete rule" });
+    }
+  });
+
+  // Membership Application routes (public for users)
+  app.post('/api/membership-applications', isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const result = insertMembershipApplicationSchema.safeParse({
+        ...req.body,
+        userId: user.id,
+      });
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const application = await storage.createMembershipApplication(result.data);
+      
+      // Send admin alert email
+      sendAdminMembershipSelectionAlert(
+        { email: user.email, firstName: user.firstName || '', lastName: user.lastName || '' },
+        result.data.tierDesired,
+        result.data.paymentAmount || 0
+      ).catch(err => console.error("Error sending admin alert:", err));
+      
+      res.status(201).json(application);
+    } catch (error) {
+      console.error("Error creating membership application:", error);
+      res.status(500).json({ message: "Failed to create membership application" });
+    }
+  });
+
+  app.get('/api/membership-applications/mine', isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const applications = await storage.getUserMembershipApplications(user.id);
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching user applications:", error);
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  app.patch('/api/membership-applications/:id', isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const application = await storage.getMembershipApplication(req.params.id);
+      if (!application || application.userId !== user.id) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      if (application.status !== 'PENDING') {
+        return res.status(400).json({ message: "Cannot update a processed application" });
+      }
+      
+      const updated = await storage.updateMembershipApplication(req.params.id, req.body);
+      
+      // If payment proof was uploaded, send admin alert
+      if (req.body.paymentProofUrl) {
+        sendAdminPaymentSubmissionAlert(
+          { email: user.email, firstName: user.firstName || '', lastName: user.lastName || '' },
+          {
+            tier: application.tierDesired,
+            amount: application.paymentAmount || 0,
+            paymentMethod: application.paymentMethod || 'bank_transfer',
+            paymentReference: req.body.paymentReference,
+            paymentProofUrl: req.body.paymentProofUrl,
+          }
+        ).catch(err => console.error("Error sending admin alert:", err));
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating application:", error);
+      res.status(500).json({ message: "Failed to update application" });
+    }
+  });
+
+  // Admin Membership Application routes
+  app.get('/api/admin/membership-applications', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { status } = req.query;
+      const applications = await storage.getMembershipApplications(status as string);
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching applications:", error);
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  app.get('/api/admin/membership-applications/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const application = await storage.getMembershipApplication(req.params.id);
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      // Get user info
+      const user = await storage.getUser(application.userId);
+      res.json({ ...application, user });
+    } catch (error) {
+      console.error("Error fetching application:", error);
+      res.status(500).json({ message: "Failed to fetch application" });
+    }
+  });
+
+  app.post('/api/admin/membership-applications/:id/approve', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const admin = req.user as any;
+      const { notes } = req.body;
+      const application = await storage.getMembershipApplication(req.params.id);
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Approve the application
+      const approved = await storage.approveMembershipApplication(req.params.id, admin.id, notes);
+      
+      // Create/update membership for user
+      const existingMembership = await storage.getMembership(application.userId);
+      if (!existingMembership) {
+        // Create new membership
+        const membershipNumber = `QD${Date.now().toString(36).toUpperCase()}`;
+        const expiresAt = new Date();
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        await storage.createMembership({
+          userId: application.userId,
+          tier: application.tierDesired,
+          membershipNumber,
+          expiresAt,
+          status: 'ACTIVE',
+        });
+      }
+      
+      // Send approval email to user
+      const user = await storage.getUser(application.userId);
+      if (user) {
+        sendMembershipApprovedEmail({
+          email: user.email,
+          firstName: user.firstName || 'Member',
+          tier: application.tierDesired,
+        }).catch(err => console.error("Error sending approval email:", err));
+      }
+      
+      // Log admin action
+      await logAdminAction(admin.id, 'MEMBERSHIP_APPROVE', 'membership_application', req.params.id, { tier: application.tierDesired, notes });
+      
+      res.json(approved);
+    } catch (error) {
+      console.error("Error approving application:", error);
+      res.status(500).json({ message: "Failed to approve application" });
+    }
+  });
+
+  app.post('/api/admin/membership-applications/:id/reject', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const admin = req.user as any;
+      const { notes } = req.body;
+      const application = await storage.getMembershipApplication(req.params.id);
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      const rejected = await storage.rejectMembershipApplication(req.params.id, admin.id, notes);
+      
+      // Send rejection email to user
+      const user = await storage.getUser(application.userId);
+      if (user) {
+        sendMembershipRejectedEmail({
+          email: user.email,
+          firstName: user.firstName || 'Member',
+          tier: application.tierDesired,
+          reason: notes,
+        }).catch(err => console.error("Error sending rejection email:", err));
+      }
+      
+      // Log admin action
+      await logAdminAction(admin.id, 'MEMBERSHIP_REJECT', 'membership_application', req.params.id, { tier: application.tierDesired, notes });
+      
+      res.json(rejected);
+    } catch (error) {
+      console.error("Error rejecting application:", error);
+      res.status(500).json({ message: "Failed to reject application" });
+    }
+  });
+
+  // Page Content routes (public)
+  app.get('/api/page-content/:page', async (req, res) => {
+    try {
+      const { section } = req.query;
+      const content = await storage.getPageContent(req.params.page, section as string);
+      res.json(content);
+    } catch (error) {
+      console.error("Error fetching page content:", error);
+      res.status(500).json({ message: "Failed to fetch page content" });
+    }
+  });
+
+  // Admin Page Content routes
+  app.get('/api/admin/page-content', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { page, section } = req.query;
+      const content = await storage.getPageContent(page as string || '', section as string);
+      res.json(content);
+    } catch (error) {
+      console.error("Error fetching page content:", error);
+      res.status(500).json({ message: "Failed to fetch page content" });
+    }
+  });
+
+  app.post('/api/admin/page-content', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertPageContentSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const content = await storage.createPageContent(result.data);
+      res.status(201).json(content);
+    } catch (error) {
+      console.error("Error creating page content:", error);
+      res.status(500).json({ message: "Failed to create page content" });
+    }
+  });
+
+  app.patch('/api/admin/page-content/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertPageContentSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updatePageContent(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Content not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating page content:", error);
+      res.status(500).json({ message: "Failed to update page content" });
+    }
+  });
+
+  app.delete('/api/admin/page-content/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deletePageContent(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting page content:", error);
+      res.status(500).json({ message: "Failed to delete page content" });
+    }
+  });
+
+  // Comparison Features routes (public)
+  app.get('/api/comparison-features', async (req, res) => {
+    try {
+      const features = await storage.getComparisonFeatures();
+      res.json(features);
+    } catch (error) {
+      console.error("Error fetching comparison features:", error);
+      res.status(500).json({ message: "Failed to fetch comparison features" });
+    }
+  });
+
+  // Admin Comparison Features routes
+  app.get('/api/admin/comparison-features', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const features = await storage.getComparisonFeatures();
+      res.json(features);
+    } catch (error) {
+      console.error("Error fetching comparison features:", error);
+      res.status(500).json({ message: "Failed to fetch comparison features" });
+    }
+  });
+
+  app.post('/api/admin/comparison-features', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertComparisonFeatureSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const feature = await storage.createComparisonFeature(result.data);
+      res.status(201).json(feature);
+    } catch (error) {
+      console.error("Error creating comparison feature:", error);
+      res.status(500).json({ message: "Failed to create comparison feature" });
+    }
+  });
+
+  app.patch('/api/admin/comparison-features/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertComparisonFeatureSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateComparisonFeature(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Feature not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating comparison feature:", error);
+      res.status(500).json({ message: "Failed to update comparison feature" });
+    }
+  });
+
+  app.delete('/api/admin/comparison-features/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteComparisonFeature(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting comparison feature:", error);
+      res.status(500).json({ message: "Failed to delete comparison feature" });
+    }
+  });
+
+  // Member Benefits routes (public)
+  app.get('/api/member-benefits', async (req, res) => {
+    try {
+      const benefits = await storage.getMemberBenefits();
+      res.json(benefits);
+    } catch (error) {
+      console.error("Error fetching member benefits:", error);
+      res.status(500).json({ message: "Failed to fetch member benefits" });
+    }
+  });
+
+  // Admin Member Benefits routes
+  app.get('/api/admin/member-benefits', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const benefits = await storage.getMemberBenefits();
+      res.json(benefits);
+    } catch (error) {
+      console.error("Error fetching member benefits:", error);
+      res.status(500).json({ message: "Failed to fetch member benefits" });
+    }
+  });
+
+  app.post('/api/admin/member-benefits', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertMemberBenefitSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const benefit = await storage.createMemberBenefit(result.data);
+      res.status(201).json(benefit);
+    } catch (error) {
+      console.error("Error creating member benefit:", error);
+      res.status(500).json({ message: "Failed to create member benefit" });
+    }
+  });
+
+  app.patch('/api/admin/member-benefits/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertMemberBenefitSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateMemberBenefit(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Benefit not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating member benefit:", error);
+      res.status(500).json({ message: "Failed to update member benefit" });
+    }
+  });
+
+  app.delete('/api/admin/member-benefits/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteMemberBenefit(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting member benefit:", error);
+      res.status(500).json({ message: "Failed to delete member benefit" });
+    }
+  });
+
+  // Career Benefits routes (public)
+  app.get('/api/career-benefits', async (req, res) => {
+    try {
+      const benefits = await storage.getCareerBenefits();
+      res.json(benefits);
+    } catch (error) {
+      console.error("Error fetching career benefits:", error);
+      res.status(500).json({ message: "Failed to fetch career benefits" });
+    }
+  });
+
+  // Admin Career Benefits routes
+  app.get('/api/admin/career-benefits', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const benefits = await storage.getCareerBenefits();
+      res.json(benefits);
+    } catch (error) {
+      console.error("Error fetching career benefits:", error);
+      res.status(500).json({ message: "Failed to fetch career benefits" });
+    }
+  });
+
+  app.post('/api/admin/career-benefits', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertCareerBenefitSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const benefit = await storage.createCareerBenefit(result.data);
+      res.status(201).json(benefit);
+    } catch (error) {
+      console.error("Error creating career benefit:", error);
+      res.status(500).json({ message: "Failed to create career benefit" });
+    }
+  });
+
+  app.patch('/api/admin/career-benefits/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const partialSchema = insertCareerBenefitSchema.partial();
+      const result = partialSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      const updated = await storage.updateCareerBenefit(req.params.id, result.data);
+      if (!updated) {
+        return res.status(404).json({ message: "Benefit not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating career benefit:", error);
+      res.status(500).json({ message: "Failed to update career benefit" });
+    }
+  });
+
+  app.delete('/api/admin/career-benefits/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      await storage.deleteCareerBenefit(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting career benefit:", error);
+      res.status(500).json({ message: "Failed to delete career benefit" });
     }
   });
 

@@ -187,6 +187,198 @@ export async function runStartupMigrations() {
     });
     logger.info("facilities.is_hidden column verified", { source: "migrations" });
     
+    // Add extended CMS fields to facilities table
+    await pool.query(`
+      ALTER TABLE facilities 
+      ADD COLUMN IF NOT EXISTS about_content TEXT,
+      ADD COLUMN IF NOT EXISTS features TEXT[],
+      ADD COLUMN IF NOT EXISTS amenities TEXT[],
+      ADD COLUMN IF NOT EXISTS keywords TEXT[],
+      ADD COLUMN IF NOT EXISTS quick_info JSONB,
+      ADD COLUMN IF NOT EXISTS pricing_notes TEXT,
+      ADD COLUMN IF NOT EXISTS certification_info JSONB,
+      ADD COLUMN IF NOT EXISTS gallery_images TEXT[]
+    `).catch(() => {});
+    logger.info("facilities extended CMS columns verified", { source: "migrations" });
+    
+    // Add extended CMS fields to pricing_tiers table
+    await pool.query(`
+      ALTER TABLE pricing_tiers 
+      ADD COLUMN IF NOT EXISTS tagline VARCHAR,
+      ADD COLUMN IF NOT EXISTS description TEXT,
+      ADD COLUMN IF NOT EXISTS is_closed BOOLEAN DEFAULT false
+    `).catch(() => {});
+    logger.info("pricing_tiers extended CMS columns verified", { source: "migrations" });
+    
+    // Create membership_application_status enum if not exists
+    await pool.query(`
+      DO $$ BEGIN
+        CREATE TYPE membership_application_status AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+      EXCEPTION WHEN duplicate_object THEN null;
+      END $$;
+    `);
+    
+    // Create membership_applications table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS membership_applications (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        tier_desired membership_tier NOT NULL,
+        payment_method VARCHAR DEFAULT 'bank_transfer',
+        payment_amount INTEGER DEFAULT 0,
+        payment_proof_url VARCHAR,
+        payment_reference VARCHAR,
+        status membership_application_status DEFAULT 'PENDING',
+        admin_notes TEXT,
+        reviewed_by VARCHAR REFERENCES users(id),
+        reviewed_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("membership_applications table created/verified", { source: "migrations" });
+    
+    // Create certifications table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS certifications (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        slug VARCHAR UNIQUE NOT NULL,
+        name VARCHAR NOT NULL,
+        description TEXT,
+        facility_id VARCHAR REFERENCES facilities(id) ON DELETE SET NULL,
+        validity_months INTEGER DEFAULT 12,
+        requirements TEXT,
+        icon VARCHAR,
+        is_active BOOLEAN DEFAULT true,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("certifications table created/verified", { source: "migrations" });
+    
+    // Create certification_classes table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS certification_classes (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        certification_id VARCHAR NOT NULL REFERENCES certifications(id) ON DELETE CASCADE,
+        title VARCHAR NOT NULL,
+        description TEXT,
+        instructor VARCHAR,
+        scheduled_date TIMESTAMP,
+        duration INTEGER DEFAULT 60,
+        capacity INTEGER DEFAULT 10,
+        enrolled_count INTEGER DEFAULT 0,
+        price INTEGER DEFAULT 0,
+        location VARCHAR,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("certification_classes table created/verified", { source: "migrations" });
+    
+    // Create certification_enrollments table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS certification_enrollments (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        class_id VARCHAR NOT NULL REFERENCES certification_classes(id) ON DELETE CASCADE,
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        status VARCHAR DEFAULT 'ENROLLED',
+        completed_at TIMESTAMP,
+        score INTEGER,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("certification_enrollments table created/verified", { source: "migrations" });
+    
+    // Create user_certifications table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_certifications (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        certification_id VARCHAR NOT NULL REFERENCES certifications(id) ON DELETE CASCADE,
+        certificate_number VARCHAR UNIQUE,
+        issued_at TIMESTAMP DEFAULT NOW(),
+        expires_at TIMESTAMP,
+        status VARCHAR DEFAULT 'ACTIVE',
+        issued_by VARCHAR REFERENCES users(id),
+        proof_document_url VARCHAR,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("user_certifications table created/verified", { source: "migrations" });
+    
+    // Create page_content table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS page_content (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        page VARCHAR NOT NULL,
+        section VARCHAR NOT NULL,
+        key VARCHAR NOT NULL,
+        title VARCHAR,
+        content TEXT,
+        icon VARCHAR,
+        image_url VARCHAR,
+        metadata JSONB,
+        sort_order INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("page_content table created/verified", { source: "migrations" });
+    
+    // Create comparison_features table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS comparison_features (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        feature VARCHAR NOT NULL,
+        founding_value VARCHAR,
+        gold_value VARCHAR,
+        silver_value VARCHAR,
+        guest_value VARCHAR,
+        sort_order INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("comparison_features table created/verified", { source: "migrations" });
+    
+    // Create member_benefits table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS member_benefits (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        icon VARCHAR NOT NULL,
+        title VARCHAR NOT NULL,
+        description TEXT,
+        sort_order INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("member_benefits table created/verified", { source: "migrations" });
+    
+    // Create career_benefits table if not exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS career_benefits (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        icon VARCHAR NOT NULL,
+        title VARCHAR NOT NULL,
+        description TEXT,
+        sort_order INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    logger.info("career_benefits table created/verified", { source: "migrations" });
+    
     // Add image_url column to facility_add_ons if not exists
     await pool.query(`
       ALTER TABLE facility_add_ons 

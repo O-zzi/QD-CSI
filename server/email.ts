@@ -917,4 +917,165 @@ export async function sendMembershipRenewalReminderEmail(user: { email: string; 
   );
 }
 
+// Admin alert email functions
+const ADMIN_EMAIL = 'admin@thequarterdeck.pk';
+
+export async function sendAdminNewUserAlert(user: { email: string; firstName: string; lastName: string; createdAt?: string }): Promise<boolean> {
+  const html = emailWrapper(`
+    <div class="header" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+      <h1>New User Registration</h1>
+      <p>A new user has signed up</p>
+    </div>
+    <div class="content">
+      <h2>New Member Alert</h2>
+      <p>A new user has registered on The Quarterdeck platform:</p>
+      
+      <div class="info-box">
+        <div class="info-row">
+          <span class="info-label">Name</span>
+          <span class="info-value">${user.firstName} ${user.lastName}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Email</span>
+          <span class="info-value">${user.email}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Registered At</span>
+          <span class="info-value">${user.createdAt || new Date().toLocaleString()}</span>
+        </div>
+      </div>
+      
+      <p style="text-align: center;">
+        <a href="https://thequarterdeck.pk/admin/users" class="button">View in Admin Panel</a>
+      </p>
+    </div>
+    <div class="footer">
+      <p>The Quarterdeck Admin Notification</p>
+    </div>
+  `);
+  
+  return emailService.sendEmail(
+    ADMIN_EMAIL,
+    `New User Registration: ${user.firstName} ${user.lastName} | The Quarterdeck`,
+    html
+  );
+}
+
+export async function sendAdminMembershipSelectionAlert(user: { email: string; firstName: string; lastName: string }, tier: string, amount: number): Promise<boolean> {
+  const html = emailWrapper(`
+    <div class="header" style="background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%);">
+      <h1>Membership Selection</h1>
+      <p>A user has selected a membership tier</p>
+    </div>
+    <div class="content">
+      <h2>Membership Interest Alert</h2>
+      <p>A user has selected a membership tier on The Quarterdeck platform:</p>
+      
+      <div class="info-box">
+        <div class="info-row">
+          <span class="info-label">User</span>
+          <span class="info-value">${user.firstName} ${user.lastName}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Email</span>
+          <span class="info-value">${user.email}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Selected Tier</span>
+          <span class="info-value" style="color: #f59e0b; font-weight: bold;">${tier}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Amount</span>
+          <span class="info-value">PKR ${amount.toLocaleString()}</span>
+        </div>
+      </div>
+      
+      <div class="highlight">
+        <strong>Action Required:</strong> This user is interested in becoming a member. They will need to submit payment proof before their membership can be activated.
+      </div>
+      
+      <p style="text-align: center;">
+        <a href="https://thequarterdeck.pk/admin/membership-applications" class="button">View Applications</a>
+      </p>
+    </div>
+    <div class="footer">
+      <p>The Quarterdeck Admin Notification</p>
+    </div>
+  `);
+  
+  return emailService.sendEmail(
+    ADMIN_EMAIL,
+    `Membership Selection: ${user.firstName} wants ${tier} | The Quarterdeck`,
+    html
+  );
+}
+
+export async function sendAdminPaymentSubmissionAlert(
+  user: { email: string; firstName: string; lastName: string },
+  application: { tier: string; amount: number; paymentMethod: string; paymentReference?: string; paymentProofUrl?: string }
+): Promise<boolean> {
+  const html = emailWrapper(`
+    <div class="header" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);">
+      <h1>Payment Submitted</h1>
+      <p>Verification Required</p>
+    </div>
+    <div class="content">
+      <h2>Payment Verification Required</h2>
+      <p>A user has submitted payment proof for their membership application:</p>
+      
+      <div class="info-box">
+        <div class="info-row">
+          <span class="info-label">User</span>
+          <span class="info-value">${user.firstName} ${user.lastName}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Email</span>
+          <span class="info-value">${user.email}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Requested Tier</span>
+          <span class="info-value" style="color: #2563eb; font-weight: bold;">${application.tier}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Amount</span>
+          <span class="info-value">PKR ${application.amount.toLocaleString()}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Payment Method</span>
+          <span class="info-value">${application.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : application.paymentMethod}</span>
+        </div>
+        ${application.paymentReference ? `
+        <div class="info-row">
+          <span class="info-label">Reference</span>
+          <span class="info-value">${application.paymentReference}</span>
+        </div>
+        ` : ''}
+      </div>
+      
+      <div class="warning">
+        <strong>Action Required:</strong> Please verify the payment and approve or reject the membership application.
+      </div>
+      
+      ${application.paymentProofUrl ? `
+      <p style="text-align: center;">
+        <a href="${application.paymentProofUrl}" class="button" style="background: #059669;">View Payment Proof</a>
+      </p>
+      ` : ''}
+      
+      <p style="text-align: center;">
+        <a href="https://thequarterdeck.pk/admin/membership-applications" class="button">Review Application</a>
+      </p>
+    </div>
+    <div class="footer">
+      <p>The Quarterdeck Admin Notification</p>
+    </div>
+  `);
+  
+  return emailService.sendEmail(
+    ADMIN_EMAIL,
+    `PAYMENT VERIFICATION REQUIRED: ${user.firstName} ${user.lastName} | The Quarterdeck`,
+    html
+  );
+}
+
 export { emailService };
