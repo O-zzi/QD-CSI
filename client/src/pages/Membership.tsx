@@ -15,7 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/use-seo";
 import type { PricingTier, Membership, ComparisonFeature, MemberBenefit } from "@shared/schema";
 
-const benefitIconMap: Record<string, any> = {
+const benefitIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   clock: Clock,
   gift: Gift,
   award: Award,
@@ -30,7 +30,14 @@ const benefitIconMap: Record<string, any> = {
   crown: Crown,
   users: Users,
   check: Check,
+  helpCircle: HelpCircle,
 };
+
+function getIconComponent(iconName: string | null | undefined): React.ComponentType<{ className?: string }> {
+  if (!iconName) return HelpCircle;
+  const normalized = iconName.toLowerCase();
+  return benefitIconMap[normalized] || HelpCircle;
+}
 
 const tierIcons: Record<string, any> = {
   FOUNDING: Crown,
@@ -263,7 +270,7 @@ export default function Membership() {
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
               {memberBenefits.map((benefit, index) => {
-                const IconComponent = benefitIconMap[benefit.icon?.toLowerCase() || 'check'] || HelpCircle;
+                const IconComponent = getIconComponent(benefit.icon);
                 return (
                   <Card key={index} className="text-center" data-testid={`card-benefit-${index}`}>
                     <CardContent className="p-6">
