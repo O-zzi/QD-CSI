@@ -33,6 +33,9 @@ const cmsSections: Record<string, { title: string; description: string; fields: 
       { key: "hero_launch_date", label: "Launch Date (for countdown)", type: "date" },
       { key: "hero_cta_1", label: "Primary Button Text", type: "text", placeholder: "Explore Facilities" },
       { key: "hero_cta_2", label: "Secondary Button Text", type: "text", placeholder: "View Site Updates" },
+      { key: "hero_status_active", label: "Status Badge 1", type: "text", placeholder: "Construction Active" },
+      { key: "hero_status_updates", label: "Status Badge 2", type: "text", placeholder: "Transparent progress updates" },
+      { key: "hero_status_booking", label: "Status Badge 3", type: "text", placeholder: "Early booking & waitlists planned" },
     ],
   },
   about: {
@@ -44,8 +47,10 @@ const cmsSections: Record<string, { title: string; description: string; fields: 
       { key: "about_vision_title", label: "Vision Card Title", type: "text", placeholder: "Vision & Philosophy" },
       { key: "about_vision_content", label: "Vision Content", type: "textarea", placeholder: "The Quarterdeck is born from..." },
       { key: "about_vision_content_2", label: "Vision Content (Paragraph 2)", type: "textarea" },
+      { key: "about_tags", label: "Keyword Tags (comma-separated)", type: "text", placeholder: "World-Class Courts,Community Focus,Transparency,All-Ages Friendly" },
       { key: "about_team_title", label: "Team Card Title", type: "text", placeholder: "The Project Team" },
       { key: "about_team_content", label: "Team Content", type: "textarea" },
+      { key: "about_team_credits", label: "Team Credits (pipe-separated)", type: "textarea", placeholder: "Lead Architect: Studio 78|Structural Engineering: Eng. Solutions Pvt.|Padel Court Consultant: International Padel Federation" },
     ],
   },
   facilities: {

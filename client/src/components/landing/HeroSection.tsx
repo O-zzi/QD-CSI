@@ -110,6 +110,9 @@ export function HeroSection() {
   const cta1Url = getCms('hero_cta_1_url') || CMS_DEFAULTS.hero_cta_1_url || '/facilities';
   const cta2Text = getCms('hero_cta_2') || 'View Site Updates';
   const cta2Url = getCms('hero_cta_2_url') || CMS_DEFAULTS.hero_cta_2_url || '/roadmap';
+  const statusActive = getCms('hero_status_active') || CMS_DEFAULTS.hero_status_active;
+  const statusUpdates = getCms('hero_status_updates') || CMS_DEFAULTS.hero_status_updates;
+  const statusBooking = getCms('hero_status_booking') || CMS_DEFAULTS.hero_status_booking;
 
   return (
     <section id="hero" className="qd-section pt-12 relative overflow-hidden">
@@ -181,11 +184,11 @@ export function HeroSection() {
             </div>
 
             <div className="flex flex-wrap gap-6 text-xs text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <span className="qd-status-dot"></span> Construction Active
+              <span className="flex items-center gap-2" data-testid="status-construction-active">
+                <span className="qd-status-dot"></span> {statusActive}
               </span>
-              <span>Transparent progress updates</span>
-              <span>Early booking & waitlists planned</span>
+              <span data-testid="status-updates">{statusUpdates}</span>
+              <span data-testid="status-booking">{statusBooking}</span>
             </div>
           </div>
 
