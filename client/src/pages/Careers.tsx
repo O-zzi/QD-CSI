@@ -19,6 +19,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import type { Career } from "@shared/schema";
 
 const applicationSchema = z.object({
@@ -96,6 +97,14 @@ export default function Careers() {
   const [selectedJob, setSelectedJob] = useState<typeof defaultJobs[0] | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCvDialogOpen, setIsCvDialogOpen] = useState(false);
+
+  const { getValue } = useCmsMultiple([
+    'page_careers_title',
+    'page_careers_subtitle',
+    'page_careers_positions_title',
+    'page_careers_apply_cta',
+    'page_careers_no_positions',
+  ], CMS_DEFAULTS);
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
@@ -203,8 +212,8 @@ export default function Careers() {
       
       <main className="flex-1">
         <PageHero 
-          title="Join Our Team"
-          subtitle="Be part of Islamabad's premier sports and recreation destination"
+          title={getValue('page_careers_title')}
+          subtitle={getValue('page_careers_subtitle')}
           testId="text-careers-title"
         />
 

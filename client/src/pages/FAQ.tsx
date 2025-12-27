@@ -8,6 +8,7 @@ import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import type { FaqCategory, FaqItem } from "@shared/schema";
 
 interface FAQCategoryWithItems extends FaqCategory {
@@ -48,6 +49,12 @@ function FAQAccordion({ item, isOpen, onToggle }: { item: FaqItem; isOpen: boole
 export default function FAQ() {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
+  const { getValue } = useCmsMultiple([
+    'page_faq_title',
+    'page_faq_subtitle',
+    'page_faq_contact_cta',
+  ], CMS_DEFAULTS);
+
   const { data: faqData = [], isLoading } = useQuery<FAQCategoryWithItems[]>({
     queryKey: ["/api/faq"],
   });
@@ -66,8 +73,8 @@ export default function FAQ() {
       
       <main className="flex-1">
         <PageHero 
-          title="Frequently Asked Questions"
-          subtitle="Find answers to common questions about The Quarterdeck, memberships, bookings, and more."
+          title={getValue('page_faq_title')}
+          subtitle={getValue('page_faq_subtitle')}
           testId="text-faq-title"
         />
 

@@ -283,6 +283,86 @@ export const CMS_DEFAULTS: Record<string, string> = {
   empty_events: 'No events scheduled at this time.',
   empty_leaderboard: 'Leaderboard will be available after launch.',
   
+  // Page-specific Hero Content (for dedicated pages)
+  page_facilities_title: 'Our Facilities',
+  page_facilities_subtitle: 'World-class sports and recreation facilities designed for excellence in Islamabad',
+  page_facilities_ready_title: 'Ready to Book?',
+  page_facilities_ready_description: 'Members can book facilities through our online booking system. Log in to access all our premium facilities and exclusive member benefits.',
+  page_facilities_book_cta: 'Book Now',
+  page_facilities_contact_cta: 'Contact Us',
+  
+  page_membership_title: 'Membership',
+  page_membership_subtitle: 'Join The Quarterdeck community and unlock exclusive benefits, priority booking, and member-only perks.',
+  page_membership_why_title: 'Why Become a Member?',
+  page_membership_why_description: 'Enjoy exclusive access to world-class facilities, priority booking, and a vibrant community of sports enthusiasts.',
+  page_membership_tiers_title: 'Membership Tiers',
+  page_membership_tiers_description: 'Choose the membership tier that best fits your lifestyle and sports goals.',
+  page_membership_ready_title: 'Ready to Join?',
+  page_membership_ready_description: 'Create your account and choose your membership tier to start enjoying exclusive benefits today.',
+  page_membership_create_cta: 'Create Account',
+  page_membership_contact_cta: 'Contact Us',
+  
+  page_contact_title: 'Contact Us',
+  page_contact_subtitle: 'Get in touch with The Quarterdeck team. We\'re here to help with bookings, memberships, and any questions you may have.',
+  page_contact_form_title: 'Send Us a Message',
+  page_contact_success_title: 'Thank You!',
+  page_contact_success_message: 'Your message has been sent successfully. We\'ll respond within 24-48 hours.',
+  page_contact_info_title: 'Contact Information',
+  page_contact_social_title: 'Follow Us',
+  page_contact_faq_title: 'Frequently Asked',
+  
+  page_careers_title: 'Join Our Team',
+  page_careers_subtitle: 'Be part of Islamabad\'s premier sports and recreation destination',
+  page_careers_benefits_title: 'Why Work With Us',
+  page_careers_positions_title: 'Open Positions',
+  page_careers_apply_cta: 'Apply Now',
+  page_careers_no_positions: 'No open positions at this time. Check back soon!',
+  
+  page_events_title: 'Events & Academies',
+  page_events_subtitle: 'Tournaments, leagues, and training programs',
+  page_events_upcoming_title: 'Upcoming Events',
+  page_events_no_events: 'No events scheduled at this time. Check back soon!',
+  page_events_register_cta: 'Register Now',
+  
+  page_gallery_title: 'Gallery & Progress',
+  page_gallery_subtitle: 'Explore architectural renders, construction updates, and facility photos from The Quarterdeck sports complex.',
+  page_gallery_construction_title: 'Construction Progress',
+  page_gallery_renders_title: 'Architectural Renders',
+  
+  page_leaderboard_title: 'Leaderboard',
+  page_leaderboard_subtitle: 'Top players across all sports at The Quarterdeck',
+  page_leaderboard_top_players: 'Top Players',
+  page_leaderboard_coming_soon: 'Leaderboard will be available after launch.',
+  
+  page_roadmap_title: 'Development Roadmap',
+  page_roadmap_subtitle: 'Follow our journey from groundbreaking to grand opening',
+  page_roadmap_timeline_title: 'Construction Timeline',
+  
+  page_rules_title: 'Rules & Safety',
+  page_rules_subtitle: 'For the safety and enjoyment of all members, please familiarize yourself with our facility rules',
+  page_rules_general_title: 'General Rules',
+  page_rules_safety_title: 'Safety Guidelines',
+  
+  page_faq_title: 'Frequently Asked Questions',
+  page_faq_subtitle: 'Find answers to common questions about The Quarterdeck, memberships, bookings, and more.',
+  page_faq_contact_cta: 'Still have questions? Contact us',
+  
+  page_vision_title: 'Our Vision',
+  page_vision_subtitle: 'Building Islamabad\'s premier sports and recreation destination',
+  page_vision_mission_title: 'Our Mission',
+  page_vision_values_title: 'Our Values',
+  
+  page_privacy_title: 'Privacy Policy',
+  page_privacy_subtitle: 'Last updated: December 2025',
+  
+  page_terms_title: 'Terms & Conditions',
+  page_terms_subtitle: 'Last updated: December 2025',
+  
+  page_booking_title: 'Book a Court',
+  page_booking_subtitle: 'Select your facility, date, and time slot',
+  page_booking_login_required: 'Please log in to book',
+  page_booking_select_facility: 'Select Facility',
+  
   // Error Messages
   error_generic: 'Something went wrong. Please try again.',
   error_network: 'Unable to connect. Please check your internet connection.',

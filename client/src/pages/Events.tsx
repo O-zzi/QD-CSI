@@ -21,6 +21,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 const registrationFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -38,6 +39,14 @@ export default function Events() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  const { getValue } = useCmsMultiple([
+    'page_events_title',
+    'page_events_subtitle',
+    'page_events_upcoming_title',
+    'page_events_no_events',
+    'page_events_register_cta',
+  ], CMS_DEFAULTS);
   
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationFormSchema),
@@ -156,8 +165,8 @@ export default function Events() {
       <Navbar />
       <main className="flex-1">
         <PageHero 
-          title="Events & Academies"
-          subtitle="Tournaments, leagues, and training programs"
+          title={getValue('page_events_title')}
+          subtitle={getValue('page_events_subtitle')}
           testId="text-events-title"
         />
 

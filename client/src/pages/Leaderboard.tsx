@@ -11,7 +11,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/layout/PageHero";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import type { LeaderboardEntry } from "@shared/schema";
+
+// Extended type for API response which includes joined user data
+interface LeaderboardEntryWithUser extends LeaderboardEntry {
+  profileImageUrl?: string;
+  playerName?: string;
+  winRate?: number;
+}
 
 const FACILITIES = [
   { id: 'all', name: 'All Sports', icon: Trophy },
@@ -24,7 +32,13 @@ export default function Leaderboard() {
   const [selectedFacility, setSelectedFacility] = useState('all');
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
-  const { data: entries = [], isLoading } = useQuery<LeaderboardEntry[]>({
+  const { getValue } = useCmsMultiple([
+    'page_leaderboard_title',
+    'page_leaderboard_subtitle',
+    'page_leaderboard_coming_soon',
+  ], CMS_DEFAULTS);
+
+  const { data: entries = [], isLoading } = useQuery<LeaderboardEntryWithUser[]>({
     queryKey: ['/api/leaderboard', selectedFacility !== 'all' ? selectedFacility : undefined],
     enabled: isAuthenticated,
   });
@@ -101,8 +115,8 @@ export default function Leaderboard() {
       
       <main className="flex-1">
         <PageHero 
-          title="Leaderboard"
-          subtitle="Top players across all sports at The Quarterdeck"
+          title={getValue('page_leaderboard_title')}
+          subtitle={getValue('page_leaderboard_subtitle')}
           testId="text-leaderboard-title"
         />
 

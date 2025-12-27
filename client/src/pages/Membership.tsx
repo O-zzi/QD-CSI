@@ -9,6 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import type { PricingTier } from "@shared/schema";
 
 const tierIcons: Record<string, any> = {
@@ -132,6 +133,19 @@ export default function Membership() {
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
 
+  const { getValue } = useCmsMultiple([
+    'page_membership_title',
+    'page_membership_subtitle',
+    'page_membership_why_title',
+    'page_membership_why_description',
+    'page_membership_tiers_title',
+    'page_membership_tiers_description',
+    'page_membership_ready_title',
+    'page_membership_ready_description',
+    'page_membership_create_cta',
+    'page_membership_contact_cta',
+  ], CMS_DEFAULTS);
+
   const { data: apiTiers, isLoading } = useQuery<PricingTier[]>({
     queryKey: ['/api/pricing-tiers'],
     queryFn: async () => {
@@ -167,8 +181,8 @@ export default function Membership() {
       
       <main className="flex-1">
         <PageHero 
-          title="Membership"
-          subtitle="Join The Quarterdeck community and unlock exclusive benefits, priority booking, and member-only perks."
+          title={getValue('page_membership_title')}
+          subtitle={getValue('page_membership_subtitle')}
           testId="text-membership-title"
         />
 
@@ -177,9 +191,9 @@ export default function Membership() {
 
           <section className="mt-8 mb-16">
             <div className="text-center max-w-3xl mx-auto mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4">Why Become a Member?</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">{getValue('page_membership_why_title')}</h2>
               <p className="text-muted-foreground">
-                Enjoy exclusive access to world-class facilities, priority booking, and a vibrant community of sports enthusiasts.
+                {getValue('page_membership_why_description')}
               </p>
             </div>
             
@@ -200,9 +214,9 @@ export default function Membership() {
 
           <section className="mb-16">
             <div className="text-center mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4">Membership Tiers</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">{getValue('page_membership_tiers_title')}</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Choose the membership tier that best fits your lifestyle and sports goals.
+                {getValue('page_membership_tiers_description')}
               </p>
             </div>
 
@@ -352,16 +366,16 @@ export default function Membership() {
           <section className="text-center max-w-2xl mx-auto">
             <Card>
               <CardContent className="p-8">
-                <h3 className="text-xl font-bold mb-4">Ready to Join?</h3>
+                <h3 className="text-xl font-bold mb-4">{getValue('page_membership_ready_title')}</h3>
                 <p className="text-muted-foreground mb-6">
-                  Create your account and choose your membership tier to start enjoying exclusive benefits today.
+                  {getValue('page_membership_ready_description')}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Link href="/signup">
-                    <Button data-testid="button-create-account">Create Account</Button>
+                    <Button data-testid="button-create-account">{getValue('page_membership_create_cta')}</Button>
                   </Link>
                   <Link href="/contact">
-                    <Button variant="outline" data-testid="button-contact-membership">Contact Us</Button>
+                    <Button variant="outline" data-testid="button-contact-membership">{getValue('page_membership_contact_cta')}</Button>
                   </Link>
                 </div>
               </CardContent>

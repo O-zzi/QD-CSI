@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/layout/PageHero";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 interface PolicySection {
   section: string;
@@ -19,6 +20,11 @@ interface CmsContent {
 }
 
 export default function Privacy() {
+  const { getValue } = useCmsMultiple([
+    'page_privacy_title',
+    'page_privacy_subtitle',
+  ], CMS_DEFAULTS);
+
   const { data: cmsData, isLoading } = useQuery<CmsContent[]>({
     queryKey: ["/api/cms/bulk"],
   });
@@ -40,8 +46,8 @@ export default function Privacy() {
       
       <main className="flex-1">
         <PageHero 
-          title="Privacy Policy"
-          subtitle="Last updated: December 2025"
+          title={getValue('page_privacy_title')}
+          subtitle={getValue('page_privacy_subtitle')}
           testId="text-privacy-title"
         />
 

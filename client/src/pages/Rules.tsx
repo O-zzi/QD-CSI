@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import type { Rule } from "@shared/schema";
 
 const categoryConfig: Record<string, { title: string; icon: any }> = {
@@ -24,6 +25,11 @@ const categoryConfig: Record<string, { title: string; icon: any }> = {
 const categoryOrder = ["general", "booking", "conduct", "safety", "dresscode", "equipment", "guests", "emergency"];
 
 export default function Rules() {
+  const { getValue } = useCmsMultiple([
+    'page_rules_title',
+    'page_rules_subtitle',
+  ], CMS_DEFAULTS);
+
   const { data: rules = [], isLoading } = useQuery<Rule[]>({
     queryKey: ["/api/rules"],
   });
@@ -43,8 +49,8 @@ export default function Rules() {
       
       <main className="flex-1">
         <PageHero 
-          title="Rules & Safety"
-          subtitle="For the safety and enjoyment of all members, please familiarize yourself with our facility rules"
+          title={getValue('page_rules_title')}
+          subtitle={getValue('page_rules_subtitle')}
           testId="text-rules-title"
         />
 

@@ -10,6 +10,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 interface ConstructionPhase {
   id: string;
@@ -59,6 +60,11 @@ const getStatusIcon = (phase: ConstructionPhase) => {
 };
 
 export default function Roadmap() {
+  const { getValue } = useCmsMultiple([
+    'page_roadmap_title',
+    'page_roadmap_subtitle',
+  ], CMS_DEFAULTS);
+
   const { data: phases = [], isLoading } = useQuery<ConstructionPhase[]>({
     queryKey: ['/api/construction-phases'],
   });
@@ -77,8 +83,8 @@ export default function Roadmap() {
       <Navbar />
       <main className="flex-1">
         <PageHero 
-          title="Development Roadmap"
-          subtitle="Follow our journey from groundbreaking to grand opening"
+          title={getValue('page_roadmap_title')}
+          subtitle={getValue('page_roadmap_subtitle')}
           testId="text-roadmap-title"
         />
 

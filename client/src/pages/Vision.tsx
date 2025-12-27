@@ -5,16 +5,22 @@ import { Target, Users, Trophy, Heart, Shield, Building2 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/layout/PageHero";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 export default function Vision() {
+  const { getValue } = useCmsMultiple([
+    'page_vision_title',
+    'page_vision_subtitle',
+  ], CMS_DEFAULTS);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
       <main className="flex-1">
         <PageHero 
-          title="Our Vision"
-          subtitle="Building Islamabad's premier sports and recreation destination"
+          title={getValue('page_vision_title')}
+          subtitle={getValue('page_vision_subtitle')}
           testId="text-vision-title"
           subtitleTestId="text-vision-subtitle"
         />

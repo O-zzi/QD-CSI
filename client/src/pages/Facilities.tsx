@@ -9,6 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_d29f9aaf.jpg";
 import squashImage from "@assets/stock_images/professional_squash__c4dca43a.jpg";
@@ -118,6 +119,15 @@ const defaultFacilities: FacilityDisplay[] = [
 ];
 
 export default function Facilities() {
+  const { getValue } = useCmsMultiple([
+    'page_facilities_title',
+    'page_facilities_subtitle',
+    'page_facilities_ready_title',
+    'page_facilities_ready_description',
+    'page_facilities_book_cta',
+    'page_facilities_contact_cta',
+  ], CMS_DEFAULTS);
+
   const { data: dbFacilities } = useQuery<any[]>({
     queryKey: ["/api/facilities"],
   });
@@ -142,8 +152,8 @@ export default function Facilities() {
       <Navbar />
       <main className="flex-1">
         <PageHero 
-          title="Our Facilities"
-          subtitle="World-class sports and recreation facilities in Islamabad"
+          title={getValue('page_facilities_title')}
+          subtitle={getValue('page_facilities_subtitle')}
           testId="text-facilities-title"
         />
 
@@ -223,20 +233,19 @@ export default function Facilities() {
           </div>
 
           <div className="mt-12 text-center">
-            <h3 className="text-2xl font-bold text-primary mb-4">Ready to Book?</h3>
+            <h3 className="text-2xl font-bold text-primary mb-4">{getValue('page_facilities_ready_title')}</h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Members can book facilities through our online booking system. 
-              Log in to access all our premium facilities and exclusive member benefits.
+              {getValue('page_facilities_ready_description')}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/booking">
                 <Button data-testid="button-book-now">
-                  Book Now
+                  {getValue('page_facilities_book_cta')}
                 </Button>
               </Link>
               <Link href="/contact">
                 <Button variant="outline" data-testid="button-contact-us">
-                  Contact Us
+                  {getValue('page_facilities_contact_cta')}
                 </Button>
               </Link>
             </div>

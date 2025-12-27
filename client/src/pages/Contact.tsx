@@ -21,6 +21,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -35,6 +36,17 @@ type ContactFormData = z.infer<typeof contactFormSchema>;
 export default function Contact() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+
+  const { getValue } = useCmsMultiple([
+    'page_contact_title',
+    'page_contact_subtitle',
+    'page_contact_form_title',
+    'page_contact_success_title',
+    'page_contact_success_message',
+    'page_contact_info_title',
+    'page_contact_social_title',
+    'page_contact_faq_title',
+  ], CMS_DEFAULTS);
 
   const { data: settings = {} } = useQuery<Record<string, string>>({
     queryKey: ["/api/site-settings"],
@@ -102,8 +114,8 @@ export default function Contact() {
       
       <main className="flex-1">
         <PageHero 
-          title="Contact Us"
-          subtitle="Get in touch with The Quarterdeck team. We're here to help with bookings, memberships, and any questions you may have."
+          title={getValue('page_contact_title')}
+          subtitle={getValue('page_contact_subtitle')}
           testId="text-contact-title"
         />
 
@@ -116,7 +128,7 @@ export default function Contact() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageSquare className="w-5 h-5" />
-                    Send Us a Message
+                    {getValue('page_contact_form_title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -125,9 +137,9 @@ export default function Contact() {
                       <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
                         <Send className="w-8 h-8 text-green-600 dark:text-green-400" />
                       </div>
-                      <h3 className="text-xl font-semibold mb-2">Thank You!</h3>
+                      <h3 className="text-xl font-semibold mb-2">{getValue('page_contact_success_title')}</h3>
                       <p className="text-muted-foreground mb-4">
-                        Your message has been sent successfully. We'll respond within 24-48 hours.
+                        {getValue('page_contact_success_message')}
                       </p>
                       <Button onClick={() => setSubmitted(false)} variant="outline">
                         Send Another Message
@@ -255,7 +267,7 @@ export default function Contact() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Contact Information</CardTitle>
+                  <CardTitle>{getValue('page_contact_info_title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-start gap-3">
@@ -310,7 +322,7 @@ export default function Contact() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Follow Us</CardTitle>
+                  <CardTitle>{getValue('page_contact_social_title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-3">
@@ -358,7 +370,7 @@ export default function Contact() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <HelpCircle className="w-5 h-5" />
-                    Frequently Asked
+                    {getValue('page_contact_faq_title')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1">

@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import type { GalleryImage } from "@shared/schema";
 
 const categories = [
@@ -22,6 +23,11 @@ export default function Gallery() {
   const urlCategory = new URLSearchParams(searchParams).get("category");
   const [selectedCategory, setSelectedCategory] = useState(urlCategory || "all");
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+
+  const { getValue } = useCmsMultiple([
+    'page_gallery_title',
+    'page_gallery_subtitle',
+  ], CMS_DEFAULTS);
 
   const { data: galleryImages, isLoading, error } = useQuery<GalleryImage[]>({
     queryKey: ['/api/gallery'],
@@ -55,8 +61,8 @@ export default function Gallery() {
       
       <main className="flex-1">
         <PageHero 
-          title="Gallery & Progress"
-          subtitle="Explore architectural renders, construction updates, and facility photos from The Quarterdeck sports complex."
+          title={getValue('page_gallery_title')}
+          subtitle={getValue('page_gallery_subtitle')}
           testId="text-gallery-page-title"
         />
 
