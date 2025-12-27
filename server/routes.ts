@@ -1523,7 +1523,22 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Cannot update a processed application" });
       }
       
-      const updated = await storage.updateMembershipApplication(req.params.id, req.body);
+      // SECURITY: Only allow users to update payment proof fields
+      // paymentAmount and paymentMethod are immutable after creation (set from tier price)
+      // This prevents users from reducing the amount they owe
+      const allowedFields = ['paymentProofUrl', 'paymentReference'];
+      const safeUpdate: Record<string, any> = {};
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          safeUpdate[field] = req.body[field];
+        }
+      }
+      
+      if (Object.keys(safeUpdate).length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
+      
+      const updated = await storage.updateMembershipApplication(req.params.id, safeUpdate);
       
       // If payment proof was uploaded, send admin alert
       if (req.body.paymentProofUrl) {
@@ -1576,10 +1591,21 @@ export async function registerRoutes(
   app.post('/api/admin/membership-applications/:id/approve', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const admin = req.user as any;
-      const { notes } = req.body;
+      const { notes, skipAmountVerification } = req.body;
       const application = await storage.getMembershipApplication(req.params.id);
       if (!application) {
         return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // SECURITY: Verify payment amount matches expected tier price (unless admin overrides)
+      const tierPrices: Record<string, number> = { FOUNDING: 35000, GOLD: 15000, SILVER: 5000, GUEST: 0 };
+      const expectedAmount = tierPrices[application.tierDesired] || 0;
+      if (!skipAmountVerification && application.paymentAmount !== expectedAmount) {
+        return res.status(400).json({ 
+          message: `Payment amount mismatch. Expected PKR ${expectedAmount} for ${application.tierDesired} tier, but received PKR ${application.paymentAmount}. Use skipAmountVerification to override.`,
+          expectedAmount,
+          actualAmount: application.paymentAmount,
+        });
       }
       
       // Approve the application

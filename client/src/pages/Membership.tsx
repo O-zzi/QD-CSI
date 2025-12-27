@@ -9,6 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
+import { MembershipApplicationForm } from "@/components/membership/MembershipApplicationForm";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import { useAuth } from "@/hooks/useAuth";
 import type { PricingTier, Membership } from "@shared/schema";
@@ -384,6 +385,18 @@ export default function Membership() {
             )}
           </section>
 
+          {isAuthenticated && !userMembership && (
+            <section className="mb-16 max-w-xl mx-auto" id="apply">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold mb-4">Apply for Membership</h2>
+                <p className="text-muted-foreground">
+                  Complete your application and start enjoying member benefits today
+                </p>
+              </div>
+              <MembershipApplicationForm />
+            </section>
+          )}
+
           <section className="text-center max-w-2xl mx-auto">
             <Card>
               <CardContent className="p-8">
@@ -401,9 +414,7 @@ export default function Membership() {
                       <Button data-testid="button-view-my-membership">View My Membership</Button>
                     </Link>
                   ) : (
-                    <Link href="/contact?subject=Membership%20Inquiry">
-                      <Button data-testid="button-apply-membership">Apply for Membership</Button>
-                    </Link>
+                    <Button onClick={() => document.getElementById('apply')?.scrollIntoView({ behavior: 'smooth' })} data-testid="button-apply-membership">Apply for Membership</Button>
                   )}
                   <Link href="/contact">
                     <Button variant="outline" data-testid="button-contact-membership">{getValue('page_membership_contact_cta')}</Button>
