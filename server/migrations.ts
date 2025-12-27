@@ -187,6 +187,15 @@ export async function runStartupMigrations() {
     });
     logger.info("facilities.is_hidden column verified", { source: "migrations" });
     
+    // Add image_url column to facility_add_ons if not exists
+    await pool.query(`
+      ALTER TABLE facility_add_ons 
+      ADD COLUMN IF NOT EXISTS image_url TEXT
+    `).catch(() => {
+      // Column might already exist
+    });
+    logger.info("facility_add_ons.image_url column verified", { source: "migrations" });
+    
     // Seed default tier definitions if table is empty
     const { rows } = await pool.query(`SELECT COUNT(*) as count FROM membership_tier_definitions`);
     if (parseInt(rows[0].count) === 0) {

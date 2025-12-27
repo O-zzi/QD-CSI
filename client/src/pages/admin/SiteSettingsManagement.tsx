@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Save, Phone, Mail, MapPin, Clock, Globe, Eye, EyeOff } from "lucide-react";
+import { Save, Phone, Mail, MapPin, Clock, Globe, Eye, EyeOff, MessageSquare } from "lucide-react";
 import { SiFacebook, SiInstagram, SiLinkedin, SiYoutube, SiX, SiWhatsapp } from "react-icons/si";
-import type { CmsContent } from "@shared/schema";
+import { Switch } from "@/components/ui/switch";
+import type { SiteSetting } from "@shared/schema";
 
 interface SocialLink {
   key: string;
@@ -20,12 +21,11 @@ interface SocialLink {
 }
 
 const SOCIAL_LINKS: SocialLink[] = [
-  { key: "social_instagram", label: "Instagram", icon: SiInstagram, placeholder: "https://instagram.com/yourpage" },
-  { key: "social_facebook", label: "Facebook", icon: SiFacebook, placeholder: "https://facebook.com/yourpage" },
-  { key: "social_youtube", label: "YouTube", icon: SiYoutube, placeholder: "https://youtube.com/@yourchannel" },
-  { key: "social_twitter", label: "Twitter/X", icon: SiX, placeholder: "https://twitter.com/yourhandle" },
-  { key: "social_linkedin", label: "LinkedIn", icon: SiLinkedin, placeholder: "https://linkedin.com/company/yourcompany" },
-  { key: "social_whatsapp", label: "WhatsApp", icon: SiWhatsapp, placeholder: "+92 300 1234567" },
+  { key: "instagram", label: "Instagram", icon: SiInstagram, placeholder: "https://instagram.com/yourpage" },
+  { key: "facebook", label: "Facebook", icon: SiFacebook, placeholder: "https://facebook.com/yourpage" },
+  { key: "youtube", label: "YouTube", icon: SiYoutube, placeholder: "https://youtube.com/@yourchannel" },
+  { key: "twitter", label: "Twitter/X", icon: SiX, placeholder: "https://twitter.com/yourhandle" },
+  { key: "linkedin", label: "LinkedIn", icon: SiLinkedin, placeholder: "https://linkedin.com/company/yourcompany" },
 ];
 
 export default function SiteSettingsManagement() {
@@ -35,51 +35,47 @@ export default function SiteSettingsManagement() {
   const [contactPhone, setContactPhone] = useState("");
   const [contactAddress, setContactAddress] = useState("");
   const [operatingHours, setOperatingHours] = useState("");
-  const [siteStatus, setSiteStatus] = useState("");
   
   const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
-  const [socialVisibility, setSocialVisibility] = useState<Record<string, boolean>>({});
+  
+  const [whatsappPhone, setWhatsappPhone] = useState("");
+  const [whatsappVisible, setWhatsappVisible] = useState(false);
+  const [whatsappMessage, setWhatsappMessage] = useState("");
 
-  const { data: cmsContent, isLoading } = useQuery<CmsContent[]>({
-    queryKey: ["/api/admin/cms/content"],
+  const { data: siteSettings, isLoading } = useQuery<SiteSetting[]>({
+    queryKey: ["/api/admin/site-settings"],
   });
 
-  const getCmsValue = (key: string) => cmsContent?.find(c => c.key === key)?.content || "";
-  const getCmsVisibility = (key: string) => cmsContent?.find(c => c.key === key)?.isActive !== false;
+  const getSettingValue = (key: string) => siteSettings?.find(s => s.key === key)?.value || "";
 
   useEffect(() => {
-    if (cmsContent && !isLoading) {
-      setContactEmail(getCmsValue("contact_email"));
-      setContactPhone(getCmsValue("contact_phone"));
-      setContactAddress(getCmsValue("contact_address"));
-      setOperatingHours(getCmsValue("contact_operating_hours"));
-      setSiteStatus(getCmsValue("contact_site_status"));
+    if (siteSettings && !isLoading) {
+      setContactEmail(getSettingValue("email"));
+      setContactPhone(getSettingValue("phone"));
+      setContactAddress(getSettingValue("address"));
+      setOperatingHours(getSettingValue("operating_hours"));
       
       const links: Record<string, string> = {};
-      const visibility: Record<string, boolean> = {};
       SOCIAL_LINKS.forEach(link => {
-        links[link.key] = getCmsValue(link.key);
-        visibility[link.key] = getCmsVisibility(link.key);
+        links[link.key] = getSettingValue(link.key);
       });
       setSocialLinks(links);
-      setSocialVisibility(visibility);
+      
+      setWhatsappPhone(getSettingValue("whatsapp_phone"));
+      setWhatsappVisible(getSettingValue("whatsapp_button_visible") === "true");
+      setWhatsappMessage(getSettingValue("whatsapp_message"));
     }
-  }, [cmsContent, isLoading]);
+  }, [siteSettings, isLoading]);
 
   const saveMutation = useMutation({
-    mutationFn: async (items: { key: string; content: string; title: string; isActive?: boolean }[]) => {
+    mutationFn: async (items: { key: string; value: string; label: string; category: string }[]) => {
       for (const item of items) {
-        await apiRequest("POST", "/api/admin/cms/content", {
-          key: item.key,
-          title: item.title,
-          content: item.content,
-          isActive: item.isActive ?? true,
-        });
+        await apiRequest("POST", "/api/admin/site-settings", item);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/cms/content"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/cms/content"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/site-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/site-settings"] });
       toast({ title: "Settings saved successfully" });
     },
     onError: () => {
@@ -89,30 +85,33 @@ export default function SiteSettingsManagement() {
 
   const saveContactInfo = () => {
     saveMutation.mutate([
-      { key: "contact_email", title: "Contact Email", content: contactEmail },
-      { key: "contact_phone", title: "Contact Phone", content: contactPhone },
-      { key: "contact_address", title: "Contact Address", content: contactAddress },
-      { key: "contact_operating_hours", title: "Operating Hours", content: operatingHours },
-      { key: "contact_site_status", title: "Site Status", content: siteStatus },
+      { key: "email", value: contactEmail, label: "Contact Email", category: "contact" },
+      { key: "phone", value: contactPhone, label: "Contact Phone", category: "contact" },
+      { key: "address", value: contactAddress, label: "Contact Address", category: "contact" },
+      { key: "operating_hours", value: operatingHours, label: "Operating Hours", category: "contact" },
     ]);
   };
 
   const saveSocialLinks = () => {
     const items = SOCIAL_LINKS.map(link => ({
       key: link.key,
-      title: `${link.label} URL`,
-      content: socialLinks[link.key] || "",
-      isActive: socialVisibility[link.key] ?? true,
+      value: socialLinks[link.key] || "",
+      label: `${link.label} URL`,
+      category: "social",
     }));
     saveMutation.mutate(items);
   };
 
-  const updateSocialLink = (key: string, value: string) => {
-    setSocialLinks(prev => ({ ...prev, [key]: value }));
+  const saveWhatsappSettings = () => {
+    saveMutation.mutate([
+      { key: "whatsapp_phone", value: whatsappPhone, label: "WhatsApp Phone", category: "whatsapp" },
+      { key: "whatsapp_button_visible", value: whatsappVisible ? "true" : "false", label: "WhatsApp Button Visible", category: "whatsapp" },
+      { key: "whatsapp_message", value: whatsappMessage, label: "WhatsApp Default Message", category: "whatsapp" },
+    ]);
   };
 
-  const toggleSocialVisibility = (key: string) => {
-    setSocialVisibility(prev => ({ ...prev, [key]: !prev[key] }));
+  const updateSocialLink = (key: string, value: string) => {
+    setSocialLinks(prev => ({ ...prev, [key]: value }));
   };
 
   if (isLoading) {
@@ -128,7 +127,7 @@ export default function SiteSettingsManagement() {
       <div className="p-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Site Settings</h1>
-          <p className="text-muted-foreground">Manage contact information and social media links</p>
+          <p className="text-muted-foreground">Manage contact information, social media links, and WhatsApp settings</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -139,7 +138,7 @@ export default function SiteSettingsManagement() {
                 Contact Information
               </CardTitle>
               <CardDescription>
-                Update your business contact details displayed across the website
+                Update your business contact details displayed on the Contact page and footer
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -202,18 +201,6 @@ export default function SiteSettingsManagement() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="status">Site Status Message</Label>
-                <Textarea
-                  id="status"
-                  value={siteStatus}
-                  onChange={(e) => setSiteStatus(e.target.value)}
-                  placeholder="Current construction or operational status..."
-                  rows={3}
-                  data-testid="input-site-status"
-                />
-              </div>
-
               <Button 
                 onClick={saveContactInfo} 
                 disabled={saveMutation.isPending}
@@ -226,69 +213,116 @@ export default function SiteSettingsManagement() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Social Media Links
-              </CardTitle>
-              <CardDescription>
-                Manage your social media URLs. Toggle visibility to show/hide on the website.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {SOCIAL_LINKS.map((link) => {
-                const Icon = link.icon;
-                const isVisible = socialVisibility[link.key] ?? true;
-                
-                return (
-                  <div key={link.key} className="space-y-2">
-                    <div className="flex items-center justify-between">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  Social Media Links
+                </CardTitle>
+                <CardDescription>
+                  Manage your social media URLs shown in the footer and Contact page
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {SOCIAL_LINKS.map((link) => {
+                  const Icon = link.icon;
+                  
+                  return (
+                    <div key={link.key} className="space-y-2">
                       <Label htmlFor={link.key} className="flex items-center gap-2">
                         <Icon className="h-4 w-4" />
                         {link.label}
                       </Label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          {isVisible ? "Visible" : "Hidden"}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleSocialVisibility(link.key)}
-                          data-testid={`button-toggle-${link.key}`}
-                        >
-                          {isVisible ? (
-                            <Eye className="h-4 w-4" />
-                          ) : (
-                            <EyeOff className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </Button>
-                      </div>
+                      <Input
+                        id={link.key}
+                        value={socialLinks[link.key] || ""}
+                        onChange={(e) => updateSocialLink(link.key, e.target.value)}
+                        placeholder={link.placeholder}
+                        data-testid={`input-${link.key}`}
+                      />
                     </div>
-                    <Input
-                      id={link.key}
-                      value={socialLinks[link.key] || ""}
-                      onChange={(e) => updateSocialLink(link.key, e.target.value)}
-                      placeholder={link.placeholder}
-                      className={!isVisible ? "opacity-50" : ""}
-                      data-testid={`input-${link.key}`}
-                    />
-                  </div>
-                );
-              })}
+                  );
+                })}
 
-              <Button 
-                onClick={saveSocialLinks} 
-                disabled={saveMutation.isPending}
-                className="w-full"
-                data-testid="button-save-social"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save Social Links
-              </Button>
-            </CardContent>
-          </Card>
+                <Button 
+                  onClick={saveSocialLinks} 
+                  disabled={saveMutation.isPending}
+                  className="w-full"
+                  data-testid="button-save-social"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Social Links
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <SiWhatsapp className="h-5 w-5 text-green-500" />
+                  WhatsApp Button
+                </CardTitle>
+                <CardDescription>
+                  Configure the floating WhatsApp button for quick customer contact
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="whatsapp-visible" className="flex items-center gap-2">
+                    Show WhatsApp Button
+                  </Label>
+                  <Switch
+                    id="whatsapp-visible"
+                    checked={whatsappVisible}
+                    onCheckedChange={setWhatsappVisible}
+                    data-testid="switch-whatsapp-visible"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp-phone" className="flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    WhatsApp Phone Number
+                  </Label>
+                  <Input
+                    id="whatsapp-phone"
+                    value={whatsappPhone}
+                    onChange={(e) => setWhatsappPhone(e.target.value)}
+                    placeholder="+92 300 1234567 (include country code)"
+                    data-testid="input-whatsapp-phone"
+                  />
+                  <p className="text-xs text-muted-foreground">Include country code, e.g., +92 for Pakistan</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp-message" className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Default Message (Optional)
+                  </Label>
+                  <Textarea
+                    id="whatsapp-message"
+                    value={whatsappMessage}
+                    onChange={(e) => setWhatsappMessage(e.target.value)}
+                    placeholder="Hello! I'd like to inquire about..."
+                    rows={2}
+                    data-testid="input-whatsapp-message"
+                  />
+                  <p className="text-xs text-muted-foreground">Pre-filled message when users click the WhatsApp button</p>
+                </div>
+
+                <Button 
+                  onClick={saveWhatsappSettings} 
+                  disabled={saveMutation.isPending}
+                  className="w-full"
+                  data-testid="button-save-whatsapp"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save WhatsApp Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AdminLayout>

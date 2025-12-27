@@ -50,6 +50,7 @@ function getNavItems(basePath: string) {
     { path: `${basePath}/policies`, label: "Privacy & Terms", icon: ShieldCheck },
     { path: `${basePath}/gallery`, label: "Gallery", icon: Image },
     { path: `${basePath}/site-images`, label: "Site Images", icon: Image },
+    { path: `${basePath}/hero-sections`, label: "Hero Sections", icon: Image },
     { path: `${basePath}/site-settings`, label: "Site Settings", icon: Settings },
   ];
 }
