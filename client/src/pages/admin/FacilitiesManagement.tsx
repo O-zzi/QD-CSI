@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Pencil, Trash2, Save, MapPin, Building, Package, Upload, Link as LinkIcon, Loader2, CheckCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, MapPin, Building, Package, Upload, Link as LinkIcon, Loader2, CheckCircle, FileText, X, PlusCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +51,14 @@ export default function FacilitiesManagement() {
     isHidden: false,
     status: "PLANNED" as "OPENING_SOON" | "PLANNED" | "ACTIVE",
     imageUrl: "",
+    aboutContent: "",
+    features: [] as string[],
+    amenities: [] as string[],
+    keywords: [] as string[],
+    quickInfo: {} as Record<string, string>,
+    pricingNotes: "",
+    certificationInfo: "",
+    galleryImages: [] as string[],
   });
 
   const [venueFormData, setVenueFormData] = useState({
@@ -242,6 +250,14 @@ export default function FacilitiesManagement() {
       isHidden: false,
       status: "PLANNED",
       imageUrl: "",
+      aboutContent: "",
+      features: [],
+      amenities: [],
+      keywords: [],
+      quickInfo: {},
+      pricingNotes: "",
+      certificationInfo: "",
+      galleryImages: [],
     });
     setActiveTab("details");
     setUploadedFile(null);
@@ -371,6 +387,14 @@ export default function FacilitiesManagement() {
       isHidden: facility.isHidden || false,
       status: facility.status || "PLANNED",
       imageUrl: facility.imageUrl || "",
+      aboutContent: facility.aboutContent || "",
+      features: facility.features || [],
+      amenities: facility.amenities || [],
+      keywords: facility.keywords || [],
+      quickInfo: (typeof facility.quickInfo === 'object' && !Array.isArray(facility.quickInfo) ? facility.quickInfo : {}) as Record<string, string>,
+      pricingNotes: facility.pricingNotes || "",
+      certificationInfo: facility.certificationInfo || "",
+      galleryImages: facility.galleryImages || [],
     });
     setActiveTab("details");
     setIsDialogOpen(true);
@@ -452,10 +476,14 @@ export default function FacilitiesManagement() {
               </DialogHeader>
               
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="details" className="flex items-center gap-2">
                     <Building className="w-4 h-4" />
                     Details
+                  </TabsTrigger>
+                  <TabsTrigger value="content" className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Content
                   </TabsTrigger>
                   <TabsTrigger 
                     value="venues" 
@@ -668,6 +696,127 @@ export default function FacilitiesManagement() {
                       onClick={handleSubmit}
                       disabled={createMutation.isPending || updateMutation.isPending}
                       data-testid="button-save-facility"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      {editingFacility ? "Update" : "Create"}
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="content" className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="aboutContent">About / Extended Description</Label>
+                    <Textarea
+                      id="aboutContent"
+                      value={formData.aboutContent}
+                      onChange={(e) => setFormData({ ...formData, aboutContent: e.target.value })}
+                      placeholder="Detailed information about the facility..."
+                      rows={4}
+                      data-testid="input-about-content"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Features (one per line)</Label>
+                    <Textarea
+                      value={formData.features.join('\n')}
+                      onChange={(e) => setFormData({ ...formData, features: e.target.value.split('\n').filter(f => f.trim()) })}
+                      placeholder="Professional lighting&#10;Climate controlled&#10;Premium equipment"
+                      rows={4}
+                      data-testid="input-features"
+                    />
+                    <p className="text-xs text-muted-foreground">Enter each feature on a new line</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Amenities (one per line)</Label>
+                    <Textarea
+                      value={formData.amenities.join('\n')}
+                      onChange={(e) => setFormData({ ...formData, amenities: e.target.value.split('\n').filter(a => a.trim()) })}
+                      placeholder="Changing rooms&#10;Shower facilities&#10;Equipment rental"
+                      rows={4}
+                      data-testid="input-amenities"
+                    />
+                    <p className="text-xs text-muted-foreground">Enter each amenity on a new line</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Keywords (comma-separated)</Label>
+                    <Input
+                      value={formData.keywords.join(', ')}
+                      onChange={(e) => setFormData({ ...formData, keywords: e.target.value.split(',').map(k => k.trim()).filter(k => k) })}
+                      placeholder="padel, tennis, racquet sports, indoor"
+                      data-testid="input-keywords"
+                    />
+                    <p className="text-xs text-muted-foreground">Used for SEO and search</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Quick Info (key: value pairs, one per line)</Label>
+                    <Textarea
+                      value={Object.entries(formData.quickInfo).map(([k, v]) => `${k}: ${v}`).join('\n')}
+                      onChange={(e) => {
+                        const newQuickInfo: Record<string, string> = {};
+                        e.target.value.split('\n').forEach(line => {
+                          const colonIndex = line.indexOf(':');
+                          if (colonIndex > 0) {
+                            const key = line.substring(0, colonIndex).trim();
+                            const value = line.substring(colonIndex + 1).trim();
+                            if (key) newQuickInfo[key] = value;
+                          }
+                        });
+                        setFormData({ ...formData, quickInfo: newQuickInfo });
+                      }}
+                      placeholder="Hours: 6AM - 11PM&#10;Courts: 4&#10;Surface: Artificial Turf"
+                      rows={4}
+                      data-testid="input-quick-info"
+                    />
+                    <p className="text-xs text-muted-foreground">Format: Key: Value (one per line). These appear in the Quick Info sidebar.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pricingNotes">Pricing Notes</Label>
+                    <Textarea
+                      id="pricingNotes"
+                      value={formData.pricingNotes}
+                      onChange={(e) => setFormData({ ...formData, pricingNotes: e.target.value })}
+                      placeholder="Special pricing conditions, discounts, or package information..."
+                      rows={3}
+                      data-testid="input-pricing-notes"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="certificationInfo">Certification Requirements</Label>
+                    <Textarea
+                      id="certificationInfo"
+                      value={formData.certificationInfo}
+                      onChange={(e) => setFormData({ ...formData, certificationInfo: e.target.value })}
+                      placeholder="Required certifications, safety training, or prerequisites..."
+                      rows={3}
+                      data-testid="input-certification-info"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Gallery Images (URLs, one per line)</Label>
+                    <Textarea
+                      value={formData.galleryImages.join('\n')}
+                      onChange={(e) => setFormData({ ...formData, galleryImages: e.target.value.split('\n').filter(u => u.trim()) })}
+                      placeholder="/uploads/facility1.jpg&#10;/uploads/facility2.jpg"
+                      rows={3}
+                      data-testid="input-gallery-images"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleSubmit}
+                      disabled={createMutation.isPending || updateMutation.isPending}
+                      data-testid="button-save-facility-content"
                     >
                       <Save className="w-4 h-4 mr-2" />
                       {editingFacility ? "Update" : "Create"}

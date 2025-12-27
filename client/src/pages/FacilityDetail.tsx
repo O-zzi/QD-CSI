@@ -185,12 +185,18 @@ export default function FacilityDetail() {
     ? {
         ...defaultData,
         ...dbFacility,
-        features: (dbFacility as any).features || defaultData?.features,
-        amenities: (dbFacility as any).amenities || defaultData?.amenities,
-        longDescription: (dbFacility as any).longDescription || defaultData?.longDescription,
+        features: dbFacility.features?.length ? dbFacility.features : defaultData?.features,
+        amenities: dbFacility.amenities?.length ? dbFacility.amenities : defaultData?.amenities,
+        longDescription: dbFacility.aboutContent || defaultData?.longDescription,
+        aboutContent: dbFacility.aboutContent || defaultData?.longDescription,
         operatingHours: (dbFacility as any).operatingHours || defaultData?.operatingHours,
         addOns: (dbFacility as any).addOns || defaultData?.addOns,
-        courtCount: (dbFacility as any).resourceCount || (dbFacility as any).courtCount || defaultData?.courtCount,
+        courtCount: dbFacility.resourceCount || (dbFacility as any).courtCount || defaultData?.courtCount,
+        pricingNotes: dbFacility.pricingNotes,
+        certificationInfo: dbFacility.certificationInfo,
+        galleryImages: dbFacility.galleryImages,
+        keywords: dbFacility.keywords,
+        quickInfo: dbFacility.quickInfo as Record<string, string> | null,
       }
     : defaultData;
 
@@ -298,6 +304,24 @@ export default function FacilityDetail() {
                   </div>
                 </section>
               )}
+
+              {facility.galleryImages && facility.galleryImages.length > 0 && (
+                <section>
+                  <h2 className="text-2xl font-bold text-primary mb-4">Gallery</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {facility.galleryImages.map((imageUrl: string, index: number) => (
+                      <div key={index} className="aspect-video rounded-lg overflow-hidden bg-muted">
+                        <img 
+                          src={imageUrl} 
+                          alt={`${facility.name} gallery image ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          data-testid={`img-gallery-${index}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
 
             <div className="space-y-6">
@@ -306,27 +330,41 @@ export default function FacilityDetail() {
                   <CardTitle>Quick Info</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Operating Hours</p>
-                      <p className="font-medium">{facility.operatingHours}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Users className="w-5 h-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Players</p>
-                      <p className="font-medium">{facility.minPlayers} - {facility.maxPlayers} players</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="w-5 h-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Available Units</p>
-                      <p className="font-medium">{facility.courtCount} {facility.courtCount === 1 ? 'Unit' : 'Courts/Lanes'}</p>
-                    </div>
-                  </div>
+                  {facility.quickInfo && Object.keys(facility.quickInfo).length > 0 ? (
+                    Object.entries(facility.quickInfo).map(([key, value]: [string, string]) => (
+                      <div key={key} className="flex items-center gap-3">
+                        <Clock className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">{key}</p>
+                          <p className="font-medium">{value}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Operating Hours</p>
+                          <p className="font-medium">{facility.operatingHours}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Users className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Players</p>
+                          <p className="font-medium">{facility.minPlayers} - {facility.maxPlayers} players</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Available Units</p>
+                          <p className="font-medium">{facility.courtCount} {facility.courtCount === 1 ? 'Unit' : 'Courts/Lanes'}</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
@@ -363,6 +401,11 @@ export default function FacilityDetail() {
                         Members enjoy off-peak discounts (10AM-5PM)
                       </p>
                     )}
+                    {facility.pricingNotes && (
+                      <p className="text-xs text-muted-foreground pt-2 mt-2 border-t">
+                        {facility.pricingNotes}
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -375,8 +418,7 @@ export default function FacilityDetail() {
                       <div>
                         <h4 className="font-semibold mb-1">Certification Required</h4>
                         <p className="text-sm text-muted-foreground">
-                          Safety certification is mandatory before using this facility. 
-                          Please complete the certification course first.
+                          {facility.certificationInfo || "Safety certification is mandatory before using this facility. Please complete the certification course first."}
                         </p>
                       </div>
                     </div>
