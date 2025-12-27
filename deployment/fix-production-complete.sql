@@ -15,8 +15,8 @@
 -- Event Registrations table (fixes 500 error on event registration)
 CREATE TABLE IF NOT EXISTS event_registrations (
     id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
-    event_id VARCHAR NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-    user_id VARCHAR REFERENCES users(id) ON DELETE CASCADE,
+    event_id VARCHAR NOT NULL,
+    user_id VARCHAR,
     full_name VARCHAR NOT NULL,
     email VARCHAR NOT NULL,
     phone VARCHAR,
@@ -26,23 +26,57 @@ CREATE TABLE IF NOT EXISTS event_registrations (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Add missing columns to event_registrations if they don't exist
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'event_registrations' AND column_name = 'email') THEN
+        ALTER TABLE event_registrations ADD COLUMN email VARCHAR;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'event_registrations' AND column_name = 'full_name') THEN
+        ALTER TABLE event_registrations ADD COLUMN full_name VARCHAR;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'event_registrations' AND column_name = 'phone') THEN
+        ALTER TABLE event_registrations ADD COLUMN phone VARCHAR;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'event_registrations' AND column_name = 'guest_count') THEN
+        ALTER TABLE event_registrations ADD COLUMN guest_count INTEGER DEFAULT 0;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'event_registrations' AND column_name = 'notes') THEN
+        ALTER TABLE event_registrations ADD COLUMN notes TEXT;
+    END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_event_registrations_event_id ON event_registrations(event_id);
 CREATE INDEX IF NOT EXISTS idx_event_registrations_user_id ON event_registrations(user_id);
-CREATE INDEX IF NOT EXISTS idx_event_registrations_email ON event_registrations(email);
 
 -- Career Applications table (fixes 500 error on career applications)
 CREATE TABLE IF NOT EXISTS career_applications (
     id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
-    career_id VARCHAR REFERENCES careers(id),
-    name VARCHAR NOT NULL,
+    career_id VARCHAR REFERENCES careers(id) ON DELETE SET NULL,
+    full_name VARCHAR NOT NULL,
     email VARCHAR NOT NULL,
-    phone VARCHAR NOT NULL,
-    cv_url VARCHAR,
-    linkedin_url VARCHAR,
+    phone VARCHAR,
     cover_letter TEXT,
-    status VARCHAR DEFAULT 'pending',
+    cv_url VARCHAR,
+    cv_file_name VARCHAR,
+    linkedin_url VARCHAR,
+    status VARCHAR DEFAULT 'NEW',
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Add missing columns to career_applications if they don't exist
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'career_applications' AND column_name = 'email') THEN
+        ALTER TABLE career_applications ADD COLUMN email VARCHAR;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'career_applications' AND column_name = 'full_name') THEN
+        ALTER TABLE career_applications ADD COLUMN full_name VARCHAR;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'career_applications' AND column_name = 'cv_file_name') THEN
+        ALTER TABLE career_applications ADD COLUMN cv_file_name VARCHAR;
+    END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_career_applications_career_id ON career_applications(career_id);
 
