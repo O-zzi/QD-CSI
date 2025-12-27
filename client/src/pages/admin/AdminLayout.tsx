@@ -25,7 +25,9 @@ import {
   HelpCircle,
   MapPin,
   ClipboardCheck,
-  Award
+  Award,
+  LayoutGrid,
+  Gift
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -46,6 +48,8 @@ function getNavItems(basePath: string) {
     { path: `${basePath}/members`, label: "Members", icon: Users },
     { path: `${basePath}/membership-applications`, label: "Membership Applications", icon: ClipboardCheck },
     { path: `${basePath}/certifications`, label: "Certifications", icon: Award },
+    { path: `${basePath}/comparison-features`, label: "Comparison Features", icon: LayoutGrid },
+    { path: `${basePath}/member-benefits`, label: "Member Benefits", icon: Gift },
     { path: `${basePath}/roadmap`, label: "Construction Status", icon: HardHat },
     { path: `${basePath}/events`, label: "Events & Academies", icon: Calendar },
     { path: `${basePath}/pricing`, label: "Pricing Tiers", icon: DollarSign },

@@ -63,6 +63,8 @@ import CTAsManagement from "@/pages/admin/CTAsManagement";
 import VenuesManagement from "@/pages/admin/VenuesManagement";
 import MembershipApplicationsManagement from "@/pages/admin/MembershipApplicationsManagement";
 import CertificationsManagement from "@/pages/admin/CertificationsManagement";
+import ComparisonFeaturesManagement from "@/pages/admin/ComparisonFeaturesManagement";
+import MemberBenefitsManagement from "@/pages/admin/MemberBenefitsManagement";
 
 function AdminRoutes() {
   const { adminPath, isAuthorized, isLoading } = useAdminPath();
@@ -101,6 +103,8 @@ function AdminRoutes() {
       <Route path={`${base}/members`} component={MembersManagement} />
       <Route path={`${base}/membership-applications`} component={MembershipApplicationsManagement} />
       <Route path={`${base}/certifications`} component={CertificationsManagement} />
+      <Route path={`${base}/comparison-features`} component={ComparisonFeaturesManagement} />
+      <Route path={`${base}/member-benefits`} component={MemberBenefitsManagement} />
       <Route path={`${base}/site-settings`} component={SiteSettingsManagement} />
       <Route path={base} component={AdminDashboard} />
     </Switch>
