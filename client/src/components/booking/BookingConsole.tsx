@@ -1340,7 +1340,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                       <p className="text-sm text-muted-foreground">Loading available time slots...</p>
                     </div>
                   ) : (
-                  <div className="grid grid-cols-5 gap-3">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
                     {TIME_SLOTS.map((time) => {
                       const taken = isSlotTaken(time);
                       const isSelected = selectedStartTime === time;
