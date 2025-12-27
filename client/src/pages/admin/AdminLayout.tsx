@@ -20,7 +20,7 @@ import {
   Palette,
   Search,
   Users,
-  MapPin,
+  MousePointer2,
   ShieldCheck,
   HelpCircle
 } from "lucide-react";
@@ -51,6 +51,7 @@ function getNavItems(basePath: string) {
     { path: `${basePath}/gallery`, label: "Gallery", icon: Image },
     { path: `${basePath}/site-images`, label: "Site Images", icon: Image },
     { path: `${basePath}/hero-sections`, label: "Hero Sections", icon: Image },
+    { path: `${basePath}/ctas`, label: "CTAs", icon: MousePointer2 },
     { path: `${basePath}/site-settings`, label: "Site Settings", icon: Settings },
   ];
 }

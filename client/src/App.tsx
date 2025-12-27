@@ -56,6 +56,7 @@ import FAQManagement from "@/pages/admin/FAQManagement";
 import MembersManagement from "@/pages/admin/MembersManagement";
 import SiteSettingsManagement from "@/pages/admin/SiteSettingsManagement";
 import HeroSectionsManagement from "@/pages/admin/HeroSectionsManagement";
+import CTAsManagement from "@/pages/admin/CTAsManagement";
 
 function AdminRoutes() {
   const { adminPath, isAuthorized, isLoading } = useAdminPath();
@@ -86,6 +87,7 @@ function AdminRoutes() {
       <Route path={`${base}/gallery`} component={GalleryManagement} />
       <Route path={`${base}/site-images`} component={SiteImagesManagement} />
       <Route path={`${base}/hero-sections`} component={HeroSectionsManagement} />
+      <Route path={`${base}/ctas`} component={CTAsManagement} />
       <Route path={`${base}/bookings`} component={BookingsManagement} />
       <Route path={`${base}/branding`} component={BrandingManagement} />
       <Route path={`${base}/faq`} component={FAQManagement} />
