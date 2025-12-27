@@ -106,44 +106,99 @@ VALUES
 ON CONFLICT (key) DO NOTHING;
 
 -- ================================
--- STEP 3: Seed Site Images
+-- STEP 3: Add unique constraint and Seed Site Images
 -- ================================
 
--- Landing page hero background
-INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
-VALUES (gen_random_uuid()::text, 'landing_hero_background', '/assets/stock_images/padel_tennis_court_i_37ae0ba3.jpg', 'Landing page hero background', 'Landing Page Hero Background', 'Main hero background image on the home/landing page. Recommended: 1920x1080 or larger.', 'landing', 'hero', '1920x1080', true, 1, NOW(), NOW())
-ON CONFLICT (key) DO UPDATE SET image_url = EXCLUDED.image_url, updated_at = NOW();
+-- First, ensure unique constraint exists on site_images.key (required for ON CONFLICT)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'site_images_key_key' 
+        AND conrelid = 'site_images'::regclass
+    ) THEN
+        -- Delete duplicates first (keep the first one)
+        DELETE FROM site_images a USING site_images b
+        WHERE a.created_at > b.created_at AND a.key = b.key;
+        -- Add unique constraint
+        ALTER TABLE site_images ADD CONSTRAINT site_images_key_key UNIQUE (key);
+    END IF;
+EXCEPTION WHEN OTHERS THEN
+    -- Constraint might already exist with different name, that's ok
+    NULL;
+END $$;
 
--- Coming Soon carousel images (5 images)
+-- Landing page hero background (use upsert pattern with subquery)
 INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
-VALUES 
-  (gen_random_uuid()::text, 'coming_soon_carousel_1', '/assets/stock_images/architectural_render_b118ee78.jpg', 'Complex Exterior Render', 'Premium Sports Complex Design', 'Coming Soon carousel image 1 - Architectural render', 'coming-soon', 'coming-soon-1', '800x600', true, 10, NOW(), NOW()),
-  (gen_random_uuid()::text, 'coming_soon_carousel_2', '/assets/stock_images/padel_tennis_court_i_a0e484ae.jpg', 'Padel Tennis Courts', 'World-Class Padel Courts', 'Coming Soon carousel image 2 - Padel courts', 'coming-soon', 'coming-soon-2', '800x600', true, 11, NOW(), NOW()),
-  (gen_random_uuid()::text, 'coming_soon_carousel_3', '/assets/stock_images/indoor_squash_court__c97e350b.jpg', 'Squash Court', 'Professional Squash Facility', 'Coming Soon carousel image 3 - Squash court', 'coming-soon', 'coming-soon-3', '800x600', true, 12, NOW(), NOW()),
-  (gen_random_uuid()::text, 'coming_soon_carousel_4', '/assets/stock_images/architectural_render_cd4dce75.jpg', 'Sports Arena', 'Modern Architecture', 'Coming Soon carousel image 4 - Sports arena render', 'coming-soon', 'coming-soon-4', '800x600', true, 13, NOW(), NOW()),
-  (gen_random_uuid()::text, 'coming_soon_carousel_5', '/assets/stock_images/sports_facility_cons_6b087ae8.jpg', 'Construction Progress', 'Building Your Future', 'Coming Soon carousel image 5 - Construction progress', 'coming-soon', 'coming-soon-5', '800x600', true, 14, NOW(), NOW())
-ON CONFLICT (key) DO UPDATE SET image_url = EXCLUDED.image_url, updated_at = NOW();
+SELECT gen_random_uuid()::text, 'landing_hero_background', '/assets/stock_images/padel_tennis_court_i_37ae0ba3.jpg', 'Landing page hero background', 'Landing Page Hero Background', 'Main hero background image on the home/landing page.', 'landing', 'hero', '1920x1080', true, 1, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'landing_hero_background');
 
--- Membership tier images (5 tiers)
+-- Coming Soon carousel images
 INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
-VALUES 
-  (gen_random_uuid()::text, 'membership_tier_founding', '/assets/stock_images/padel_tennis_court_i_a0e484ae.jpg', 'Founding Member', 'Founding Member Tier', 'Membership tier image for Founding Members', 'membership', 'tier-founding', '400x300', true, 20, NOW(), NOW()),
-  (gen_random_uuid()::text, 'membership_tier_associate', '/assets/stock_images/indoor_squash_court__c97e350b.jpg', 'Associate Member', 'Associate Member Tier', 'Membership tier image for Associate Members', 'membership', 'tier-associate', '400x300', true, 21, NOW(), NOW()),
-  (gen_random_uuid()::text, 'membership_tier_family', '/assets/stock_images/modern_sports_comple_97c8483a.jpg', 'Family Member', 'Family Member Tier', 'Membership tier image for Family Members', 'membership', 'tier-family', '400x300', true, 22, NOW(), NOW()),
-  (gen_random_uuid()::text, 'membership_tier_corporate', '/assets/stock_images/large_event_hall_int_39cfb773.jpg', 'Corporate Member', 'Corporate Member Tier', 'Membership tier image for Corporate Members', 'membership', 'tier-corporate', '400x300', true, 23, NOW(), NOW()),
-  (gen_random_uuid()::text, 'membership_tier_forces', '/assets/stock_images/air_rifle_shooting_r_931e6002.jpg', 'Armed Forces Member', 'Armed Forces Member Tier', 'Membership tier image for Armed Forces Members', 'membership', 'tier-forces', '400x300', true, 24, NOW(), NOW())
-ON CONFLICT (key) DO UPDATE SET image_url = EXCLUDED.image_url, updated_at = NOW();
+SELECT gen_random_uuid()::text, 'coming_soon_carousel_1', '/assets/stock_images/architectural_render_b118ee78.jpg', 'Complex Exterior Render', 'Premium Sports Complex Design', 'Coming Soon carousel image 1', 'coming-soon', 'coming-soon-1', '800x600', true, 10, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'coming_soon_carousel_1');
 
--- Gallery homepage images (6 images)
 INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
-VALUES 
-  (gen_random_uuid()::text, 'gallery_homepage_1', '/assets/stock_images/sports_facility_cons_42f46556.jpg', 'Foundation work in progress', 'Foundation Work', 'Gallery homepage image 1 - Construction progress', 'landing', 'gallery-1', '600x400', true, 30, NOW(), NOW()),
-  (gen_random_uuid()::text, 'gallery_homepage_2', '/assets/stock_images/sports_facility_cons_44a23ac3.jpg', 'Structural framework taking shape', 'Structure Progress', 'Gallery homepage image 2 - Structural work', 'landing', 'gallery-2', '600x400', true, 31, NOW(), NOW()),
-  (gen_random_uuid()::text, 'gallery_homepage_3', '/assets/stock_images/construction_site_fo_987f2281.jpg', 'Aerial view of construction', 'Site Overview', 'Gallery homepage image 3 - Aerial view', 'landing', 'gallery-3', '600x400', true, 32, NOW(), NOW()),
-  (gen_random_uuid()::text, 'gallery_homepage_4', '/assets/stock_images/architectural_render_b118ee78.jpg', 'Architectural exterior render', 'Exterior Render', 'Gallery homepage image 4 - Exterior render', 'landing', 'gallery-4', '600x400', true, 33, NOW(), NOW()),
-  (gen_random_uuid()::text, 'gallery_homepage_5', '/assets/stock_images/architectural_render_c7f63aa7.jpg', 'Interior hall render', 'Interior Render', 'Gallery homepage image 5 - Interior render', 'landing', 'gallery-5', '600x400', true, 34, NOW(), NOW()),
-  (gen_random_uuid()::text, 'gallery_homepage_6', '/assets/stock_images/architectural_render_cd4dce75.jpg', 'Courts render', 'Courts Render', 'Gallery homepage image 6 - Courts render', 'landing', 'gallery-6', '600x400', true, 35, NOW(), NOW())
-ON CONFLICT (key) DO UPDATE SET image_url = EXCLUDED.image_url, updated_at = NOW();
+SELECT gen_random_uuid()::text, 'coming_soon_carousel_2', '/assets/stock_images/padel_tennis_court_i_a0e484ae.jpg', 'Padel Tennis Courts', 'World-Class Padel Courts', 'Coming Soon carousel image 2', 'coming-soon', 'coming-soon-2', '800x600', true, 11, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'coming_soon_carousel_2');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'coming_soon_carousel_3', '/assets/stock_images/indoor_squash_court__c97e350b.jpg', 'Squash Court', 'Professional Squash Facility', 'Coming Soon carousel image 3', 'coming-soon', 'coming-soon-3', '800x600', true, 12, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'coming_soon_carousel_3');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'coming_soon_carousel_4', '/assets/stock_images/architectural_render_cd4dce75.jpg', 'Sports Arena', 'Modern Architecture', 'Coming Soon carousel image 4', 'coming-soon', 'coming-soon-4', '800x600', true, 13, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'coming_soon_carousel_4');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'coming_soon_carousel_5', '/assets/stock_images/sports_facility_cons_6b087ae8.jpg', 'Construction Progress', 'Building Your Future', 'Coming Soon carousel image 5', 'coming-soon', 'coming-soon-5', '800x600', true, 14, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'coming_soon_carousel_5');
+
+-- Membership tier images
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'membership_tier_founding', '/assets/stock_images/padel_tennis_court_i_a0e484ae.jpg', 'Founding Member', 'Founding Member Tier', 'Membership tier image for Founding Members', 'membership', 'tier-founding', '400x300', true, 20, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'membership_tier_founding');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'membership_tier_associate', '/assets/stock_images/indoor_squash_court__c97e350b.jpg', 'Associate Member', 'Associate Member Tier', 'Membership tier image for Associate Members', 'membership', 'tier-associate', '400x300', true, 21, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'membership_tier_associate');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'membership_tier_family', '/assets/stock_images/modern_sports_comple_97c8483a.jpg', 'Family Member', 'Family Member Tier', 'Membership tier image for Family Members', 'membership', 'tier-family', '400x300', true, 22, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'membership_tier_family');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'membership_tier_corporate', '/assets/stock_images/large_event_hall_int_39cfb773.jpg', 'Corporate Member', 'Corporate Member Tier', 'Membership tier image for Corporate Members', 'membership', 'tier-corporate', '400x300', true, 23, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'membership_tier_corporate');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'membership_tier_forces', '/assets/stock_images/air_rifle_shooting_r_931e6002.jpg', 'Armed Forces Member', 'Armed Forces Member Tier', 'Membership tier image for Armed Forces Members', 'membership', 'tier-forces', '400x300', true, 24, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'membership_tier_forces');
+
+-- Gallery homepage images
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'gallery_homepage_1', '/assets/stock_images/sports_facility_cons_42f46556.jpg', 'Foundation work in progress', 'Foundation Work', 'Gallery homepage image 1', 'landing', 'gallery-1', '600x400', true, 30, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'gallery_homepage_1');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'gallery_homepage_2', '/assets/stock_images/sports_facility_cons_44a23ac3.jpg', 'Structural framework taking shape', 'Structure Progress', 'Gallery homepage image 2', 'landing', 'gallery-2', '600x400', true, 31, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'gallery_homepage_2');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'gallery_homepage_3', '/assets/stock_images/construction_site_fo_987f2281.jpg', 'Aerial view of construction', 'Site Overview', 'Gallery homepage image 3', 'landing', 'gallery-3', '600x400', true, 32, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'gallery_homepage_3');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'gallery_homepage_4', '/assets/stock_images/architectural_render_b118ee78.jpg', 'Architectural exterior render', 'Exterior Render', 'Gallery homepage image 4', 'landing', 'gallery-4', '600x400', true, 33, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'gallery_homepage_4');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'gallery_homepage_5', '/assets/stock_images/architectural_render_c7f63aa7.jpg', 'Interior hall render', 'Interior Render', 'Gallery homepage image 5', 'landing', 'gallery-5', '600x400', true, 34, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'gallery_homepage_5');
+
+INSERT INTO site_images (id, key, image_url, alt, title, description, page, section, dimensions, is_active, sort_order, created_at, updated_at)
+SELECT gen_random_uuid()::text, 'gallery_homepage_6', '/assets/stock_images/architectural_render_cd4dce75.jpg', 'Courts render', 'Courts Render', 'Gallery homepage image 6', 'landing', 'gallery-6', '600x400', true, 35, NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM site_images WHERE key = 'gallery_homepage_6');
 
 -- ================================
 -- STEP 4: Update Facility Images
