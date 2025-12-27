@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Pencil, Trash2, Save, GripVertical, Image, Navigation, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, GripVertical, Image, Navigation, ExternalLink, Upload, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -52,6 +52,40 @@ export default function BrandingManagement() {
   const [faviconUrl, setFaviconUrl] = useState("");
   const [siteName, setSiteName] = useState("");
   const [siteTagline, setSiteTagline] = useState("");
+  const [isUploading, setIsUploading] = useState<string | null>(null);
+
+  const handleFileUpload = async (file: File, setUrl: (url: string) => void, uploadKey: string) => {
+    setIsUploading(uploadKey);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      
+      const response = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Upload failed");
+      }
+      
+      const result = await response.json();
+      if (result.imageUrl) {
+        setUrl(result.imageUrl);
+        toast({ title: "Image uploaded successfully" });
+      }
+    } catch (error: any) {
+      toast({ 
+        title: "Upload failed", 
+        description: error.message || "Failed to upload image",
+        variant: "destructive" 
+      });
+    } finally {
+      setIsUploading(null);
+    }
+  };
 
   const { data: siteSettings, isLoading: settingsLoading, dataUpdatedAt } = useQuery<SiteSetting[]>({
     queryKey: ["/api/admin/site-settings"],
@@ -231,14 +265,37 @@ export default function BrandingManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="logoUrl">Main Logo URL</Label>
-              <Input
-                id="logoUrl"
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                placeholder="https://example.com/logo.png"
-                data-testid="input-logo-url"
-              />
+              <Label htmlFor="logoUrl">Main Logo</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="logoUrl"
+                  value={logoUrl}
+                  onChange={(e) => setLogoUrl(e.target.value)}
+                  placeholder="https://example.com/logo.png or upload"
+                  data-testid="input-logo-url"
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={isUploading === "logo"}
+                  onClick={() => document.getElementById("logo-upload")?.click()}
+                  data-testid="button-upload-logo"
+                >
+                  {isUploading === "logo" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                </Button>
+                <input
+                  id="logo-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file, setLogoUrl, "logo");
+                    e.target.value = "";
+                  }}
+                />
+              </div>
               {logoUrl && (
                 <div className="mt-2 p-4 bg-muted rounded-lg">
                   <p className="text-xs text-muted-foreground mb-2">Preview:</p>
@@ -248,25 +305,71 @@ export default function BrandingManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="logoDarkUrl">Dark Mode Logo URL (Optional)</Label>
-              <Input
-                id="logoDarkUrl"
-                value={logoDarkUrl}
-                onChange={(e) => setLogoDarkUrl(e.target.value)}
-                placeholder="https://example.com/logo-dark.png"
-                data-testid="input-logo-dark-url"
-              />
+              <Label htmlFor="logoDarkUrl">Dark Mode Logo (Optional)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="logoDarkUrl"
+                  value={logoDarkUrl}
+                  onChange={(e) => setLogoDarkUrl(e.target.value)}
+                  placeholder="https://example.com/logo-dark.png or upload"
+                  data-testid="input-logo-dark-url"
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={isUploading === "logoDark"}
+                  onClick={() => document.getElementById("logo-dark-upload")?.click()}
+                  data-testid="button-upload-logo-dark"
+                >
+                  {isUploading === "logoDark" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                </Button>
+                <input
+                  id="logo-dark-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file, setLogoDarkUrl, "logoDark");
+                    e.target.value = "";
+                  }}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="faviconUrl">Favicon URL</Label>
-              <Input
-                id="faviconUrl"
-                value={faviconUrl}
-                onChange={(e) => setFaviconUrl(e.target.value)}
-                placeholder="https://example.com/favicon.ico"
-                data-testid="input-favicon-url"
-              />
+              <Label htmlFor="faviconUrl">Favicon</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="faviconUrl"
+                  value={faviconUrl}
+                  onChange={(e) => setFaviconUrl(e.target.value)}
+                  placeholder="https://example.com/favicon.ico or upload"
+                  data-testid="input-favicon-url"
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={isUploading === "favicon"}
+                  onClick={() => document.getElementById("favicon-upload")?.click()}
+                  data-testid="button-upload-favicon"
+                >
+                  {isUploading === "favicon" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                </Button>
+                <input
+                  id="favicon-upload"
+                  type="file"
+                  accept="image/*,.ico"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file, setFaviconUrl, "favicon");
+                    e.target.value = "";
+                  }}
+                />
+              </div>
             </div>
 
             <Button 
