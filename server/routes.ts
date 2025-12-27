@@ -933,6 +933,15 @@ export async function registerRoutes(
         // Site Settings
         site_name: { title: 'Site Name', content: 'The Quarterdeck' },
         site_tagline: { title: 'Site Tagline', content: 'Sports & Recreation Complex' },
+        
+        // Section Visibility Controls (homepage)
+        section_about_visible: { title: 'Show About Section', content: 'true' },
+        section_facilities_visible: { title: 'Show Facilities Section', content: 'true' },
+        section_updates_visible: { title: 'Show Construction Updates Section', content: 'true' },
+        section_gallery_visible: { title: 'Show Gallery Section', content: 'true' },
+        section_membership_visible: { title: 'Show Membership Section', content: 'true' },
+        section_rules_visible: { title: 'Show Rules Section', content: 'true' },
+        section_careers_visible: { title: 'Show Careers Section', content: 'true' },
       };
       
       const results = [];

@@ -276,4 +276,18 @@ export const CMS_DEFAULTS: Record<string, string> = {
   error_network: 'Unable to connect. Please check your internet connection.',
   error_auth_required: 'Please log in to continue.',
   error_permission_denied: 'You do not have permission to access this.',
+  
+  // Section Visibility Controls (homepage)
+  section_about_visible: 'true',
+  section_facilities_visible: 'true',
+  section_updates_visible: 'true',
+  section_gallery_visible: 'true',
+  section_membership_visible: 'true',
+  section_rules_visible: 'true',
+  section_careers_visible: 'true',
 };
+
+export function parseCmsBoolean(value: string | undefined, defaultValue = true): boolean {
+  if (value === undefined || value === '') return defaultValue;
+  return value.toLowerCase() === 'true';
+}

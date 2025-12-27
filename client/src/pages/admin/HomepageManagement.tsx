@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Save, Loader2, Database, FileText, CheckCircle2, AlertCircle } from "lucide-react";
+import { Save, Loader2, Database, FileText, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { CMS_DEFAULTS } from "@/hooks/useCms";
 import type { CmsContent } from "@shared/schema";
@@ -161,7 +162,28 @@ const cmsSections: Record<string, { title: string; description: string; fields: 
       { key: "footer_disclaimer", label: "Disclaimer Text", type: "textarea" },
     ],
   },
+  visibility: {
+    title: "Section Visibility",
+    description: "Control which sections are displayed on the homepage.",
+    fields: [],
+  },
 };
+
+interface VisibilitySection {
+  key: string;
+  label: string;
+  description: string;
+}
+
+const visibilitySections: VisibilitySection[] = [
+  { key: "section_about_visible", label: "About Section", description: "Vision, philosophy and team info" },
+  { key: "section_facilities_visible", label: "Facilities Section", description: "Sports facility cards" },
+  { key: "section_updates_visible", label: "Construction Updates", description: "Progress timeline and milestones" },
+  { key: "section_gallery_visible", label: "Gallery Section", description: "Photo gallery preview" },
+  { key: "section_membership_visible", label: "Membership Section", description: "Membership tiers and pricing" },
+  { key: "section_rules_visible", label: "Rules Section", description: "Club rules and safety" },
+  { key: "section_careers_visible", label: "Careers Section", description: "Job openings preview" },
+];
 
 export default function HomepageManagement() {
   const { toast } = useToast();
@@ -327,16 +349,77 @@ export default function HomepageManagement() {
                       <h3 className="font-semibold">{section.title}</h3>
                       <p className="text-sm text-muted-foreground">{section.description}</p>
                     </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleSaveAll(sectionKey)}
-                      data-testid={`button-save-all-${sectionKey}`}
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save All Changes
-                    </Button>
+                    {sectionKey !== 'visibility' && (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleSaveAll(sectionKey)}
+                        data-testid={`button-save-all-${sectionKey}`}
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        Save All Changes
+                      </Button>
+                    )}
                   </div>
 
+                  {sectionKey === 'visibility' ? (
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Toggle sections on or off to control what appears on the homepage. Changes are saved automatically.
+                      </p>
+                      {visibilitySections.map((vis) => {
+                        const dbValue = getDbValue(vis.key);
+                        const isVisible = (formData[vis.key] ?? dbValue ?? 'true').toLowerCase() === 'true';
+                        const isSaving = savingKeys.has(vis.key);
+                        const isSaved = savedKeys.has(vis.key);
+                        
+                        return (
+                          <div 
+                            key={vis.key} 
+                            className="flex items-center justify-between p-4 border rounded-lg"
+                          >
+                            <div className="flex items-center gap-3">
+                              {isVisible ? (
+                                <Eye className="w-5 h-5 text-green-600" />
+                              ) : (
+                                <EyeOff className="w-5 h-5 text-muted-foreground" />
+                              )}
+                              <div>
+                                <Label htmlFor={vis.key} className="font-medium cursor-pointer">
+                                  {vis.label}
+                                </Label>
+                                <p className="text-xs text-muted-foreground">{vis.description}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {isSaved && (
+                                <Badge className="bg-green-500 text-xs">
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                  Saved
+                                </Badge>
+                              )}
+                              {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                              <Switch
+                                id={vis.key}
+                                checked={isVisible}
+                                onCheckedChange={(checked) => {
+                                  const newValue = checked ? 'true' : 'false';
+                                  setFormData(prev => ({ ...prev, [vis.key]: newValue }));
+                                  setSavingKeys(prev => new Set(prev).add(vis.key));
+                                  saveMutation.mutate({ 
+                                    key: vis.key, 
+                                    content: newValue, 
+                                    title: vis.label 
+                                  });
+                                }}
+                                disabled={isSaving}
+                                data-testid={`toggle-${vis.key}`}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
                   <div className="space-y-6">
                     {section.fields.map((field) => {
                       const dbValue = getDbValue(field.key);
@@ -433,6 +516,7 @@ export default function HomepageManagement() {
                       );
                     })}
                   </div>
+                  )}
                 </TabsContent>
               ))}
             </Tabs>
