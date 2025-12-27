@@ -1089,6 +1089,63 @@ export async function registerRoutes(
     }
   });
 
+  // Seed membership data (comparison features & member benefits)
+  app.post('/api/admin/membership/seed', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const comparisonDefaults = [
+        { feature: "Advance Booking Window", foundingValue: "14 days", goldValue: "7 days", silverValue: "5 days", guestValue: "2 days", sortOrder: 1 },
+        { feature: "Off-Peak Discount (10 AM - 5 PM)", foundingValue: "25%", goldValue: "20%", silverValue: "10%", guestValue: "None", sortOrder: 2 },
+        { feature: "Guest Passes per Month", foundingValue: "10", goldValue: "4", silverValue: "2", guestValue: "N/A", sortOrder: 3 },
+        { feature: "Priority Event Registration", foundingValue: "Yes", goldValue: "Yes", silverValue: "No", guestValue: "No", sortOrder: 4 },
+        { feature: "Equipment Rental Discount", foundingValue: "Free", goldValue: "50%", silverValue: "25%", guestValue: "Standard Rate", sortOrder: 5 },
+        { feature: "Access to Bridge Room", foundingValue: "Exclusive", goldValue: "Yes", silverValue: "Limited", guestValue: "No", sortOrder: 6 },
+        { feature: "Coaching & Clinic Discount", foundingValue: "25%", goldValue: "15%", silverValue: "10%", guestValue: "None", sortOrder: 7 },
+        { feature: "Member Lounge Access", foundingValue: "VIP", goldValue: "Yes", silverValue: "Yes", guestValue: "No", sortOrder: 8 },
+        { feature: "Credit Bonus", foundingValue: "10%", goldValue: "5%", silverValue: "None", guestValue: "None", sortOrder: 9 },
+        { feature: "Recognition Wall", foundingValue: "Yes", goldValue: "No", silverValue: "No", guestValue: "No", sortOrder: 10 },
+      ];
+
+      const benefitDefaults = [
+        { icon: "clock", title: "Priority Booking", description: "Book courts up to 14 days in advance with priority access during peak hours", sortOrder: 1 },
+        { icon: "percent", title: "Exclusive Discounts", description: "Save up to 25% on off-peak bookings and enjoy discounts on equipment and coaching", sortOrder: 2 },
+        { icon: "users", title: "Guest Privileges", description: "Bring friends and family with complimentary guest passes included in your membership", sortOrder: 3 },
+        { icon: "calendar", title: "Event Access", description: "Priority registration for tournaments, social events, and exclusive member gatherings", sortOrder: 4 },
+        { icon: "gift", title: "Member Perks", description: "Enjoy complimentary equipment rental, member lounge access, and special promotions", sortOrder: 5 },
+        { icon: "trophy", title: "Recognition", description: "Founding members receive permanent recognition on our member wall and exclusive benefits", sortOrder: 6 },
+      ];
+
+      let comparisonCreated = 0;
+      let benefitsCreated = 0;
+
+      // Seed comparison features
+      const existingFeatures = await storage.getComparisonFeatures();
+      if (existingFeatures.length === 0) {
+        for (const feature of comparisonDefaults) {
+          await storage.createComparisonFeature(feature);
+          comparisonCreated++;
+        }
+      }
+
+      // Seed member benefits
+      const existingBenefits = await storage.getMemberBenefits();
+      if (existingBenefits.length === 0) {
+        for (const benefit of benefitDefaults) {
+          await storage.createMemberBenefit(benefit);
+          benefitsCreated++;
+        }
+      }
+
+      res.json({ 
+        message: "Membership data seeding complete",
+        comparisonFeaturesCreated: comparisonCreated,
+        memberBenefitsCreated: benefitsCreated
+      });
+    } catch (error) {
+      console.error("Error seeding membership data:", error);
+      res.status(500).json({ message: "Failed to seed membership data" });
+    }
+  });
+
   // Admin Announcements routes
   app.get('/api/admin/announcements', isAuthenticated, isAdmin, async (req, res) => {
     try {
