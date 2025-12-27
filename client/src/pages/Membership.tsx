@@ -289,7 +289,7 @@ export default function Membership() {
                             Registration Closed
                           </Button>
                         ) : (
-                          <Link href="/register">
+                          <Link href="/signup">
                             <Button 
                               variant={tier.featured ? "default" : "outline"} 
                               className="w-full"
@@ -357,7 +357,7 @@ export default function Membership() {
                   Create your account and choose your membership tier to start enjoying exclusive benefits today.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link href="/register">
+                  <Link href="/signup">
                     <Button data-testid="button-create-account">Create Account</Button>
                   </Link>
                   <Link href="/contact">
