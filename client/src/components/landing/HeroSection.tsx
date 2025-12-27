@@ -103,14 +103,6 @@ export function HeroSection() {
     return () => clearInterval(interval);
   }, [launchDate]);
 
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const yOffset = -80;
-    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top: y, behavior: "smooth" });
-  };
-
   const heroTitle = getCms('hero_title') || CMS_DEFAULTS.hero_title;
   const heroSubtitle = getCms('hero_subtitle') || CMS_DEFAULTS.hero_subtitle;
   const heroEyebrow = getCms('hero_eyebrow') || CMS_DEFAULTS.hero_eyebrow;
@@ -118,14 +110,6 @@ export function HeroSection() {
   const cta1Url = getCms('hero_cta_1_url') || CMS_DEFAULTS.hero_cta_1_url || '/facilities';
   const cta2Text = getCms('hero_cta_2') || 'View Site Updates';
   const cta2Url = getCms('hero_cta_2_url') || CMS_DEFAULTS.hero_cta_2_url || '/roadmap';
-
-  const handleCtaClick = (url: string) => {
-    if (url.startsWith('#')) {
-      scrollToSection(url.substring(1));
-    } else {
-      window.location.href = url;
-    }
-  };
 
   return (
     <section id="hero" className="qd-section pt-12 relative overflow-hidden">
