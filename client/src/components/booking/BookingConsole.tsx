@@ -44,13 +44,7 @@ const FACILITY_ICONS: Record<string, typeof GiTennisRacket> = {
 
 // Icon mapping for add-ons (from database icon field)
 
-// Booking window limits by tier (in days)
-const BOOKING_WINDOW_DAYS: Record<string, number> = {
-  'FOUNDING': 14,
-  'GOLD': 7,
-  'SILVER': 5,
-  'GUEST': 2,
-};
+// Booking window limits are now CMS-driven via pricing_tiers.advanceBookingDays
 
 
 interface VenueData {
@@ -172,6 +166,56 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     },
   });
 
+  // Fetch pricing tiers for dynamic discount and booking window calculation - MUST be defined early
+  interface PricingTierData {
+    id: string;
+    name: string;
+    tier: string;
+    price: number;
+    benefits: string[];
+    isActive: boolean;
+    discountPercent: number | null;
+    advanceBookingDays: number | null;
+    guestPassesIncluded: number | null;
+  }
+  
+  const { data: apiPricingTiers = [] } = useQuery<PricingTierData[]>({
+    queryKey: ['/api/pricing-tiers'],
+  });
+
+  // Extract discount percentages from pricing tiers - use explicit field, fallback to parsing benefits
+  const tierDiscounts = useMemo(() => {
+    const discounts: Record<string, number> = { FOUNDING: 0, GOLD: 0, SILVER: 0, GUEST: 0 };
+    apiPricingTiers.forEach(tier => {
+      if (tier.discountPercent !== null && tier.discountPercent !== undefined) {
+        discounts[tier.tier] = tier.discountPercent;
+      } else {
+        const benefits = tier.benefits || [];
+        const discountBenefit = benefits.find((b: string) => 
+          b.toLowerCase().includes('discount') && b.toLowerCase().includes('off-peak')
+        );
+        if (discountBenefit) {
+          const match = discountBenefit.match(/(\d+)%/);
+          if (match) {
+            discounts[tier.tier] = parseInt(match[1], 10);
+          }
+        }
+      }
+    });
+    return discounts;
+  }, [apiPricingTiers]);
+  
+  // Extract booking window days from pricing tiers - use explicit field, fallback to defaults
+  const tierBookingDays = useMemo(() => {
+    const days: Record<string, number> = { FOUNDING: 14, GOLD: 7, SILVER: 5, GUEST: 2 };
+    apiPricingTiers.forEach(tier => {
+      if (tier.advanceBookingDays !== null && tier.advanceBookingDays !== undefined) {
+        days[tier.tier] = tier.advanceBookingDays;
+      }
+    });
+    return days;
+  }, [apiPricingTiers]);
+
   // Build user profile from real data - NO MOCK DATA
   const userProfile = useMemo(() => {
     const tier = membershipData?.tier || 'GUEST';
@@ -196,15 +240,15 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     };
   }, [user, isAuthenticated, membershipData]);
 
-  // Calculate maximum booking date based on membership tier
+  // Calculate maximum booking date based on membership tier - uses tierBookingDays from CMS
   const maxBookingDate = useMemo(() => {
     const tier = userProfile.membershipTier;
     const isActive = userProfile.isActiveMember;
-    const days = isActive ? (BOOKING_WINDOW_DAYS[tier] || 2) : 2;
+    const days = isActive ? (tierBookingDays[tier] || 2) : 2;
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() + days);
     return maxDate.toISOString().split('T')[0];
-  }, [userProfile.membershipTier, userProfile.isActiveMember]);
+  }, [userProfile.membershipTier, userProfile.isActiveMember, tierBookingDays]);
 
   // Validate selected date is within booking window
   const isDateWithinBookingWindow = useMemo(() => {
@@ -328,38 +372,6 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       label: a.name,
     }));
   }, [apiHallActivities]);
-
-  // Fetch pricing tiers for dynamic discount calculation
-  interface PricingTierData {
-    id: string;
-    name: string;
-    tier: string;
-    price: number;
-    benefits: string[];
-    isActive: boolean;
-  }
-  
-  const { data: apiPricingTiers = [] } = useQuery<PricingTierData[]>({
-    queryKey: ['/api/pricing-tiers'],
-  });
-
-  // Extract discount percentages from pricing tier benefits - fully dynamic from CMS
-  const tierDiscounts = useMemo(() => {
-    const discounts: Record<string, number> = { FOUNDING: 0, GOLD: 0, SILVER: 0, GUEST: 0 };
-    apiPricingTiers.forEach(tier => {
-      const benefits = tier.benefits || [];
-      const discountBenefit = benefits.find((b: string) => 
-        b.toLowerCase().includes('discount') && b.toLowerCase().includes('off-peak')
-      );
-      if (discountBenefit) {
-        const match = discountBenefit.match(/(\d+)%/);
-        if (match) {
-          discounts[tier.tier] = parseInt(match[1], 10);
-        }
-      }
-    });
-    return discounts;
-  }, [apiPricingTiers]);
 
   // Fetch operating hours for selected date's day of week and facility
   // selectedDate is an ISO string like "2025-12-21", need to parse it to get day of week
@@ -793,7 +805,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     // Validate booking window
     if (!isDateWithinBookingWindow) {
       const tier = userProfile.membershipTier;
-      const days = userProfile.isActiveMember ? (BOOKING_WINDOW_DAYS[tier] || 2) : 2;
+      const days = userProfile.isActiveMember ? (tierBookingDays[tier] || 2) : 2;
       toast({
         title: "Date Out of Range",
         description: `Your membership tier allows booking up to ${days} days in advance.`,
@@ -1254,7 +1266,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   {!isDateWithinBookingWindow && (
                     <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
-                      Your {userProfile.membershipTier} tier allows booking up to {BOOKING_WINDOW_DAYS[userProfile.membershipTier] || 2} days ahead
+                      Your {userProfile.membershipTier} tier allows booking up to {tierBookingDays[userProfile.membershipTier] || 2} days ahead
                     </p>
                   )}
                 </div>
@@ -1828,7 +1840,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
               </div>
               <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-md text-center">
                 <CalendarDays className="w-8 h-8 mx-auto text-purple-500 mb-2" />
-                <p className="text-2xl font-bold">{BOOKING_WINDOW_DAYS[userProfile.membershipTier] || 2}</p>
+                <p className="text-2xl font-bold">{tierBookingDays[userProfile.membershipTier] || 2}</p>
                 <p className="text-xs text-muted-foreground uppercase mt-1">Days Advance</p>
               </div>
             </div>
@@ -1857,7 +1869,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                     </div>
                     <div>
                       <p className="font-medium">Booking Window</p>
-                      <p className="text-xs text-muted-foreground">Book up to {BOOKING_WINDOW_DAYS[userProfile.membershipTier] || 2} days ahead</p>
+                      <p className="text-xs text-muted-foreground">Book up to {tierBookingDays[userProfile.membershipTier] || 2} days ahead</p>
                     </div>
                   </li>
                   {userProfile.guestPasses > 0 && (

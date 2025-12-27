@@ -210,6 +210,39 @@ export async function runStartupMigrations() {
     `).catch(() => {});
     logger.info("pricing_tiers extended CMS columns verified", { source: "migrations" });
     
+    // Add booking privilege columns to pricing_tiers table
+    await pool.query(`
+      ALTER TABLE pricing_tiers 
+      ADD COLUMN IF NOT EXISTS discount_percent INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS advance_booking_days INTEGER DEFAULT 2,
+      ADD COLUMN IF NOT EXISTS guest_passes_included INTEGER DEFAULT 0
+    `).catch(() => {});
+    logger.info("pricing_tiers booking privilege columns verified", { source: "migrations" });
+    
+    // Seed booking privilege values if not already set (update only if value is 0/2 default)
+    await pool.query(`
+      UPDATE pricing_tiers SET 
+        discount_percent = 25,
+        advance_booking_days = 14,
+        guest_passes_included = 10
+      WHERE tier = 'FOUNDING' AND (advance_booking_days = 2 OR advance_booking_days IS NULL);
+      
+      UPDATE pricing_tiers SET 
+        discount_percent = 20,
+        advance_booking_days = 7,
+        guest_passes_included = 4
+      WHERE tier = 'GOLD' AND (advance_booking_days = 2 OR advance_booking_days IS NULL);
+      
+      UPDATE pricing_tiers SET 
+        discount_percent = 10,
+        advance_booking_days = 5,
+        guest_passes_included = 2
+      WHERE tier = 'SILVER' AND (advance_booking_days = 2 OR advance_booking_days IS NULL);
+    `).catch((err) => {
+      logger.warn("pricing_tiers booking privilege seed may have failed", { source: "migrations", error: String(err) });
+    });
+    logger.info("pricing_tiers booking privileges seeded", { source: "migrations" });
+    
     // Create membership_application_status enum if not exists
     await pool.query(`
       DO $$ BEGIN

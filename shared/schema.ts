@@ -316,6 +316,10 @@ export const pricingTiers = pgTable("pricing_tiers", {
   tagline: varchar("tagline"),
   description: text("description"),
   isClosed: boolean("is_closed").default(false),
+  // Booking privilege fields - replaces hardcoded values
+  discountPercent: integer("discount_percent").default(0), // Off-peak discount percentage
+  advanceBookingDays: integer("advance_booking_days").default(2), // How many days ahead member can book
+  guestPassesIncluded: integer("guest_passes_included").default(0), // Monthly guest passes
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
