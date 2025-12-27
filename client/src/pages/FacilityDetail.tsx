@@ -215,7 +215,7 @@ export default function FacilityDetail() {
   }
 
   const FacilityIcon = facilityIcons[slug || ""] || GiTennisRacket;
-  const facilityBgImage = facilityImages[slug || ""] || padelImage;
+  const facilityBgImage = facility.imageUrl || facilityImages[slug || ""] || padelImage;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

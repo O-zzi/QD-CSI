@@ -167,10 +167,10 @@ export default function Facilities() {
                   <CardContent className="p-0">
                     <div className="flex flex-col md:flex-row">
                       <div className="md:w-1/3 h-48 md:h-auto relative overflow-hidden">
-                        {facilityImages[facility.slug] ? (
+                        {(facility.imageUrl || facilityImages[facility.slug]) ? (
                           <>
                             <img 
-                              src={facilityImages[facility.slug]} 
+                              src={facility.imageUrl || facilityImages[facility.slug]} 
                               alt={facility.name}
                               className="absolute inset-0 w-full h-full object-cover"
                             />

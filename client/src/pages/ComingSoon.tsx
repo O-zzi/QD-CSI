@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
@@ -10,19 +11,20 @@ import { useToast } from "@/hooks/use-toast";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import { ArrowRight, Calendar, Mail, MapPin, Clock, Loader2, CheckCircle } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
+import type { SiteImage } from "@shared/schema";
 
-import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
-import squashImage from "@assets/stock_images/indoor_squash_court__c97e350b.jpg";
-import renderExterior1 from "@assets/stock_images/architectural_render_b118ee78.jpg";
-import renderExterior2 from "@assets/stock_images/architectural_render_cd4dce75.jpg";
-import constructionCourt1 from "@assets/stock_images/sports_facility_cons_6b087ae8.jpg";
+import padelImageDefault from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
+import squashImageDefault from "@assets/stock_images/indoor_squash_court__c97e350b.jpg";
+import renderExterior1Default from "@assets/stock_images/architectural_render_b118ee78.jpg";
+import renderExterior2Default from "@assets/stock_images/architectural_render_cd4dce75.jpg";
+import constructionCourt1Default from "@assets/stock_images/sports_facility_cons_6b087ae8.jpg";
 
-const carouselImages = [
-  { src: renderExterior1, alt: "Complex Exterior Render", caption: "Premium Sports Complex Design" },
-  { src: padelImage, alt: "Padel Tennis Courts", caption: "World-Class Padel Courts" },
-  { src: squashImage, alt: "Squash Court", caption: "Professional Squash Facility" },
-  { src: renderExterior2, alt: "Sports Arena", caption: "Modern Architecture" },
-  { src: constructionCourt1, alt: "Construction Progress", caption: "Building Your Future" },
+const defaultCarouselImages = [
+  { key: "coming-soon-1", src: renderExterior1Default, alt: "Complex Exterior Render", caption: "Premium Sports Complex Design" },
+  { key: "coming-soon-2", src: padelImageDefault, alt: "Padel Tennis Courts", caption: "World-Class Padel Courts" },
+  { key: "coming-soon-3", src: squashImageDefault, alt: "Squash Court", caption: "Professional Squash Facility" },
+  { key: "coming-soon-4", src: renderExterior2Default, alt: "Sports Arena", caption: "Modern Architecture" },
+  { key: "coming-soon-5", src: constructionCourt1Default, alt: "Construction Progress", caption: "Building Your Future" },
 ];
 
 interface TimeLeft {
@@ -46,6 +48,28 @@ export default function ComingSoon() {
     'site_name',
     'hero_eyebrow',
   ], CMS_DEFAULTS);
+
+  const { data: siteImages = [] } = useQuery<SiteImage[]>({
+    queryKey: ['/api/site-images', 'coming-soon'],
+    queryFn: async () => {
+      const res = await fetch('/api/site-images?page=coming-soon');
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const carouselImages = useMemo(() => {
+    return defaultCarouselImages.map(item => {
+      const cmsImage = siteImages.find(img => img.section === item.key && img.isActive);
+      return {
+        ...item,
+        src: cmsImage?.imageUrl || item.src,
+        alt: cmsImage?.alt || item.alt,
+        caption: cmsImage?.title || item.caption,
+      };
+    });
+  }, [siteImages]);
 
   const launchDateStr = getValue('coming_soon_launch_date') || CMS_DEFAULTS.coming_soon_launch_date || '2026-10-01';
   const launchDate = new Date(launchDateStr);
@@ -123,153 +147,150 @@ export default function ComingSoon() {
     <div className="min-h-screen bg-[#1a2a40] relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-500/20 rounded-full blur-3xl" />
       </div>
-
-      <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex flex-col">
-        <header className="flex justify-center items-center mb-8">
-          <span className="text-2xl font-bold text-white" data-testid="text-brand">
-            {getValue('site_name') || CMS_DEFAULTS.site_name || 'The Quarterdeck'}
-          </span>
+      
+      <div className="relative z-10">
+        <header className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
+            <Link href="/">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur">
+                  <span className="text-xl font-bold text-white">Q</span>
+                </div>
+                <span className="text-xl font-semibold text-white hidden sm:block">
+                  {getValue('site_name') || CMS_DEFAULTS.site_name}
+                </span>
+              </div>
+            </Link>
+            <Link href="/">
+              <Button variant="outline" className="text-white border-white/30 bg-white/10 backdrop-blur-sm">
+                Full Website <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
         </header>
 
-        <main className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
-          <div className="flex-1 max-w-xl text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
-              <Calendar className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm text-white/90" data-testid="text-launch-badge">
-                {getValue('hero_eyebrow') || CMS_DEFAULTS.hero_eyebrow}
-              </span>
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 leading-tight" data-testid="text-coming-soon-title">
-              {getValue('coming_soon_title') || CMS_DEFAULTS.coming_soon_title}
-            </h1>
-            
-            <p className="text-lg sm:text-xl text-white/80 mb-8" data-testid="text-coming-soon-subtitle">
-              {getValue('coming_soon_subtitle') || CMS_DEFAULTS.coming_soon_subtitle}
-            </p>
-
-            <div className="flex flex-wrap justify-center lg:justify-start gap-4 sm:gap-6 mb-10">
-              <CountdownUnit value={timeLeft.days} label="Days" />
-              <CountdownUnit value={timeLeft.hours} label="Hours" />
-              <CountdownUnit value={timeLeft.minutes} label="Mins" />
-              <CountdownUnit value={timeLeft.seconds} label="Secs" />
-            </div>
-
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto lg:mx-0 mb-8">
-              <div className="relative flex-1">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/50" />
-                <Input
-                  type="email"
-                  placeholder="Enter your email for updates"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 rounded-lg h-12"
-                  data-testid="input-coming-soon-email"
-                />
+        <main className="container mx-auto px-6 py-12 md:py-24">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <span className="inline-block px-4 py-1.5 bg-amber-500/20 text-amber-300 rounded-full text-sm font-medium">
+                  {getValue('hero_eyebrow') || CMS_DEFAULTS.hero_eyebrow}
+                </span>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                  {getValue('coming_soon_title') || CMS_DEFAULTS.coming_soon_title}
+                </h1>
+                <p className="text-lg text-white/70 max-w-lg">
+                  {getValue('coming_soon_subtitle') || CMS_DEFAULTS.coming_soon_subtitle}
+                </p>
               </div>
-              <Button 
-                type="submit"
-                className="h-12 px-6 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg"
-                disabled={subscribeMutation.isPending}
-                data-testid="button-subscribe"
-              >
-                {subscribeMutation.isPending ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    Notify Me <ArrowRight className="ml-2 w-4 h-4" />
-                  </>
-                )}
-              </Button>
-            </form>
 
-            <div className="flex flex-wrap justify-center lg:justify-start gap-6 text-white/70">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-cyan-400" />
-                <span className="text-sm">{getValue('coming_soon_location') || CMS_DEFAULTS.coming_soon_location}</span>
+              <div className="flex items-center gap-4 text-white/70">
+                <MapPin className="w-5 h-5" />
+                <span>{getValue('coming_soon_location') || CMS_DEFAULTS.coming_soon_location || 'Islamabad, Pakistan'}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-cyan-400" />
-                <span className="text-sm">6 AM - 10 PM Daily</span>
-              </div>
-            </div>
 
-            <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {['Padel Tennis', 'Squash', 'Air Rifle', 'Multipurpose Hall'].map((facility) => (
-                <div key={facility} className="flex items-center gap-2 text-white/80">
-                  <CheckCircle className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-                  <span className="text-sm">{facility}</span>
+              {!isLaunched ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-white/80">
+                    <Calendar className="w-5 h-5" />
+                    <span>Expected Launch: Q4 2026</span>
+                  </div>
+                  <div className="flex gap-3 sm:gap-4 md:gap-6">
+                    <CountdownUnit value={timeLeft.days} label="Days" />
+                    <CountdownUnit value={timeLeft.hours} label="Hours" />
+                    <CountdownUnit value={timeLeft.minutes} label="Mins" />
+                    <CountdownUnit value={timeLeft.seconds} label="Secs" />
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex-1 max-w-lg w-full">
-            <Carousel 
-              className="w-full"
-              opts={{ loop: true }}
-              plugins={[Autoplay({ delay: 4000 })]}
-            >
-              <CarouselContent>
-                {carouselImages.map((image, index) => (
-                  <CarouselItem key={index}>
-                    <Card className="border-0 bg-transparent">
-                      <CardContent className="p-0">
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
-                          <img
-                            src={image.src}
-                            alt={image.alt}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                          <div className="absolute bottom-4 left-4 right-4">
-                            <span className="text-white font-medium text-lg">{image.caption}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-            </Carousel>
-
-            <div className="mt-6 flex justify-center gap-4">
-              {/* Explore Full Site - enabled only after launch */}
-              {isLaunched ? (
-                <Link href="/">
-                  <Button 
-                    variant="outline" 
-                    className="border-white/20 text-white hover:bg-white/10 rounded-lg" 
-                    data-testid="button-explore-site"
-                  >
-                    Explore Full Site
-                  </Button>
-                </Link>
               ) : (
-                <Button 
-                  variant="outline" 
-                  className="border-white/20 text-white/50 rounded-lg cursor-not-allowed opacity-60" 
-                  disabled
-                  data-testid="button-explore-site"
-                >
-                  Explore Full Site
-                </Button>
+                <div className="flex items-center gap-2 text-green-400 text-xl">
+                  <CheckCircle className="w-6 h-6" />
+                  <span className="font-semibold">We're Live!</span>
+                </div>
               )}
-              <Link href="/roadmap">
-                <Button className="bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg" data-testid="button-view-progress">
-                  View Progress
-                </Button>
-              </Link>
+
+              <Card className="bg-white/10 border-white/20 backdrop-blur">
+                <CardContent className="p-6">
+                  <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                    <Mail className="w-5 h-5" />
+                    Get Early Access Updates
+                  </h3>
+                  <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
+                    <Input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      required
+                      data-testid="input-email-subscribe"
+                    />
+                    <Button 
+                      type="submit" 
+                      disabled={subscribeMutation.isPending}
+                      className="bg-amber-500 text-white"
+                      data-testid="button-subscribe"
+                    >
+                      {subscribeMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Notify Me"
+                      )}
+                    </Button>
+                  </form>
+                  <p className="text-xs text-white/50 mt-3">
+                    Join the waitlist for exclusive pre-launch offers and founding member benefits.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="lg:pl-8">
+              <Carousel
+                opts={{ loop: true }}
+                plugins={[
+                  Autoplay({
+                    delay: 4000,
+                    stopOnInteraction: true,
+                    stopOnMouseEnter: true,
+                  }),
+                ]}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {carouselImages.map((image, index) => (
+                    <CarouselItem key={index}>
+                      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
+                        <img
+                          src={image.src}
+                          alt={image.alt}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-6">
+                          <p className="text-white font-medium text-lg">{image.caption}</p>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
             </div>
           </div>
         </main>
 
-        <footer className="mt-8 text-center text-white/50 text-sm">
-          <p>2024-2026 The Quarterdeck. All rights reserved.</p>
+        <footer className="container mx-auto px-6 py-8 border-t border-white/10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-white/50 text-sm">
+              2024-2027 The Quarterdeck. All rights reserved.
+            </p>
+            <div className="flex items-center gap-4 text-white/50 text-sm">
+              <Clock className="w-4 h-4" />
+              <span>Pre-launch Phase</span>
+            </div>
+          </div>
         </footer>
       </div>
     </div>

@@ -127,6 +127,7 @@ export const facilityAddOns = pgTable("facility_add_ons", {
   label: varchar("label").notNull(),
   price: integer("price").default(0).notNull(),
   icon: varchar("icon"),
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
