@@ -2603,6 +2603,113 @@ export async function registerRoutes(
     }
   });
 
+  // Public API for certification classes (upcoming classes)
+  app.get('/api/certification-classes', async (req, res) => {
+    try {
+      const certificationId = req.query.certificationId as string | undefined;
+      const allClasses = await storage.getCertificationClasses();
+      const now = new Date();
+      const upcomingClasses = allClasses.filter(c => 
+        c.status === 'SCHEDULED' && 
+        c.scheduledDate && 
+        new Date(c.scheduledDate) > now &&
+        (!certificationId || c.certificationId === certificationId)
+      );
+      res.json(upcomingClasses);
+    } catch (error) {
+      console.error("Error fetching certification classes:", error);
+      res.status(500).json({ message: "Failed to fetch certification classes" });
+    }
+  });
+
+  // User enrolls in a certification class
+  app.post('/api/certification-classes/:id/enroll', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const classId = req.params.id;
+      const certClass = await storage.getCertificationClass(classId);
+      if (!certClass) {
+        return res.status(404).json({ message: "Class not found" });
+      }
+      
+      if (certClass.status !== 'SCHEDULED') {
+        return res.status(400).json({ message: "Class is not available for enrollment" });
+      }
+      
+      if (certClass.capacity && (certClass.enrolledCount || 0) >= certClass.capacity) {
+        return res.status(400).json({ message: "Class is full" });
+      }
+      
+      const enrollment = await storage.enrollUserInClass(classId, userId);
+      res.status(201).json(enrollment);
+    } catch (error: any) {
+      console.error("Error enrolling in class:", error);
+      if (error.message === 'Already enrolled in this class') {
+        return res.status(409).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to enroll in class" });
+    }
+  });
+
+  // User's class enrollments
+  app.get('/api/my-enrollments', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      const enrollments = await storage.getUserEnrollments(userId);
+      res.json(enrollments);
+    } catch (error) {
+      console.error("Error fetching enrollments:", error);
+      res.status(500).json({ message: "Failed to fetch enrollments" });
+    }
+  });
+
+  // User submits proof of certification (from external provider)
+  app.post('/api/my-certifications/submit', isAuthenticated, upload.single('proofDocument'), async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const schema = z.object({
+        certificationId: z.string().min(1),
+        certificateNumber: z.string().optional(),
+        expiresAt: z.string().optional(),
+        notes: z.string().optional(),
+      });
+      
+      const result = schema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
+      }
+      
+      const { certificationId, certificateNumber, expiresAt, notes } = result.data;
+      const proofUrl = req.file ? `/uploads/${req.file.filename}` : null;
+      
+      const submission = await storage.issueUserCertification({
+        userId,
+        certificationId,
+        certificateNumber: certificateNumber || null,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+        proofDocumentUrl: proofUrl,
+        notes: notes || null,
+        status: 'PENDING', // Requires admin verification
+      });
+      
+      res.status(201).json(submission);
+    } catch (error) {
+      console.error("Error submitting certification:", error);
+      res.status(500).json({ message: "Failed to submit certification" });
+    }
+  });
+
   // Admin Construction Phases routes
   app.get('/api/admin/construction-phases', isAuthenticated, isAdmin, async (req, res) => {
     try {

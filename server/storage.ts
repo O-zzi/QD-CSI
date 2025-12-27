@@ -455,6 +455,10 @@ export interface IStorage {
   updateUserCertification(id: string, data: Partial<InsertUserCertification>): Promise<UserCertification | undefined>;
   revokeUserCertification(id: string, notes?: string): Promise<UserCertification | undefined>;
   
+  // Certification Enrollment operations
+  enrollUserInClass(classId: string, userId: string): Promise<CertificationEnrollment>;
+  getUserEnrollments(userId: string): Promise<CertificationEnrollment[]>;
+  
   // Health check
   healthCheck(): Promise<boolean>;
 }
@@ -2012,6 +2016,36 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userCertifications.id, id))
       .returning();
     return revoked;
+  }
+
+  async enrollUserInClass(classId: string, userId: string): Promise<CertificationEnrollment> {
+    const existingEnrollment = await db.select().from(certificationEnrollments)
+      .where(and(
+        eq(certificationEnrollments.classId, classId),
+        eq(certificationEnrollments.userId, userId)
+      ));
+    
+    if (existingEnrollment.length > 0) {
+      throw new Error('Already enrolled in this class');
+    }
+    
+    const [enrollment] = await db
+      .insert(certificationEnrollments)
+      .values({ classId, userId, status: 'ENROLLED' })
+      .returning();
+    
+    await db
+      .update(certificationClasses)
+      .set({ enrolledCount: sql`COALESCE(enrolled_count, 0) + 1` })
+      .where(eq(certificationClasses.id, classId));
+    
+    return enrollment;
+  }
+
+  async getUserEnrollments(userId: string): Promise<CertificationEnrollment[]> {
+    return await db.select().from(certificationEnrollments)
+      .where(eq(certificationEnrollments.userId, userId))
+      .orderBy(desc(certificationEnrollments.createdAt));
   }
 
   async healthCheck(): Promise<boolean> {
