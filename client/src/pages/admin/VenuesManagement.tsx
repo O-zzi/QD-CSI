@@ -146,7 +146,8 @@ export default function VenuesManagement() {
   const saveVenue = (venueId: string) => {
     const data = editData[venueId];
     if (data) {
-      updateMutation.mutate({ id: venueId, data });
+      const { id, createdAt, updatedAt, ...editableData } = data;
+      updateMutation.mutate({ id: venueId, data: editableData });
     }
   };
 
