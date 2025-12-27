@@ -10,57 +10,106 @@ import { RulesSection } from "@/components/landing/RulesSection";
 import { CareersSection } from "@/components/landing/CareersSection";
 import { useCmsMultiple, CMS_DEFAULTS, parseCmsBoolean } from "@/hooks/useCms";
 import { useSEO } from "@/hooks/use-seo";
+import { useMemo } from "react";
+
+interface SectionConfig {
+  id: string;
+  component: () => JSX.Element;
+  altBackground: boolean;
+  visibilityKey: string;
+  orderKey: string;
+}
+
+const sectionConfigs: SectionConfig[] = [
+  {
+    id: 'about',
+    component: () => <AboutSection />,
+    altBackground: true,
+    visibilityKey: 'section_about_visible',
+    orderKey: 'section_about_order',
+  },
+  {
+    id: 'facilities',
+    component: () => <FacilitiesSection />,
+    altBackground: false,
+    visibilityKey: 'section_facilities_visible',
+    orderKey: 'section_facilities_order',
+  },
+  {
+    id: 'updates',
+    component: () => <UpdatesSection />,
+    altBackground: true,
+    visibilityKey: 'section_updates_visible',
+    orderKey: 'section_updates_order',
+  },
+  {
+    id: 'gallery',
+    component: () => <GallerySection />,
+    altBackground: false,
+    visibilityKey: 'section_gallery_visible',
+    orderKey: 'section_gallery_order',
+  },
+  {
+    id: 'membership',
+    component: () => <MembershipSection />,
+    altBackground: true,
+    visibilityKey: 'section_membership_visible',
+    orderKey: 'section_membership_order',
+  },
+  {
+    id: 'rules',
+    component: () => <RulesSection />,
+    altBackground: false,
+    visibilityKey: 'section_rules_visible',
+    orderKey: 'section_rules_order',
+  },
+  {
+    id: 'careers',
+    component: () => <CareersSection />,
+    altBackground: true,
+    visibilityKey: 'section_careers_visible',
+    orderKey: 'section_careers_order',
+  },
+];
 
 export default function Home() {
   useSEO({
     description: "The Quarterdeck is Islamabad's premier sports and recreation complex featuring Padel Tennis, Squash, Air Rifle Range, and exclusive membership packages. Book facilities and join events today.",
   });
-  const { getValue } = useCmsMultiple([
-    'section_about_visible',
-    'section_facilities_visible',
-    'section_updates_visible',
-    'section_gallery_visible',
-    'section_membership_visible',
-    'section_rules_visible',
-    'section_careers_visible',
-  ], CMS_DEFAULTS);
+  
+  const cmsKeys = [
+    ...sectionConfigs.map(s => s.visibilityKey),
+    ...sectionConfigs.map(s => s.orderKey),
+  ];
+  
+  const { getValue } = useCmsMultiple(cmsKeys, CMS_DEFAULTS);
 
-  const showAbout = parseCmsBoolean(getValue('section_about_visible'));
-  const showFacilities = parseCmsBoolean(getValue('section_facilities_visible'));
-  const showUpdates = parseCmsBoolean(getValue('section_updates_visible'));
-  const showGallery = parseCmsBoolean(getValue('section_gallery_visible'));
-  const showMembership = parseCmsBoolean(getValue('section_membership_visible'));
-  const showRules = parseCmsBoolean(getValue('section_rules_visible'));
-  const showCareers = parseCmsBoolean(getValue('section_careers_visible'));
+  const sortedSections = useMemo(() => {
+    return sectionConfigs
+      .filter(section => parseCmsBoolean(getValue(section.visibilityKey)))
+      .sort((a, b) => {
+        const orderA = parseInt(getValue(a.orderKey) || '99', 10);
+        const orderB = parseInt(getValue(b.orderKey) || '99', 10);
+        return orderA - orderB;
+      });
+  }, [getValue]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1">
         <HeroSection />
-        {showAbout && (
-          <div className="qd-section-alt">
-            <AboutSection />
-          </div>
-        )}
-        {showFacilities && <FacilitiesSection />}
-        {showUpdates && (
-          <div className="qd-section-alt">
-            <UpdatesSection />
-          </div>
-        )}
-        {showGallery && <GallerySection />}
-        {showMembership && (
-          <div className="qd-section-alt">
-            <MembershipSection />
-          </div>
-        )}
-        {showRules && <RulesSection />}
-        {showCareers && (
-          <div className="qd-section-alt">
-            <CareersSection />
-          </div>
-        )}
+        {sortedSections.map((section) => {
+          const Component = section.component;
+          if (section.altBackground) {
+            return (
+              <div key={section.id} className="qd-section-alt">
+                <Component />
+              </div>
+            );
+          }
+          return <Component key={section.id} />;
+        })}
       </main>
       <Footer />
     </div>

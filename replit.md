@@ -85,6 +85,10 @@ All images on the site are database-driven and editable via the admin panel. No 
 - **Enhanced User Profile:** A multi-tab profile page (Account, Bookings, Notifications, Membership) supporting profile photo uploads (up to 5MB, image types only) and detailed displays.
 - **Standardized Page Layouts:** Consistent layout structure with shared headers and footers across all major pages, including specific hero banner heights.
 - **Deployment Infrastructure:** Includes Winston-based structured logging, environment variable validation, a health check endpoint (`/api/health`), and Passenger compatibility for VPS deployment. Deployment artifacts include SQL schemas and seeding scripts.
+- **Homepage Section Ordering:** Admin can reorder homepage sections (About, Facilities, Updates, Gallery, Membership, Rules, Careers) via the Homepage Management panel. Sections are sorted by their order number (lower = appears first).
+- **Facility Certification:** Air Rifle Range requires safety certification before booking. Admin can toggle `requiresCertification` on any facility via Facilities Management.
+- **Email Test Endpoint:** Admin can test SMTP configuration via `POST /api/admin/email/test` endpoint.
+- **Scheduled Email Jobs:** Daily cron job at 9 AM sends event reminders to registered participants (1-day and 3-day advance notifications).
 
 ### Supabase Integration (Optional)
 

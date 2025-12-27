@@ -492,6 +492,63 @@
   color: #9ca3af;
 }
 
+/* Mobile Hero Responsiveness */
+@media (max-width: 640px) {
+  .qd-hero-title {
+    font-size: 1.6rem;
+    line-height: 1.15;
+  }
+  
+  .qd-countdown {
+    padding: 0.6rem 0.75rem;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .qd-countdown-unit {
+    padding: 0.3rem 0.4rem;
+    min-width: 2.4rem;
+  }
+  
+  .qd-countdown-number {
+    font-size: 0.95rem;
+  }
+  
+  .qd-countdown-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+  }
+  
+  .qd-hero-card {
+    padding: 1.2rem 1rem;
+    border-radius: 20px;
+  }
+  
+  .qd-eyebrow {
+    font-size: 0.65rem;
+    padding: 0.4rem 0.9rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .qd-hero-title {
+    font-size: 1.4rem;
+  }
+  
+  .qd-countdown-unit {
+    padding: 0.25rem 0.3rem;
+    min-width: 2rem;
+  }
+  
+  .qd-countdown-number {
+    font-size: 0.85rem;
+  }
+  
+  .qd-countdown-label {
+    font-size: 0.5rem;
+  }
+}
+
 /* Section Title */
 .qd-section-title {
   font-size: 2.2rem;

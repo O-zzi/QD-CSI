@@ -205,6 +205,80 @@ export async function registerRoutes(
       });
     }
   });
+  
+  // Email test endpoint (admin only)
+  app.post('/api/admin/email/test', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { email } = req.body;
+      const testEmail = email || req.user.email;
+      
+      if (!testEmail) {
+        return res.status(400).json({ success: false, message: 'No email address provided' });
+      }
+      
+      const nodemailer = await import('nodemailer');
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.hostinger.com',
+        port: parseInt(process.env.SMTP_PORT || '465', 10),
+        secure: true,
+        auth: {
+          user: process.env.SMTP_USER || '',
+          pass: process.env.SMTP_PASS || '',
+        },
+      });
+      
+      const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+      
+      if (!smtpConfigured) {
+        return res.json({
+          success: false,
+          message: 'SMTP credentials not configured',
+          config: {
+            host: process.env.SMTP_HOST || 'smtp.hostinger.com',
+            port: process.env.SMTP_PORT || '465',
+            user: process.env.SMTP_USER ? 'configured' : 'missing',
+            pass: process.env.SMTP_PASS ? 'configured' : 'missing',
+          }
+        });
+      }
+      
+      await transporter.sendMail({
+        from: process.env.SMTP_USER,
+        to: testEmail,
+        subject: 'The Quarterdeck - Email Test',
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Email Test Successful</h2>
+            <p>This is a test email from The Quarterdeck platform.</p>
+            <p>If you received this, your email configuration is working correctly.</p>
+            <p><strong>Sent at:</strong> ${new Date().toISOString()}</p>
+          </div>
+        `,
+      });
+      
+      res.json({ 
+        success: true, 
+        message: `Test email sent to ${testEmail}`,
+        config: {
+          host: process.env.SMTP_HOST,
+          port: process.env.SMTP_PORT,
+          user: process.env.SMTP_USER,
+        }
+      });
+    } catch (error: any) {
+      logger.error('Email test failed:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Email test failed',
+        error: error.message,
+        config: {
+          host: process.env.SMTP_HOST,
+          port: process.env.SMTP_PORT,
+          user: process.env.SMTP_USER ? 'configured' : 'missing',
+        }
+      });
+    }
+  });
 
   // Auth middleware
   await setupAuth(app);

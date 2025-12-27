@@ -132,7 +132,7 @@ export function HeroSection() {
               data-testid="text-hero-title"
               dangerouslySetInnerHTML={{ __html: heroTitle }}
             />
-            <p className="text-muted-foreground max-w-lg mb-6" data-testid="text-hero-subtitle">
+            <p className="text-muted-foreground max-w-lg mb-6 text-sm sm:text-base" data-testid="text-hero-subtitle">
               {heroSubtitle}
             </p>
 
@@ -140,25 +140,25 @@ export function HeroSection() {
               <div className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
                 Estimated Launch Countdown
               </div>
-              <div className="flex items-center gap-3 font-mono" data-testid="countdown-timer">
+              <div className="flex items-center gap-1 sm:gap-3 font-mono flex-wrap justify-center sm:justify-start" data-testid="countdown-timer">
                 <div className="qd-countdown-unit">
                   <span className="qd-countdown-number">{countdown.days}</span>
                   <span className="qd-countdown-label">Days</span>
                 </div>
-                <span className="text-xl font-bold text-muted-foreground">:</span>
+                <span className="text-base sm:text-xl font-bold text-muted-foreground">:</span>
                 <div className="qd-countdown-unit">
                   <span className="qd-countdown-number">{countdown.hours}</span>
                   <span className="qd-countdown-label">Hours</span>
                 </div>
-                <span className="text-xl font-bold text-muted-foreground">:</span>
+                <span className="text-base sm:text-xl font-bold text-muted-foreground">:</span>
                 <div className="qd-countdown-unit">
                   <span className="qd-countdown-number">{countdown.minutes}</span>
-                  <span className="qd-countdown-label">Minutes</span>
+                  <span className="qd-countdown-label">Mins</span>
                 </div>
-                <span className="text-xl font-bold text-muted-foreground">:</span>
+                <span className="text-base sm:text-xl font-bold text-muted-foreground">:</span>
                 <div className="qd-countdown-unit">
                   <span className="qd-countdown-number">{countdown.seconds}</span>
-                  <span className="qd-countdown-label">Seconds</span>
+                  <span className="qd-countdown-label">Secs</span>
                 </div>
               </div>
             </div>
@@ -183,8 +183,8 @@ export function HeroSection() {
               </Link>
             </div>
 
-            <div className="flex flex-wrap gap-6 text-xs text-muted-foreground">
-              <span className="flex items-center gap-2" data-testid="status-construction-active">
+            <div className="flex flex-wrap gap-3 sm:gap-6 text-[10px] sm:text-xs text-muted-foreground">
+              <span className="flex items-center gap-1 sm:gap-2" data-testid="status-construction-active">
                 <span className="qd-status-dot"></span> {statusActive}
               </span>
               <span data-testid="status-updates">{statusUpdates}</span>

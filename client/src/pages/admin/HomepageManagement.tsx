@@ -168,26 +168,28 @@ const cmsSections: Record<string, { title: string; description: string; fields: 
     ],
   },
   visibility: {
-    title: "Section Visibility",
-    description: "Control which sections are displayed on the homepage.",
+    title: "Section Visibility & Order",
+    description: "Control which sections are displayed on the homepage and their display order.",
     fields: [],
   },
 };
 
 interface VisibilitySection {
   key: string;
+  orderKey: string;
   label: string;
   description: string;
+  defaultOrder: number;
 }
 
 const visibilitySections: VisibilitySection[] = [
-  { key: "section_about_visible", label: "About Section", description: "Vision, philosophy and team info" },
-  { key: "section_facilities_visible", label: "Facilities Section", description: "Sports facility cards" },
-  { key: "section_updates_visible", label: "Construction Updates", description: "Progress timeline and milestones" },
-  { key: "section_gallery_visible", label: "Gallery Section", description: "Photo gallery preview" },
-  { key: "section_membership_visible", label: "Membership Section", description: "Membership tiers and pricing" },
-  { key: "section_rules_visible", label: "Rules Section", description: "Club rules and safety" },
-  { key: "section_careers_visible", label: "Careers Section", description: "Job openings preview" },
+  { key: "section_about_visible", orderKey: "section_about_order", label: "About Section", description: "Vision, philosophy and team info", defaultOrder: 1 },
+  { key: "section_facilities_visible", orderKey: "section_facilities_order", label: "Facilities Section", description: "Sports facility cards", defaultOrder: 2 },
+  { key: "section_updates_visible", orderKey: "section_updates_order", label: "Construction Updates", description: "Progress timeline and milestones", defaultOrder: 3 },
+  { key: "section_gallery_visible", orderKey: "section_gallery_order", label: "Gallery Section", description: "Photo gallery preview", defaultOrder: 4 },
+  { key: "section_membership_visible", orderKey: "section_membership_order", label: "Membership Section", description: "Membership tiers and pricing", defaultOrder: 5 },
+  { key: "section_rules_visible", orderKey: "section_rules_order", label: "Rules Section", description: "Club rules and safety", defaultOrder: 6 },
+  { key: "section_careers_visible", orderKey: "section_careers_order", label: "Careers Section", description: "Job openings preview", defaultOrder: 7 },
 ];
 
 export default function HomepageManagement() {
@@ -369,33 +371,66 @@ export default function HomepageManagement() {
                   {sectionKey === 'visibility' ? (
                     <div className="space-y-4">
                       <p className="text-sm text-muted-foreground mb-4">
-                        Toggle sections on or off to control what appears on the homepage. Changes are saved automatically.
+                        Toggle sections on or off and set their display order on the homepage. Lower numbers appear first. Changes are saved automatically.
                       </p>
-                      {visibilitySections.map((vis) => {
+                      {visibilitySections
+                        .slice()
+                        .sort((a, b) => {
+                          const orderA = parseInt(formData[a.orderKey] ?? getDbValue(a.orderKey) ?? String(a.defaultOrder), 10);
+                          const orderB = parseInt(formData[b.orderKey] ?? getDbValue(b.orderKey) ?? String(b.defaultOrder), 10);
+                          return orderA - orderB;
+                        })
+                        .map((vis) => {
                         const dbValue = getDbValue(vis.key);
                         const isVisible = (formData[vis.key] ?? dbValue ?? 'true').toLowerCase() === 'true';
-                        const isSaving = savingKeys.has(vis.key);
-                        const isSaved = savedKeys.has(vis.key);
+                        const isSaving = savingKeys.has(vis.key) || savingKeys.has(vis.orderKey);
+                        const isSaved = savedKeys.has(vis.key) || savedKeys.has(vis.orderKey);
+                        const currentOrder = formData[vis.orderKey] ?? getDbValue(vis.orderKey) ?? String(vis.defaultOrder);
                         
                         return (
                           <div 
                             key={vis.key} 
-                            className="flex items-center justify-between p-4 border rounded-lg"
+                            className="flex items-center justify-between p-4 border rounded-lg gap-4"
                           >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-1">
                               {isVisible ? (
-                                <Eye className="w-5 h-5 text-green-600" />
+                                <Eye className="w-5 h-5 text-green-600 shrink-0" />
                               ) : (
-                                <EyeOff className="w-5 h-5 text-muted-foreground" />
+                                <EyeOff className="w-5 h-5 text-muted-foreground shrink-0" />
                               )}
-                              <div>
+                              <div className="min-w-0">
                                 <Label htmlFor={vis.key} className="font-medium cursor-pointer">
                                   {vis.label}
                                 </Label>
                                 <p className="text-xs text-muted-foreground">{vis.description}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2">
+                                <Label htmlFor={vis.orderKey} className="text-xs text-muted-foreground whitespace-nowrap">Order:</Label>
+                                <Input
+                                  id={vis.orderKey}
+                                  type="number"
+                                  min="1"
+                                  max="10"
+                                  className="w-16 text-center"
+                                  value={currentOrder}
+                                  onChange={(e) => {
+                                    const newOrder = e.target.value;
+                                    setFormData(prev => ({ ...prev, [vis.orderKey]: newOrder }));
+                                  }}
+                                  onBlur={() => {
+                                    const orderValue = formData[vis.orderKey] ?? String(vis.defaultOrder);
+                                    setSavingKeys(prev => new Set(prev).add(vis.orderKey));
+                                    saveMutation.mutate({ 
+                                      key: vis.orderKey, 
+                                      content: orderValue, 
+                                      title: `${vis.label} Order` 
+                                    });
+                                  }}
+                                  data-testid={`input-${vis.orderKey}`}
+                                />
+                              </div>
                               {isSaved && (
                                 <Badge className="bg-green-500 text-xs">
                                   <CheckCircle2 className="w-3 h-3 mr-1" />

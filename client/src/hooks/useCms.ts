@@ -377,6 +377,15 @@ export const CMS_DEFAULTS: Record<string, string> = {
   section_membership_visible: 'true',
   section_rules_visible: 'true',
   section_careers_visible: 'true',
+  
+  // Section Sort Order (homepage) - lower numbers appear first
+  section_about_order: '1',
+  section_facilities_order: '2',
+  section_updates_order: '3',
+  section_gallery_order: '4',
+  section_membership_order: '5',
+  section_rules_order: '6',
+  section_careers_order: '7',
 };
 
 export function parseCmsBoolean(value: string | undefined, defaultValue = true): boolean {
