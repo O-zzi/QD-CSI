@@ -10,9 +10,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
 import squashImage from "@assets/stock_images/indoor_squash_court__c97e350b.jpg";
@@ -187,6 +186,13 @@ export function FacilitiesSection() {
               align: "start",
               loop: true,
             }}
+            plugins={[
+              Autoplay({
+                delay: 4000,
+                stopOnInteraction: true,
+                stopOnMouseEnter: true,
+              }),
+            ]}
             className="w-full"
           >
             <CarouselContent className="-ml-2 md:-ml-4">
@@ -228,8 +234,6 @@ export function FacilitiesSection() {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="hidden md:flex -left-4" />
-            <CarouselNext className="hidden md:flex -right-4" />
           </Carousel>
         )}
       </div>

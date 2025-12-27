@@ -10,9 +10,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 import membershipBg from "@assets/stock_images/modern_indoor_sports_8b182ff8.jpg";
 import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
@@ -184,6 +183,13 @@ export function MembershipSection() {
             align: "start",
             loop: true,
           }}
+          plugins={[
+            Autoplay({
+              delay: 5000,
+              stopOnInteraction: true,
+              stopOnMouseEnter: true,
+            }),
+          ]}
           className="w-full"
         >
           <CarouselContent className="-ml-2 md:-ml-4">
@@ -241,8 +247,6 @@ export function MembershipSection() {
               );
             })}
           </CarouselContent>
-          <CarouselPrevious className="hidden md:flex -left-4" />
-          <CarouselNext className="hidden md:flex -right-4" />
         </Carousel>
 
         <div className="mt-8 text-center">
