@@ -1,4 +1,6 @@
+import { useMemo } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
@@ -8,21 +10,22 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import type { SiteImage } from "@shared/schema";
 
-import renderExterior1 from "@assets/stock_images/architectural_render_b118ee78.jpg";
-import renderExterior2 from "@assets/stock_images/architectural_render_cd4dce75.jpg";
-import renderExterior3 from "@assets/stock_images/architectural_render_c7f63aa7.jpg";
-import constructionCourt1 from "@assets/stock_images/sports_facility_cons_6b087ae8.jpg";
-import constructionCourt2 from "@assets/stock_images/sports_facility_cons_aa71e508.jpg";
-import constructionCourt3 from "@assets/stock_images/sports_facility_cons_44a23ac3.jpg";
+import renderExterior1Default from "@assets/stock_images/architectural_render_b118ee78.jpg";
+import renderExterior2Default from "@assets/stock_images/architectural_render_cd4dce75.jpg";
+import renderExterior3Default from "@assets/stock_images/architectural_render_c7f63aa7.jpg";
+import constructionCourt1Default from "@assets/stock_images/sports_facility_cons_6b087ae8.jpg";
+import constructionCourt2Default from "@assets/stock_images/sports_facility_cons_aa71e508.jpg";
+import constructionCourt3Default from "@assets/stock_images/sports_facility_cons_44a23ac3.jpg";
 
-const galleryItems = [
-  { title: "Complex Exterior Render", type: "render", image: renderExterior1, category: "renders" },
-  { title: "Court Construction Progress", type: "photo", image: constructionCourt1, category: "construction" },
-  { title: "Sports Arena Render", type: "render", image: renderExterior2, category: "renders" },
-  { title: "Indoor Facility Build", type: "photo", image: constructionCourt2, category: "construction" },
-  { title: "Final Design Concept", type: "render", image: renderExterior3, category: "renders" },
-  { title: "Structural Framework", type: "photo", image: constructionCourt3, category: "construction" },
+const defaultGalleryItems = [
+  { key: "gallery-1", title: "Complex Exterior Render", type: "render", image: renderExterior1Default, category: "renders" },
+  { key: "gallery-2", title: "Court Construction Progress", type: "photo", image: constructionCourt1Default, category: "construction" },
+  { key: "gallery-3", title: "Sports Arena Render", type: "render", image: renderExterior2Default, category: "renders" },
+  { key: "gallery-4", title: "Indoor Facility Build", type: "photo", image: constructionCourt2Default, category: "construction" },
+  { key: "gallery-5", title: "Final Design Concept", type: "render", image: renderExterior3Default, category: "renders" },
+  { key: "gallery-6", title: "Structural Framework", type: "photo", image: constructionCourt3Default, category: "construction" },
 ];
 
 export function GallerySection() {
@@ -32,6 +35,29 @@ export function GallerySection() {
     'gallery_cta',
     'gallery_cta_url',
   ], CMS_DEFAULTS);
+
+  const { data: siteImages = [] } = useQuery<SiteImage[]>({
+    queryKey: ['/api/site-images', 'gallery'],
+    queryFn: async () => {
+      const res = await fetch('/api/site-images?page=gallery');
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const galleryItems = useMemo(() => {
+    return defaultGalleryItems.map((item, index) => {
+      const cmsImage = siteImages.find(
+        img => img.section === item.key && img.isActive
+      );
+      return {
+        ...item,
+        title: cmsImage?.title || item.title,
+        image: cmsImage?.imageUrl || item.image,
+      };
+    });
+  }, [siteImages]);
 
   return (
     <section id="gallery" className="qd-section">

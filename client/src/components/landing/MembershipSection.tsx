@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Crown, Star, Sparkles, Users, ChevronRight } from "lucide-react";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
-import type { PricingTier } from "@shared/schema";
+import type { PricingTier, SiteImage } from "@shared/schema";
 import {
   Carousel,
   CarouselContent,
@@ -13,11 +13,18 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 
-import membershipBg from "@assets/stock_images/modern_indoor_sports_8b182ff8.jpg";
-import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
-import squashImage from "@assets/stock_images/indoor_squash_court__c97e350b.jpg";
-import hallImage from "@assets/stock_images/large_event_hall_int_39cfb773.jpg";
-import cafeImage from "@assets/stock_images/modern_cafe_bar_inte_bc2874c0.jpg";
+import membershipBgDefault from "@assets/stock_images/modern_indoor_sports_8b182ff8.jpg";
+import padelImageDefault from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
+import squashImageDefault from "@assets/stock_images/indoor_squash_court__c97e350b.jpg";
+import hallImageDefault from "@assets/stock_images/large_event_hall_int_39cfb773.jpg";
+import cafeImageDefault from "@assets/stock_images/modern_cafe_bar_inte_bc2874c0.jpg";
+
+const defaultTierImages: Record<string, string> = {
+  FOUNDING: padelImageDefault,
+  GOLD: squashImageDefault,
+  SILVER: hallImageDefault,
+  GUEST: cafeImageDefault,
+};
 
 const tierIcons: Record<string, any> = {
   FOUNDING: Crown,
@@ -31,13 +38,6 @@ const tierColors: Record<string, { gradient: string; badge: string }> = {
   GOLD: { gradient: 'from-yellow-500/90 to-yellow-700/90', badge: 'bg-yellow-500' },
   SILVER: { gradient: 'from-gray-500/90 to-gray-700/90', badge: 'bg-gray-500' },
   GUEST: { gradient: 'from-blue-500/90 to-blue-700/90', badge: 'bg-blue-500' },
-};
-
-const tierImages: Record<string, string> = {
-  FOUNDING: padelImage,
-  GOLD: squashImage,
-  SILVER: hallImage,
-  GUEST: cafeImage,
 };
 
 const defaultMembershipTiers = [
@@ -109,6 +109,26 @@ export function MembershipSection() {
     },
     staleTime: 1000 * 60 * 5,
   });
+
+  const { data: siteImages = [] } = useQuery<SiteImage[]>({
+    queryKey: ['/api/site-images', 'membership'],
+    queryFn: async () => {
+      const res = await fetch('/api/site-images?page=membership');
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const getTierImage = (tier: string) => {
+    const img = siteImages.find(i => i.section === `tier-${tier.toLowerCase()}` && i.isActive);
+    return img?.imageUrl || defaultTierImages[tier] || membershipBgDefault;
+  };
+
+  const membershipBg = useMemo(() => {
+    const bgImg = siteImages.find(i => i.section === 'background' && i.isActive);
+    return bgImg?.imageUrl || membershipBgDefault;
+  }, [siteImages]);
 
   const membershipTiers = useMemo(() => {
     if (!apiTiers || apiTiers.length === 0) {
@@ -196,7 +216,7 @@ export function MembershipSection() {
             {membershipTiers.map((tier) => {
               const Icon = tierIcons[tier.tier] || Users;
               const colors = tierColors[tier.tier] || tierColors.GUEST;
-              const image = tierImages[tier.tier] || membershipBg;
+              const image = getTierImage(tier.tier);
 
               return (
                 <CarouselItem key={tier.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
