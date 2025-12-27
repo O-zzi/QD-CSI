@@ -4,8 +4,13 @@ import { Home, Calendar, Users, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function NotFound() {
+  useSEO({
+    title: "Page Not Found",
+    description: "The page you're looking for doesn't exist or has been moved. Visit The Quarterdeck homepage to explore our sports complex.",
+  });
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />

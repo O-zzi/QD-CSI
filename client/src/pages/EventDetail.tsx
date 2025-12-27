@@ -25,6 +25,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
+import { useSEO } from "@/hooks/use-seo";
 
 const registrationFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -58,7 +59,7 @@ export default function EventDetail() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  
+
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationFormSchema),
     defaultValues: {
@@ -78,6 +79,12 @@ export default function EventDetail() {
       return res.json();
     },
     enabled: !!slug,
+  });
+
+  useSEO({
+    title: event?.title || "Event Details",
+    description: event?.description || "View event details and register for events at The Quarterdeck sports complex.",
+    ogImage: event?.imageUrl,
   });
 
   const { data: userRegistrations = [] } = useQuery<{ eventId: string }[]>({

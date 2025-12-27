@@ -9,8 +9,12 @@ import { MembershipSection } from "@/components/landing/MembershipSection";
 import { RulesSection } from "@/components/landing/RulesSection";
 import { CareersSection } from "@/components/landing/CareersSection";
 import { useCmsMultiple, CMS_DEFAULTS, parseCmsBoolean } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function Home() {
+  useSEO({
+    description: "The Quarterdeck is Islamabad's premier sports and recreation complex featuring Padel Tennis, Squash, Air Rifle Range, and exclusive membership packages. Book facilities and join events today.",
+  });
   const { getValue } = useCmsMultiple([
     'section_about_visible',
     'section_facilities_visible',

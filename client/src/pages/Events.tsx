@@ -22,6 +22,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 
 const registrationFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -34,6 +35,11 @@ const registrationFormSchema = z.object({
 type RegistrationFormData = z.infer<typeof registrationFormSchema>;
 
 export default function Events() {
+  useSEO({
+    title: "Events & Tournaments",
+    description: "Discover upcoming events, tournaments, and classes at The Quarterdeck. Register for sports competitions, training clinics, and social events in Islamabad.",
+  });
+
   const { user } = useAuth();
   const { toast } = useToast();
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);

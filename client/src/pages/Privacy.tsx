@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 
 interface PolicySection {
   section: string;
@@ -20,6 +21,11 @@ interface CmsContent {
 }
 
 export default function Privacy() {
+  useSEO({
+    title: "Privacy Policy",
+    description: "The Quarterdeck's privacy policy. Learn how we collect, use, and protect your personal information at our sports complex.",
+  });
+
   const { getValue } = useCmsMultiple([
     'page_privacy_title',
     'page_privacy_subtitle',

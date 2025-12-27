@@ -9,6 +9,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 import type { Rule } from "@shared/schema";
 
 const categoryConfig: Record<string, { title: string; icon: any }> = {
@@ -25,6 +26,11 @@ const categoryConfig: Record<string, { title: string; icon: any }> = {
 const categoryOrder = ["general", "booking", "conduct", "safety", "dresscode", "equipment", "guests", "emergency"];
 
 export default function Rules() {
+  useSEO({
+    title: "Club Rules & Guidelines",
+    description: "Review The Quarterdeck's club rules, safety requirements, dress code, booking policies, and guest guidelines for our sports facilities.",
+  });
+
   const { getValue } = useCmsMultiple([
     'page_rules_title',
     'page_rules_subtitle',

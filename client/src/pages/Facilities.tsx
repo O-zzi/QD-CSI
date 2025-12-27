@@ -10,6 +10,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_d29f9aaf.jpg";
 import squashImage from "@assets/stock_images/professional_squash__c4dca43a.jpg";
@@ -119,6 +120,11 @@ const defaultFacilities: FacilityDisplay[] = [
 ];
 
 export default function Facilities() {
+  useSEO({
+    title: "Our Facilities",
+    description: "Explore world-class sports facilities at The Quarterdeck - Padel Tennis courts, Squash courts, Air Rifle Range, Bridge Room, and Multipurpose Hall in Islamabad.",
+  });
+
   const { getValue } = useCmsMultiple([
     'page_facilities_title',
     'page_facilities_subtitle',

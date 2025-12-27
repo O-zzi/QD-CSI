@@ -1078,4 +1078,141 @@ export async function sendAdminPaymentSubmissionAlert(
   );
 }
 
+// Certification enrollment email
+export async function sendCertificationEnrollmentEmail(
+  user: { email: string; firstName: string },
+  certClass: { name: string; scheduledDate: string; scheduledTime: string; location?: string; facilityName: string }
+): Promise<boolean> {
+  if (!user.email) return false;
+  
+  const html = emailWrapper(`
+    <div class="header" style="background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);">
+      <h1>The Quarterdeck</h1>
+      <p>Certification Class Enrollment</p>
+    </div>
+    <div class="content">
+      <h2>Hello ${user.firstName},</h2>
+      
+      <div class="success">
+        <strong>You're Enrolled!</strong><br>
+        You have successfully enrolled in a certification class.
+      </div>
+      
+      <div class="info-box">
+        <div class="info-row">
+          <span class="info-label">Class</span>
+          <span class="info-value">${certClass.name}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Facility</span>
+          <span class="info-value">${certClass.facilityName}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Date</span>
+          <span class="info-value">${certClass.scheduledDate}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Time</span>
+          <span class="info-value">${certClass.scheduledTime}</span>
+        </div>
+        ${certClass.location ? `
+        <div class="info-row">
+          <span class="info-label">Location</span>
+          <span class="info-value">${certClass.location}</span>
+        </div>
+        ` : ''}
+      </div>
+      
+      <div class="highlight">
+        <strong>What to Expect:</strong><br>
+        Please arrive 15 minutes before the scheduled time. Bring valid ID and any required safety gear. 
+        Upon successful completion, you'll receive your certification to book this facility.
+      </div>
+      
+      <p style="text-align: center;">
+        <a href="https://thequarterdeck.pk/certifications" class="button">View My Enrollments</a>
+      </p>
+      
+      <p>If you need to cancel, please do so at least 24 hours in advance.</p>
+      
+      <p>Best regards,<br><strong>The Quarterdeck Team</strong></p>
+    </div>
+    <div class="footer">
+      <p>The Quarterdeck Sports & Recreation Complex</p>
+      <p>F-7/4, Islamabad, Pakistan | +92 51 1234567</p>
+      <p>info@thequarterdeck.pk</p>
+    </div>
+  `);
+  
+  return emailService.sendEmail(
+    user.email,
+    `Certification Enrollment Confirmed - ${certClass.name} | The Quarterdeck`,
+    html
+  );
+}
+
+// Event reminder email (for scheduled jobs)
+export async function sendEventReminderEmail(
+  user: { email: string; firstName: string },
+  event: { title: string; date: string; time: string; location?: string },
+  daysUntil: number
+): Promise<boolean> {
+  if (!user.email) return false;
+  
+  const html = emailWrapper(`
+    <div class="header" style="background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);">
+      <h1>The Quarterdeck</h1>
+      <p>Event Reminder</p>
+    </div>
+    <div class="content">
+      <h2>Hello ${user.firstName},</h2>
+      
+      <div class="warning">
+        <strong>Your event is coming up ${daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`}!</strong><br>
+        Don't forget about your upcoming event at The Quarterdeck.
+      </div>
+      
+      <div class="info-box">
+        <div class="info-row">
+          <span class="info-label">Event</span>
+          <span class="info-value">${event.title}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Date</span>
+          <span class="info-value">${event.date}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Time</span>
+          <span class="info-value">${event.time}</span>
+        </div>
+        ${event.location ? `
+        <div class="info-row">
+          <span class="info-label">Location</span>
+          <span class="info-value">${event.location}</span>
+        </div>
+        ` : ''}
+      </div>
+      
+      <p style="text-align: center;">
+        <a href="https://thequarterdeck.pk/events" class="button">View Event Details</a>
+      </p>
+      
+      <p>We look forward to seeing you!</p>
+      
+      <p>Best regards,<br><strong>The Quarterdeck Team</strong></p>
+    </div>
+    <div class="footer">
+      <p>The Quarterdeck Sports & Recreation Complex</p>
+      <p>F-7/4, Islamabad, Pakistan | +92 51 1234567</p>
+      <p>events@thequarterdeck.pk</p>
+    </div>
+  `);
+  
+  return emailService.sendEmail(
+    user.email,
+    `Reminder: ${event.title} ${daysUntil === 1 ? 'Tomorrow' : `in ${daysUntil} Days`} | The Quarterdeck`,
+    html
+  );
+}
+
 export { emailService };

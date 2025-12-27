@@ -12,6 +12,7 @@ import { PageHero } from "@/components/layout/PageHero";
 import { MembershipApplicationForm } from "@/components/membership/MembershipApplicationForm";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import { useAuth } from "@/hooks/useAuth";
+import { useSEO } from "@/hooks/use-seo";
 import type { PricingTier, Membership } from "@shared/schema";
 
 const tierIcons: Record<string, any> = {
@@ -132,6 +133,11 @@ const memberBenefits = [
 ];
 
 export default function Membership() {
+  useSEO({
+    title: "Membership Plans",
+    description: "Join The Quarterdeck with exclusive membership tiers - Founding, Gold, Silver, and Guest. Enjoy priority booking, discounts, and premium benefits at Islamabad's premier sports complex.",
+  });
+
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [, setLocation] = useLocation();

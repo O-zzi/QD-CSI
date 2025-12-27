@@ -19,8 +19,13 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { Award, Calendar, Clock, Users, FileCheck, AlertTriangle, CheckCircle, Upload, BookOpen } from "lucide-react";
 import type { Certification, CertificationClass, UserCertification, CertificationEnrollment } from "@shared/schema";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function Certifications() {
+  useSEO({
+    title: "Certifications & Training",
+    description: "Get certified for specialized facilities at The Quarterdeck. Enroll in training classes and obtain required certifications for Air Rifle Range and other facilities.",
+  });
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");

@@ -8,6 +8,7 @@ import rateLimit from "express-rate-limit";
 import { runStartupMigrations } from "./migrations";
 import logger from "./logger";
 import { validateEnvironment, getEnvSummary } from "./envValidation";
+import { initializeScheduledJobs } from "./scheduledJobs";
 
 const app = express();
 const httpServer = createServer(app);
@@ -123,6 +124,8 @@ export function log(message: string, source = "express") {
   });
 
   await registerRoutes(httpServer, app);
+
+  initializeScheduledJobs();
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

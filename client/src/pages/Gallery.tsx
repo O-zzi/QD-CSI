@@ -9,6 +9,7 @@ import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 import type { GalleryImage } from "@shared/schema";
 
 const categories = [
@@ -19,6 +20,11 @@ const categories = [
 ];
 
 export default function Gallery() {
+  useSEO({
+    title: "Gallery",
+    description: "View The Quarterdeck's photo gallery featuring architectural renders, construction progress, and facility images of Islamabad's premier sports complex.",
+  });
+
   const searchParams = useSearch();
   const urlCategory = new URLSearchParams(searchParams).get("category");
   const [selectedCategory, setSelectedCategory] = useState(urlCategory || "all");

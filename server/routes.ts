@@ -17,6 +17,7 @@ import {
   sendAdminPaymentSubmissionAlert,
   sendMembershipApprovedEmail,
   sendMembershipRejectedEmail,
+  sendCertificationEnrollmentEmail,
 } from "./email";
 import { 
   insertBookingSchema,
@@ -2657,6 +2658,28 @@ export async function registerRoutes(
       }
       
       const enrollment = await storage.enrollUserInClass(classId, userId);
+      
+      // Send enrollment confirmation email
+      const user = await storage.getUser(userId);
+      if (user) {
+        // Get facility name for the certification
+        const certification = await storage.getCertification(certClass.certificationId);
+        const facility = certification ? await storage.getFacility(certification.facilityId) : null;
+        
+        sendCertificationEnrollmentEmail(
+          { email: user.email, firstName: user.firstName || 'Member' },
+          {
+            name: certClass.name,
+            scheduledDate: certClass.scheduledDate,
+            scheduledTime: certClass.scheduledTime || 'TBD',
+            location: certClass.location || undefined,
+            facilityName: facility?.name || 'The Quarterdeck',
+          }
+        ).catch(err => {
+          console.error('[email] Failed to send certification enrollment email:', err);
+        });
+      }
+      
       res.status(201).json(enrollment);
     } catch (error: any) {
       console.error("Error enrolling in class:", error);

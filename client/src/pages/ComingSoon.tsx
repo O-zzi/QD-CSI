@@ -9,6 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 import { ArrowRight, Calendar, Mail, MapPin, Clock, Loader2, CheckCircle } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
 import type { SiteImage } from "@shared/schema";
@@ -35,6 +36,11 @@ interface TimeLeft {
 }
 
 export default function ComingSoon() {
+  useSEO({
+    title: "Coming Soon",
+    description: "The Quarterdeck is coming to Islamabad in Q4 2026. Join our waitlist for exclusive early access to Pakistan's premier sports and recreation complex.",
+  });
+
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });

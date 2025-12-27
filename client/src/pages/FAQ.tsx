@@ -9,6 +9,7 @@ import { PageHero } from "@/components/layout/PageHero";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 import type { FaqCategory, FaqItem } from "@shared/schema";
 
 interface FAQCategoryWithItems extends FaqCategory {
@@ -47,6 +48,11 @@ function FAQAccordion({ item, isOpen, onToggle }: { item: FaqItem; isOpen: boole
 }
 
 export default function FAQ() {
+  useSEO({
+    title: "Frequently Asked Questions",
+    description: "Find answers to common questions about The Quarterdeck - membership, booking, facilities, payments, and policies at Islamabad's sports complex.",
+  });
+
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
   const { getValue } = useCmsMultiple([

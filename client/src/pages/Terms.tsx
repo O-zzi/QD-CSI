@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 
 interface PolicySection {
   section: string;
@@ -20,6 +21,11 @@ interface CmsContent {
 }
 
 export default function Terms() {
+  useSEO({
+    title: "Terms & Conditions",
+    description: "The Quarterdeck's terms and conditions. Review our policies for membership, facility usage, bookings, and member conduct.",
+  });
+
   const { getValue } = useCmsMultiple([
     'page_terms_title',
     'page_terms_subtitle',

@@ -6,8 +6,13 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function Vision() {
+  useSEO({
+    title: "Our Vision",
+    description: "Learn about The Quarterdeck's mission, values, and vision for creating a world-class sports and recreation community in Islamabad, Pakistan.",
+  });
   const { getValue } = useCmsMultiple([
     'page_vision_title',
     'page_vision_subtitle',

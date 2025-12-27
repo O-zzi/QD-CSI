@@ -12,6 +12,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 import type { LeaderboardEntry } from "@shared/schema";
 
 // Extended type for API response which includes joined user data
@@ -29,6 +30,11 @@ const FACILITIES = [
 ];
 
 export default function Leaderboard() {
+  useSEO({
+    title: "Leaderboard",
+    description: "View The Quarterdeck's sports leaderboard rankings. Track top players and compete in Padel Tennis, Squash, and Air Rifle competitions.",
+  });
+
   const [selectedFacility, setSelectedFacility] = useState('all');
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 

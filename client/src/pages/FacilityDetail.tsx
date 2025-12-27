@@ -9,6 +9,7 @@ import { GiTennisRacket, GiSquare } from "react-icons/gi";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import type { Facility, FacilityAddOn, PricingTier } from "@shared/schema";
+import { useSEO } from "@/hooks/use-seo";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
 import squashImage from "@assets/stock_images/indoor_squash_court__3447d74a.jpg";
@@ -222,6 +223,12 @@ export default function FacilityDetail() {
 
   const FacilityIcon = facilityIcons[slug || ""] || GiTennisRacket;
   const facilityBgImage = facility.imageUrl || facilityImages[slug || ""] || padelImage;
+
+  useSEO({
+    title: facility.name,
+    description: facility.description || `Book ${facility.name} at The Quarterdeck sports complex in Islamabad.`,
+    ogImage: facilityBgImage,
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

@@ -22,6 +22,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -34,6 +35,11 @@ const contactFormSchema = z.object({
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
 export default function Contact() {
+  useSEO({
+    title: "Contact Us",
+    description: "Get in touch with The Quarterdeck. Contact us for facility inquiries, membership questions, event bookings, or general information about our sports complex in Islamabad.",
+  });
+
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
 

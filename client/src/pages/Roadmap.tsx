@@ -11,6 +11,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 
 interface ConstructionPhase {
   id: string;
@@ -60,6 +61,11 @@ const getStatusIcon = (phase: ConstructionPhase) => {
 };
 
 export default function Roadmap() {
+  useSEO({
+    title: "Construction Roadmap",
+    description: "Follow The Quarterdeck's construction progress in Islamabad. View milestones, timeline, and development phases for our sports complex launch in Q4 2026.",
+  });
+
   const { getValue } = useCmsMultiple([
     'page_roadmap_title',
     'page_roadmap_subtitle',

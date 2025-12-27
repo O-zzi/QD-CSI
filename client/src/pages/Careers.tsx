@@ -20,6 +20,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
+import { useSEO } from "@/hooks/use-seo";
 import type { Career } from "@shared/schema";
 
 const applicationSchema = z.object({
@@ -92,6 +93,11 @@ const defaultJobs = [
 ];
 
 export default function Careers() {
+  useSEO({
+    title: "Careers",
+    description: "Join The Quarterdeck team. Explore career opportunities at Islamabad's premier sports and recreation complex. Apply for positions in operations, coaching, and hospitality.",
+  });
+
   const { toast } = useToast();
   const { user } = useAuth();
   const [selectedJob, setSelectedJob] = useState<typeof defaultJobs[0] | null>(null);

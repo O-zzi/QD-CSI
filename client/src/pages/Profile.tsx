@@ -19,8 +19,13 @@ import {
 import type { Booking, Membership, Notification } from "@shared/schema";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { useSEO } from "@/hooks/use-seo";
 
 export default function Profile() {
+  useSEO({
+    title: "My Profile",
+    description: "Manage your Quarterdeck account, view bookings, notifications, and membership status.",
+  });
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const searchParams = useSearch();
   const urlParams = new URLSearchParams(searchParams);
