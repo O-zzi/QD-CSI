@@ -7,6 +7,7 @@ export function AboutSection() {
     'about_title',
     'about_subtitle',
     'about_cta',
+    'about_cta_url',
     'about_vision_title',
     'about_vision_content',
     'about_vision_content_2',
@@ -31,7 +32,7 @@ export function AboutSection() {
               {getValue('about_subtitle') || CMS_DEFAULTS.about_subtitle}
             </p>
           </div>
-          <Link href="/vision">
+          <Link href={getValue('about_cta_url') || CMS_DEFAULTS.about_cta_url || '/vision'}>
             <Button
               variant="outline"
               className="rounded-full"

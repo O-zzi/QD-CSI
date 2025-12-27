@@ -10,6 +10,7 @@ export function RulesSection() {
     'rules_title',
     'rules_subtitle',
     'rules_cta',
+    'rules_cta_url',
   ], CMS_DEFAULTS);
 
   const { data: rules, isLoading } = useQuery<Rule[]>({
@@ -30,7 +31,7 @@ export function RulesSection() {
               {getValue('rules_subtitle') || CMS_DEFAULTS.rules_subtitle}
             </p>
           </div>
-          <Link href="/rules">
+          <Link href={getValue('rules_cta_url') || CMS_DEFAULTS.rules_cta_url || '/rules'}>
             <Button variant="outline" className="rounded-full" data-testid="button-view-all-rules">
               {getValue('rules_cta') || CMS_DEFAULTS.rules_cta} <ChevronRight className="w-4 h-4 ml-1" />
             </Button>

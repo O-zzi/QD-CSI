@@ -125,6 +125,7 @@ export function FacilitiesSection() {
     'facilities_title',
     'facilities_subtitle',
     'facilities_cta',
+    'facilities_cta_url',
   ], CMS_DEFAULTS);
 
   const { data: dbFacilities, isLoading } = useQuery<any[]>({
@@ -162,7 +163,7 @@ export function FacilitiesSection() {
               {getValue('facilities_subtitle') || CMS_DEFAULTS.facilities_subtitle}
             </p>
           </div>
-          <Link href="/booking">
+          <Link href={getValue('facilities_cta_url') || CMS_DEFAULTS.facilities_cta_url || '/booking'}>
             <Button className="rounded-full" data-testid="button-check-availability">
               {getValue('facilities_cta') || CMS_DEFAULTS.facilities_cta}
             </Button>

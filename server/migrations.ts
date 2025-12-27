@@ -131,6 +131,44 @@ export async function runStartupMigrations() {
     `);
     logger.info("event_galleries table created/verified", { source: "migrations" });
 
+    // Create event_registrations table if not exists (fixes 500 error on event registration)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS event_registrations (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        event_id VARCHAR NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+        user_id VARCHAR REFERENCES users(id) ON DELETE CASCADE,
+        full_name VARCHAR NOT NULL,
+        email VARCHAR NOT NULL,
+        phone VARCHAR,
+        guest_count INTEGER DEFAULT 0,
+        notes TEXT,
+        status VARCHAR DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_event_registrations_event_id ON event_registrations(event_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_event_registrations_user_id ON event_registrations(user_id)`).catch(() => {});
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_event_registrations_email ON event_registrations(email)`).catch(() => {});
+    logger.info("event_registrations table created/verified", { source: "migrations" });
+
+    // Create career_applications table if not exists (fixes 500 error on career applications)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS career_applications (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        career_id VARCHAR REFERENCES careers(id),
+        name VARCHAR NOT NULL,
+        email VARCHAR NOT NULL,
+        phone VARCHAR NOT NULL,
+        cv_url VARCHAR,
+        linkedin_url VARCHAR,
+        cover_letter TEXT,
+        status VARCHAR DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_career_applications_career_id ON career_applications(career_id)`).catch(() => {});
+    logger.info("career_applications table created/verified", { source: "migrations" });
+
     // Add metadata column to notifications if not exists
     await pool.query(`
       ALTER TABLE notifications 

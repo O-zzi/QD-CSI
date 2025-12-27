@@ -38,6 +38,7 @@ export function UpdatesSection() {
     'updates_title',
     'updates_subtitle',
     'updates_cta',
+    'updates_cta_url',
   ], CMS_DEFAULTS);
 
   const { data: phases = [], isLoading } = useQuery<ConstructionPhase[]>({
@@ -111,7 +112,7 @@ export function UpdatesSection() {
               {getValue('updates_subtitle') || CMS_DEFAULTS.updates_subtitle}
             </p>
           </div>
-          <Link href="/roadmap">
+          <Link href={getValue('updates_cta_url') || CMS_DEFAULTS.updates_cta_url || '/roadmap'}>
             <span className="text-sm font-semibold text-[#2a4060] dark:text-blue-400 hover:underline cursor-pointer flex items-center gap-1" data-testid="link-view-roadmap">
               {getValue('updates_cta') || CMS_DEFAULTS.updates_cta} <ChevronRight className="w-4 h-4" />
             </span>

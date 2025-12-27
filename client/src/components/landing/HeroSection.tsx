@@ -115,7 +115,17 @@ export function HeroSection() {
   const heroSubtitle = getCms('hero_subtitle') || CMS_DEFAULTS.hero_subtitle;
   const heroEyebrow = getCms('hero_eyebrow') || CMS_DEFAULTS.hero_eyebrow;
   const cta1Text = getCms('hero_cta_1') || 'Explore Facilities';
+  const cta1Url = getCms('hero_cta_1_url') || CMS_DEFAULTS.hero_cta_1_url || '/facilities';
   const cta2Text = getCms('hero_cta_2') || 'View Site Updates';
+  const cta2Url = getCms('hero_cta_2_url') || CMS_DEFAULTS.hero_cta_2_url || '/roadmap';
+
+  const handleCtaClick = (url: string) => {
+    if (url.startsWith('#')) {
+      scrollToSection(url.substring(1));
+    } else {
+      window.location.href = url;
+    }
+  };
 
   return (
     <section id="hero" className="qd-section pt-12 relative overflow-hidden">
@@ -167,21 +177,23 @@ export function HeroSection() {
             </div>
 
             <div className="flex flex-wrap gap-3 mb-6">
-              <Button
-                onClick={() => scrollToSection("facilities")}
-                className="rounded-full px-6"
-                data-testid="button-explore-facilities"
-              >
-                {cta1Text}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => scrollToSection("updates")}
-                className="rounded-full px-6"
-                data-testid="button-view-updates"
-              >
-                {cta2Text}
-              </Button>
+              <Link href={cta1Url}>
+                <Button
+                  className="rounded-full px-6"
+                  data-testid="button-explore-facilities"
+                >
+                  {cta1Text}
+                </Button>
+              </Link>
+              <Link href={cta2Url}>
+                <Button
+                  variant="outline"
+                  className="rounded-full px-6"
+                  data-testid="button-view-updates"
+                >
+                  {cta2Text}
+                </Button>
+              </Link>
             </div>
 
             <div className="flex flex-wrap gap-6 text-xs text-muted-foreground">

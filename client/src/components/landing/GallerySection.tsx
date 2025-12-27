@@ -24,6 +24,7 @@ export function GallerySection() {
     'gallery_title',
     'gallery_subtitle',
     'gallery_cta',
+    'gallery_cta_url',
   ], CMS_DEFAULTS);
 
   return (
@@ -38,7 +39,7 @@ export function GallerySection() {
               {getValue('gallery_subtitle') || CMS_DEFAULTS.gallery_subtitle}
             </p>
           </div>
-          <Link href="/gallery">
+          <Link href={getValue('gallery_cta_url') || CMS_DEFAULTS.gallery_cta_url || '/gallery'}>
             <Button variant="outline" className="rounded-full" data-testid="button-view-full-gallery">
               {getValue('gallery_cta') || CMS_DEFAULTS.gallery_cta} <ArrowRight className="ml-2 w-4 h-4" />
             </Button>

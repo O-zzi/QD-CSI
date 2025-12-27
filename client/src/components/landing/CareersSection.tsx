@@ -10,6 +10,7 @@ export function CareersSection() {
     'careers_title',
     'careers_subtitle',
     'careers_cta',
+    'careers_cta_url',
   ], CMS_DEFAULTS);
 
   const { data: careers, isLoading } = useQuery<Career[]>({
@@ -30,7 +31,7 @@ export function CareersSection() {
               {getValue('careers_subtitle') || CMS_DEFAULTS.careers_subtitle}
             </p>
           </div>
-          <Link href="/careers">
+          <Link href={getValue('careers_cta_url') || CMS_DEFAULTS.careers_cta_url || '/careers'}>
             <Button className="rounded-full" data-testid="button-submit-cv">
               {getValue('careers_cta') || CMS_DEFAULTS.careers_cta} <ChevronRight className="w-4 h-4 ml-1" />
             </Button>

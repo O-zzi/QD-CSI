@@ -68,7 +68,9 @@ export const CMS_DEFAULTS: Record<string, string> = {
   hero_eyebrow: 'Target Launch: December 25, 2025',
   hero_launch_date: '2025-12-25',
   hero_cta_1: 'Explore Facilities',
+  hero_cta_1_url: '/facilities',
   hero_cta_2: 'View Site Updates',
+  hero_cta_2_url: '/roadmap',
   hero_countdown_label: 'Estimated Launch Countdown',
   hero_status_active: 'Construction Active',
   hero_status_updates: 'Transparent progress updates',
@@ -78,6 +80,7 @@ export const CMS_DEFAULTS: Record<string, string> = {
   about_title: 'About The Quarterdeck',
   about_subtitle: 'Our core vision: Excellence in Play and Community. We are building Islamabad\'s premier destination for indoor sports, recreation, and social gathering.',
   about_cta: 'See Our Vision',
+  about_cta_url: '/vision',
   about_vision_title: 'Vision & Philosophy',
   about_vision_content: 'The Quarterdeck is born from a simple idea: that sports facilities should be world-class, accessible, and designed for social connection. We prioritize bright, modern architecture, superior court surfaces, and a welcoming atmosphere. Our aim is to cultivate a vibrant community around Padel, Squash, and recreational activities.',
   about_vision_content_2: 'We are locally invested and committed to transparency throughout the construction and launch phases, ensuring the highest standards of quality and service.',
@@ -90,15 +93,19 @@ export const CMS_DEFAULTS: Record<string, string> = {
   facilities_title: 'Facilities at a Glance',
   facilities_subtitle: 'The complex is engineered for high-performance sports and comfortable recreation. Click "View details" for the dedicated facility pages.',
   facilities_cta: 'Check Court Availability',
+  facilities_cta_url: '/booking',
   
   // Membership Section
   membership_title: 'Membership & Pricing',
   membership_subtitle: 'Choose the membership tier that fits your lifestyle. All members enjoy priority booking, exclusive discounts, and access to our world-class facilities.',
   membership_cta: 'Inquire Now',
+  membership_cta_url: '/membership',
   membership_comparison_title: 'Quick Comparison',
   membership_footer: 'Questions about membership? Contact us for more details or to discuss corporate packages.',
   membership_contact_cta: 'Contact for Details',
+  membership_contact_cta_url: '#contact',
   membership_terms_cta: 'View Terms & Conditions',
+  membership_terms_cta_url: '/terms',
   
   // Founding Member
   founding_tier_name: 'Founding Member',
@@ -153,21 +160,25 @@ export const CMS_DEFAULTS: Record<string, string> = {
   updates_title: 'Construction Updates',
   updates_subtitle: 'Transparent updates on progress, timeline, and achievements. Hover over each phase to see milestones.',
   updates_cta: 'View Full Roadmap',
+  updates_cta_url: '/roadmap',
   
   // Gallery Section
   gallery_title: 'Gallery & Progress Photos',
   gallery_subtitle: 'Visual updates from the construction site and architectural renders of the completed facility.',
   gallery_cta: 'View Full Gallery',
+  gallery_cta_url: '/gallery',
   
   // Rules Section
   rules_title: 'Rules & Safety Protocols',
   rules_subtitle: 'Ensuring a safe, respectful, and high-quality environment for all members and guests. These are our key rules.',
   rules_cta: 'View All Rules',
+  rules_cta_url: '/rules',
   
   // Careers Section
   careers_title: 'Careers at The Quarterdeck',
   careers_subtitle: 'Join our team! We are looking for passionate, high-energy individuals to help us launch and run Islamabad\'s premier sports complex.',
   careers_cta: 'View Open Positions',
+  careers_cta_url: '/careers',
   
   // Events Section
   events_title: 'Events & Programs',
@@ -194,6 +205,7 @@ export const CMS_DEFAULTS: Record<string, string> = {
   coming_soon_subtitle: 'Opening December 2025: Padel Courts & Cafe/Bar. Construction continues through 2026 for our 3-floor building with Multipurpose Hall & Air Rifle Range.',
   coming_soon_description: 'The Quarterdeck will feature world-class Padel Tennis courts, Squash facilities, an Air Rifle Range, Multipurpose Hall, and an Open Cafe/Bar experience.',
   coming_soon_cta: 'Join the Waitlist',
+  coming_soon_cta_url: '#contact',
   coming_soon_progress_label: 'Construction Progress',
   coming_soon_launch_date: '2025-12-25',
   coming_soon_location: 'Islamabad, Pakistan',
