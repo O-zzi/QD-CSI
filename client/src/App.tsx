@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -9,6 +10,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { RouteScrollToTop } from "@/components/RouteScrollToTop";
 import { useAdminPath } from "@/hooks/useAdminPath";
+import { LogoLoader } from "@/components/LogoLoader";
 import Home from "@/pages/Home";
 import Booking from "@/pages/Booking";
 import Profile from "@/pages/Profile";
@@ -158,11 +160,18 @@ function Router() {
 }
 
 function App() {
+  const [isLoaded, setIsLoaded] = useState(false);
+  
+  const handleLoaded = useCallback(() => {
+    setIsLoaded(true);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SupabaseAuthProvider>
           <SessionProvider>
+            {!isLoaded && <LogoLoader onLoaded={handleLoaded} minDisplayTime={800} />}
             <Toaster />
             <RouteScrollToTop />
             <Router />
