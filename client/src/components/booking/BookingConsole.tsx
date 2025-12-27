@@ -658,10 +658,13 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       setIsMatchmaking(false);
       setCurrentGroupSize(1);
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      const isCertificationRequired = error.message?.includes("certification");
       toast({
-        title: "Booking Failed",
-        description: error.message,
+        title: isCertificationRequired ? "Certification Required" : "Booking Failed",
+        description: isCertificationRequired 
+          ? "This facility requires a valid certification to book. Visit our Certifications page to complete the required training."
+          : error.message,
         variant: "destructive",
       });
     },

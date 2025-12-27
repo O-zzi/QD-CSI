@@ -629,6 +629,18 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Facility not found" });
       }
 
+      // Check if facility requires certification
+      if (facility.requiresCertification) {
+        const hasValidCert = await storage.userHasValidCertificationForFacility(userId, facility.id);
+        if (!hasValidCert) {
+          return res.status(403).json({ 
+            message: "This facility requires a valid certification to book. Please complete the required certification training.",
+            requiresCertification: true,
+            facilityName: facility.name
+          });
+        }
+      }
+
       // Check for double booking
       const isDoubleBooked = await storage.checkDoubleBooking(
         facility.id,

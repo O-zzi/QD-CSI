@@ -459,6 +459,9 @@ export interface IStorage {
   enrollUserInClass(classId: string, userId: string): Promise<CertificationEnrollment>;
   getUserEnrollments(userId: string): Promise<CertificationEnrollment[]>;
   
+  // Certification Validation
+  userHasValidCertificationForFacility(userId: string, facilityId: string): Promise<boolean>;
+  
   // Health check
   healthCheck(): Promise<boolean>;
 }
@@ -2046,6 +2049,26 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(certificationEnrollments)
       .where(eq(certificationEnrollments.userId, userId))
       .orderBy(desc(certificationEnrollments.createdAt));
+  }
+
+  async userHasValidCertificationForFacility(userId: string, facilityId: string): Promise<boolean> {
+    const now = new Date();
+    const validCerts = await db.select()
+      .from(userCertifications)
+      .innerJoin(certifications, eq(userCertifications.certificationId, certifications.id))
+      .where(
+        and(
+          eq(userCertifications.userId, userId),
+          eq(userCertifications.status, 'ACTIVE'),
+          eq(certifications.facilityId, facilityId),
+          or(
+            sql`${userCertifications.expiresAt} IS NULL`,
+            sql`${userCertifications.expiresAt} >= ${now}`
+          )
+        )
+      )
+      .limit(1);
+    return validCerts.length > 0;
   }
 
   async healthCheck(): Promise<boolean> {
