@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,8 @@ import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
-import type { PricingTier } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
+import type { PricingTier, Membership } from "@shared/schema";
 
 const tierIcons: Record<string, any> = {
   FOUNDING: Crown,
@@ -132,6 +133,23 @@ const memberBenefits = [
 export default function Membership() {
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
+  const [, setLocation] = useLocation();
+  const { isAuthenticated } = useAuth();
+
+  const { data: userMembership } = useQuery<Membership>({
+    queryKey: ['/api/memberships/my'],
+    enabled: isAuthenticated,
+  });
+
+  const handleJoinClick = (tier: any) => {
+    if (!isAuthenticated) {
+      setLocation(`/signup?redirect=/membership&tier=${tier.tier}`);
+    } else if (userMembership) {
+      setLocation('/profile?tab=membership');
+    } else {
+      setLocation(`/contact?subject=Membership%20Application%20-%20${tier.name}`);
+    }
+  };
 
   const { getValue } = useCmsMultiple([
     'page_membership_title',
@@ -303,15 +321,18 @@ export default function Membership() {
                             Registration Closed
                           </Button>
                         ) : (
-                          <Link href="/signup">
-                            <Button 
-                              variant={tier.featured ? "default" : "outline"} 
-                              className="w-full"
-                              data-testid={`button-join-${tier.tier?.toLowerCase()}`}
-                            >
-                              {tier.price === 0 ? 'Register Free' : 'Join Now'}
-                            </Button>
-                          </Link>
+                          <Button 
+                            variant={tier.featured ? "default" : "outline"} 
+                            className="w-full"
+                            onClick={() => handleJoinClick(tier)}
+                            data-testid={`button-join-${tier.tier?.toLowerCase()}`}
+                          >
+                            {!isAuthenticated 
+                              ? (tier.price === 0 ? 'Register Free' : 'Join Now')
+                              : userMembership 
+                                ? 'View My Membership'
+                                : 'Apply for Membership'}
+                          </Button>
                         )}
                       </CardContent>
                     </Card>
@@ -371,9 +392,19 @@ export default function Membership() {
                   {getValue('page_membership_ready_description')}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link href="/signup">
-                    <Button data-testid="button-create-account">{getValue('page_membership_create_cta')}</Button>
-                  </Link>
+                  {!isAuthenticated ? (
+                    <Link href="/signup?redirect=/membership">
+                      <Button data-testid="button-create-account">{getValue('page_membership_create_cta')}</Button>
+                    </Link>
+                  ) : userMembership ? (
+                    <Link href="/profile?tab=membership">
+                      <Button data-testid="button-view-my-membership">View My Membership</Button>
+                    </Link>
+                  ) : (
+                    <Link href="/contact?subject=Membership%20Inquiry">
+                      <Button data-testid="button-apply-membership">Apply for Membership</Button>
+                    </Link>
+                  )}
                   <Link href="/contact">
                     <Button variant="outline" data-testid="button-contact-membership">{getValue('page_membership_contact_cta')}</Button>
                   </Link>

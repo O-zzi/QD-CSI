@@ -656,13 +656,29 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   });
 
   const isSlotTaken = (time: string) => {
-    return existingBookings.some(
-      (b) =>
-        b.date === selectedDate &&
-        b.resourceId === selectedResourceId &&
-        b.startTime === time &&
-        b.status !== 'CANCELLED'
-    );
+    // Check if any existing booking overlaps with the proposed time slot
+    const slotStartMinutes = timeToMinutes(time);
+    const slotEndMinutes = slotStartMinutes + selectedDuration;
+    
+    return existingBookings.some((b) => {
+      // Must be same date, same resource (court), and not cancelled
+      if (b.date !== selectedDate || b.resourceId !== selectedResourceId || b.status === 'CANCELLED') {
+        return false;
+      }
+      
+      // Calculate the existing booking's time range
+      const existingStartMinutes = timeToMinutes(b.startTime);
+      const existingEndMinutes = existingStartMinutes + (b.durationMinutes || 60);
+      
+      // Check for overlap: slot conflicts if it starts before existing ends AND ends after existing starts
+      return slotStartMinutes < existingEndMinutes && slotEndMinutes > existingStartMinutes;
+    });
+  };
+  
+  // Helper to convert time string to minutes from midnight
+  const timeToMinutes = (time: string): number => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
   };
 
   const handleMembershipNumberChange = async (value: string) => {

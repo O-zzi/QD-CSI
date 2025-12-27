@@ -559,7 +559,7 @@ export default function Profile() {
                   <div className="text-center py-8">
                     <Award className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                     <p className="text-muted-foreground mb-4">No active membership</p>
-                    <Link href="/#membership">
+                    <Link href="/membership">
                       <Button variant="outline" data-testid="button-view-membership-options">
                         View Membership Options
                       </Button>

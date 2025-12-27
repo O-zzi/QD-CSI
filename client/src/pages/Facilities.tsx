@@ -232,7 +232,7 @@ export default function Facilities() {
             ))}
           </div>
 
-          <div className="mt-12 text-center">
+          <div className="mt-12 mb-16 md:mb-24 text-center">
             <h3 className="text-2xl font-bold text-primary mb-4">{getValue('page_facilities_ready_title')}</h3>
             <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
               {getValue('page_facilities_ready_description')}
