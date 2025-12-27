@@ -1,11 +1,18 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Crosshair, Building2, Coffee, Spade, Loader2 } from "lucide-react";
+import { Crosshair, Building2, Coffee, Spade, Loader2, ChevronRight } from "lucide-react";
 import { GiTennisRacket, GiSquare } from "react-icons/gi";
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import { useQuery } from "@tanstack/react-query";
 import type { IconType } from "react-icons";
 import type { LucideIcon } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 import padelImage from "@assets/stock_images/padel_tennis_court_i_a0e484ae.jpg";
 import squashImage from "@assets/stock_images/indoor_squash_court__c97e350b.jpg";
@@ -175,44 +182,55 @@ export function FacilitiesSection() {
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="qd-facility-grid">
-            {facilities.map((facility) => {
-              const Icon = facility.icon;
-              return (
-                <article key={facility.id} className="qd-facility-card overflow-hidden" data-testid={`card-facility-${facility.slug || facility.id}`}>
-                  <div className="relative h-32 -mx-6 -mt-[1.6rem] mb-4 rounded-t-[20px] overflow-hidden">
-                    <img 
-                      src={facility.image} 
-                      alt={facility.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/30 to-transparent dark:from-slate-800/90 dark:via-slate-800/30" />
-                  </div>
-                  <div className="flex justify-between items-center text-xs text-muted-foreground uppercase tracking-widest mb-3">
-                    <span>{facility.category}</span>
-                    <span className={`px-3 py-1 rounded-full font-semibold ${facility.status === "soon" ? "qd-status-soon" : facility.status === "active" ? "qd-status-active" : "qd-status-planned"}`}>
-                      {facility.statusLabel}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon className="w-5 h-5 text-[#2a4060] dark:text-blue-400" />
-                    <h3 className="text-xl font-bold">{facility.name}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-5 min-h-[60px]">
-                    {facility.description}
-                  </p>
-                  <div className="flex justify-between items-center text-sm text-muted-foreground pt-4 border-t border-gray-100 dark:border-slate-700">
-                    <span>{facility.footer}</span>
-                    <Link href={`/facilities/${facility.slug}`}>
-                      <span className="font-semibold text-[#2a4060] dark:text-blue-400 cursor-pointer hover:underline" data-testid={`link-facility-detail-${facility.slug || facility.id}`}>
-                        View details
-                      </span>
-                    </Link>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {facilities.map((facility) => (
+                <CarouselItem key={facility.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                  <Link href={`/facilities/${facility.slug}`}>
+                    <div 
+                      className="group relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer"
+                      data-testid={`card-facility-${facility.slug || facility.id}`}
+                    >
+                      <img 
+                        src={facility.image} 
+                        alt={facility.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      <div className="absolute top-3 right-3">
+                        <span className={`text-xs px-2 py-1 rounded-full font-semibold backdrop-blur-sm ${
+                          facility.status === "soon" 
+                            ? "bg-blue-500/80 text-white" 
+                            : facility.status === "active" 
+                              ? "bg-green-500/80 text-white" 
+                              : "bg-gray-500/80 text-white"
+                        }`}>
+                          {facility.statusLabel}
+                        </span>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h3 className="text-xl font-bold text-white mb-1">
+                          {facility.name}
+                        </h3>
+                        <p className="text-sm text-white/80 flex items-center gap-1">
+                          {facility.category}
+                          <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden md:flex -left-4" />
+            <CarouselNext className="hidden md:flex -right-4" />
+          </Carousel>
         )}
       </div>
     </section>
