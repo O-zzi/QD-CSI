@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatPKR, calculateEndTime, isOffPeak } from "@/lib/authUtils";
@@ -314,7 +315,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   }
 
   // Fetch facilities from API to map IDs to slugs
-  const { data: apiFacilities = [] } = useQuery<Facility[]>({
+  const { data: apiFacilities = [], isLoading: facilitiesLoading } = useQuery<Facility[]>({
     queryKey: ['/api/facilities'],
     queryFn: async () => {
       try {
@@ -885,11 +886,38 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   };
 
   // Show loading state while facilities are being fetched
-  if (FACILITIES.length === 0 || !selectedFacility) {
+  if (facilitiesLoading || FACILITIES.length === 0 || !selectedFacility) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[700px] bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-2xl">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4" />
-        <p className="text-muted-foreground text-lg">Loading facilities...</p>
+      <div className="flex flex-col md:flex-row border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden min-h-[700px] bg-white dark:bg-slate-800">
+        <aside className="bg-white/95 dark:bg-slate-800/95 w-full md:w-72 flex-shrink-0 p-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-slate-700">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-3 w-32 mb-6" />
+          <div className="space-y-2">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-12 rounded-xl" />
+            ))}
+          </div>
+        </aside>
+        <div className="flex-1 p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-6 w-6 rounded-full" />
+            <Skeleton className="h-6 w-32" />
+          </div>
+          <Skeleton className="h-8 w-48 mb-6" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
+          </div>
+          <Skeleton className="h-6 w-32 mb-4" />
+          <div className="flex gap-2 mb-6">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-10 w-20 rounded-md" />
+            ))}
+          </div>
+          <Skeleton className="h-40 rounded-xl" />
+        </div>
       </div>
     );
   }
