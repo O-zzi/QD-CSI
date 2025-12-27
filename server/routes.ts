@@ -917,6 +917,12 @@ export async function registerRoutes(
         social_instagram: { title: 'Instagram URL', content: 'https://instagram.com/thequarterdeck' },
         social_facebook: { title: 'Facebook URL', content: 'https://facebook.com/thequarterdeck' },
         social_linkedin: { title: 'LinkedIn URL', content: 'https://linkedin.com/company/thequarterdeck' },
+        social_youtube: { title: 'YouTube URL', content: 'https://youtube.com/@thequarterdeck' },
+        social_twitter: { title: 'Twitter/X URL', content: 'https://twitter.com/thequarterdeck' },
+        social_whatsapp: { title: 'WhatsApp Number', content: '+92 300 1234567' },
+        
+        // Operating Hours
+        contact_operating_hours: { title: 'Operating Hours', content: 'Mon-Fri: 6:00 AM - 11:00 PM | Sat-Sun: 7:00 AM - 10:00 PM' },
         
         // Coming Soon Page
         coming_soon_title: { title: 'Coming Soon Title', content: 'Coming Soon' },
