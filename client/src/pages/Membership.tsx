@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, Crown, Star, Sparkles, Users, ChevronDown, ChevronUp, Award, Clock, Gift, Shield } from "lucide-react";
+import { Check, Crown, Star, Sparkles, Users, ChevronDown, ChevronUp, Award, Clock, Gift, Shield, Target, Zap, Heart, Ticket, Calendar, Trophy, HelpCircle } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
@@ -13,7 +13,24 @@ import { MembershipApplicationForm } from "@/components/membership/MembershipApp
 import { useCmsMultiple, CMS_DEFAULTS } from "@/hooks/useCms";
 import { useAuth } from "@/hooks/useAuth";
 import { useSEO } from "@/hooks/use-seo";
-import type { PricingTier, Membership } from "@shared/schema";
+import type { PricingTier, Membership, ComparisonFeature, MemberBenefit } from "@shared/schema";
+
+const benefitIconMap: Record<string, any> = {
+  clock: Clock,
+  gift: Gift,
+  award: Award,
+  shield: Shield,
+  target: Target,
+  zap: Zap,
+  heart: Heart,
+  ticket: Ticket,
+  calendar: Calendar,
+  trophy: Trophy,
+  star: Star,
+  crown: Crown,
+  users: Users,
+  check: Check,
+};
 
 const tierIcons: Record<string, any> = {
   FOUNDING: Crown,
@@ -117,19 +134,19 @@ const defaultMembershipTiers = [
   },
 ];
 
-const comparisonFeatures = [
-  { feature: "Advance Booking Window", founding: "14 days", gold: "7 days", silver: "5 days", guest: "2 days" },
-  { feature: "Off-Peak Discount (10 AM - 5 PM)", founding: "25%", gold: "20%", silver: "10%", guest: "None" },
-  { feature: "Monthly Guest Passes", founding: "10", gold: "4", silver: "2", guest: "N/A" },
-  { feature: "Coaching Discount", founding: "20%", gold: "15%", silver: "10%", guest: "None" },
-  { feature: "Event Priority", founding: "VIP", gold: "Priority", silver: "Standard", guest: "Last" },
+const defaultComparisonFeatures = [
+  { feature: "Advance Booking Window", foundingValue: "14 days", goldValue: "7 days", silverValue: "5 days", guestValue: "2 days" },
+  { feature: "Off-Peak Discount (10 AM - 5 PM)", foundingValue: "25%", goldValue: "20%", silverValue: "10%", guestValue: "None" },
+  { feature: "Monthly Guest Passes", foundingValue: "10", goldValue: "4", silverValue: "2", guestValue: "N/A" },
+  { feature: "Coaching Discount", foundingValue: "20%", goldValue: "15%", silverValue: "10%", guestValue: "None" },
+  { feature: "Event Priority", foundingValue: "VIP", goldValue: "Priority", silverValue: "Standard", guestValue: "Last" },
 ];
 
-const memberBenefits = [
-  { icon: Clock, title: "Priority Booking", description: "Book your preferred time slots ahead of non-members" },
-  { icon: Gift, title: "Exclusive Discounts", description: "Save on bookings, events, and coaching sessions" },
-  { icon: Award, title: "Guest Passes", description: "Share the experience with friends and family" },
-  { icon: Shield, title: "Member-Only Events", description: "Access exclusive tournaments and social gatherings" },
+const defaultMemberBenefits = [
+  { icon: "clock", title: "Priority Booking", description: "Book your preferred time slots ahead of non-members" },
+  { icon: "gift", title: "Exclusive Discounts", description: "Save on bookings, events, and coaching sessions" },
+  { icon: "award", title: "Guest Passes", description: "Share the experience with friends and family" },
+  { icon: "shield", title: "Member-Only Events", description: "Access exclusive tournaments and social gatherings" },
 ];
 
 export default function Membership() {
@@ -180,6 +197,28 @@ export default function Membership() {
     },
   });
 
+  const { data: apiComparisonFeatures } = useQuery<ComparisonFeature[]>({
+    queryKey: ['/api/comparison-features'],
+  });
+
+  const { data: apiMemberBenefits } = useQuery<MemberBenefit[]>({
+    queryKey: ['/api/member-benefits'],
+  });
+
+  const comparisonFeatures = useMemo(() => {
+    if (apiComparisonFeatures && apiComparisonFeatures.length > 0) {
+      return apiComparisonFeatures;
+    }
+    return defaultComparisonFeatures;
+  }, [apiComparisonFeatures]);
+
+  const memberBenefits = useMemo(() => {
+    if (apiMemberBenefits && apiMemberBenefits.length > 0) {
+      return apiMemberBenefits;
+    }
+    return defaultMemberBenefits;
+  }, [apiMemberBenefits]);
+
   const tiers = useMemo(() => {
     if (apiTiers && apiTiers.length > 0) {
       return apiTiers
@@ -223,17 +262,20 @@ export default function Membership() {
             </div>
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-              {memberBenefits.map((benefit, index) => (
-                <Card key={index} className="text-center" data-testid={`card-benefit-${index}`}>
-                  <CardContent className="p-6">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                      <benefit.icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <h3 className="font-semibold mb-2">{benefit.title}</h3>
-                    <p className="text-sm text-muted-foreground">{benefit.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {memberBenefits.map((benefit, index) => {
+                const IconComponent = benefitIconMap[benefit.icon?.toLowerCase() || 'check'] || HelpCircle;
+                return (
+                  <Card key={index} className="text-center" data-testid={`card-benefit-${index}`}>
+                    <CardContent className="p-6">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                        <IconComponent className="w-6 h-6 text-primary" />
+                      </div>
+                      <h3 className="font-semibold mb-2">{benefit.title}</h3>
+                      <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </section>
 
@@ -377,10 +419,10 @@ export default function Membership() {
                         {comparisonFeatures.map((row, idx) => (
                           <tr key={idx} className="border-b last:border-b-0">
                             <td className="p-4 text-sm">{row.feature}</td>
-                            <td className="text-center p-4 text-sm font-medium">{row.founding}</td>
-                            <td className="text-center p-4 text-sm font-medium">{row.gold}</td>
-                            <td className="text-center p-4 text-sm font-medium">{row.silver}</td>
-                            <td className="text-center p-4 text-sm font-medium">{row.guest}</td>
+                            <td className="text-center p-4 text-sm font-medium">{row.foundingValue}</td>
+                            <td className="text-center p-4 text-sm font-medium">{row.goldValue}</td>
+                            <td className="text-center p-4 text-sm font-medium">{row.silverValue}</td>
+                            <td className="text-center p-4 text-sm font-medium">{row.guestValue}</td>
                           </tr>
                         ))}
                       </tbody>
