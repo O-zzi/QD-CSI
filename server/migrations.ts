@@ -1,5 +1,6 @@
 import { pool } from "./db";
 import logger from "./logger";
+import { seedVenuesAndAddons } from "./seeds/seedVenuesAndAddons";
 
 export async function runStartupMigrations() {
   logger.info("Running startup migrations...", { source: "migrations" });
@@ -198,6 +199,14 @@ export async function runStartupMigrations() {
           ('guest', 'Pay-to-Play', 'Access without membership commitment', '#6B7280', 0, 0, ARRAY['2-day advance booking window', 'Access after member priority', 'Equipment rental available'], 4, true)
       `);
       logger.info("Seeded default tier definitions", { source: "migrations" });
+    }
+    
+    // Seed venues and facility addons
+    try {
+      await seedVenuesAndAddons();
+      logger.info("Venues and addons seeded", { source: "migrations" });
+    } catch (seedError) {
+      logger.warn("Failed to seed venues and addons", { source: "migrations", error: seedError });
     }
     
     logger.info("All startup migrations completed successfully", { source: "migrations" });

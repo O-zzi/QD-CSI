@@ -530,8 +530,7 @@ export async function registerRoutes(
   // ========== PUBLIC CONSTRUCTION PHASES ROUTE ==========
   app.get('/api/construction-phases', async (req, res) => {
     try {
-      const { venueId } = req.query;
-      const phases = await storage.getConstructionPhases(venueId as string | undefined);
+      const phases = await storage.getConstructionPhases();
       res.json(phases);
     } catch (error) {
       console.error("Error fetching construction phases:", error);
@@ -1212,14 +1211,14 @@ export async function registerRoutes(
     }
   });
 
-  app.patch('/api/admin/users/:id', isAuthenticated, isAdmin, async (req, res) => {
+  app.patch('/api/admin/users/:id', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
       const result = updateUserProfileSchema.safeParse(req.body);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
       }
       
-      const currentUser = req.user as any;
+      const currentUser = req.user;
       const updateData = { ...result.data };
       
       // Strip role field unless current user is SUPER_ADMIN
@@ -1232,7 +1231,7 @@ export async function registerRoutes(
         return res.status(404).json({ message: "User not found" });
       }
       
-      logAdminAction(req, 'USER_UPDATE', 'users', req.params.id, updateData);
+      logAdminAction({ req, action: 'USER_UPDATE', resource: 'users', resourceId: req.params.id, details: updateData });
       res.json(updated);
     } catch (error) {
       console.error("Error updating user:", error);
@@ -1833,8 +1832,7 @@ export async function registerRoutes(
   // Admin Construction Phases routes
   app.get('/api/admin/construction-phases', isAuthenticated, isAdmin, async (req, res) => {
     try {
-      const { venueId } = req.query;
-      const phases = await storage.getConstructionPhases(venueId as string | undefined);
+      const phases = await storage.getConstructionPhases();
       res.json(phases);
     } catch (error) {
       console.error("Error fetching construction phases:", error);
