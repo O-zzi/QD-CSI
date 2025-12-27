@@ -67,6 +67,10 @@ import MembershipApplicationsManagement from "@/pages/admin/MembershipApplicatio
 import CertificationsManagement from "@/pages/admin/CertificationsManagement";
 import ComparisonFeaturesManagement from "@/pages/admin/ComparisonFeaturesManagement";
 import MemberBenefitsManagement from "@/pages/admin/MemberBenefitsManagement";
+import BlogsManagement from "@/pages/admin/BlogsManagement";
+import TestimonialsManagement from "@/pages/admin/TestimonialsManagement";
+import Blog from "@/pages/Blog";
+import BlogPost from "@/pages/BlogPost";
 
 function AdminRoutes() {
   const { adminPath, isAuthorized, isLoading } = useAdminPath();
@@ -107,6 +111,8 @@ function AdminRoutes() {
       <Route path={`${base}/certifications`} component={CertificationsManagement} />
       <Route path={`${base}/comparison-features`} component={ComparisonFeaturesManagement} />
       <Route path={`${base}/member-benefits`} component={MemberBenefitsManagement} />
+      <Route path={`${base}/blogs`} component={BlogsManagement} />
+      <Route path={`${base}/testimonials`} component={TestimonialsManagement} />
       <Route path={`${base}/site-settings`} component={SiteSettingsManagement} />
       <Route path={base} component={AdminDashboard} />
     </Switch>
@@ -142,6 +148,8 @@ function PublicRoutes() {
       <Route path="/contact" component={Contact} />
       <Route path="/faq" component={FAQ} />
       <Route path="/membership" component={Membership} />
+      <Route path="/blog/:slug" component={BlogPost} />
+      <Route path="/blog" component={Blog} />
       <Route path="/certifications" component={Certifications} />
       <Route path="/updates" component={Updates} />
       <Route path="/login" component={Login} />

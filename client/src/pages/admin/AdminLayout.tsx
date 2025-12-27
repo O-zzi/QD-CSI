@@ -27,7 +27,9 @@ import {
   ClipboardCheck,
   Award,
   LayoutGrid,
-  Gift
+  Gift,
+  FileEdit,
+  MessageSquareQuote
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -50,6 +52,8 @@ function getNavItems(basePath: string) {
     { path: `${basePath}/certifications`, label: "Certifications", icon: Award },
     { path: `${basePath}/comparison-features`, label: "Comparison Features", icon: LayoutGrid },
     { path: `${basePath}/member-benefits`, label: "Member Benefits", icon: Gift },
+    { path: `${basePath}/blogs`, label: "Blog / News", icon: FileEdit },
+    { path: `${basePath}/testimonials`, label: "Testimonials", icon: MessageSquareQuote },
     { path: `${basePath}/roadmap`, label: "Construction Status", icon: HardHat },
     { path: `${basePath}/events`, label: "Events & Academies", icon: Calendar },
     { path: `${basePath}/pricing`, label: "Pricing Tiers", icon: DollarSign },
