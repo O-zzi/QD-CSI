@@ -1132,7 +1132,9 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                     value={selectedVenue}
                     onChange={(e) => {
                       setSelectedVenue(e.target.value);
-                      setSelectedFacility(FACILITIES[0]);
+                      if (FACILITIES.length > 0) {
+                        setSelectedFacility(FACILITIES[0]);
+                      }
                       setSelectedResourceId(1);
                       setSelectedStartTime(null);
                       setSelectedAddOns(new Set());
@@ -1188,7 +1190,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {FACILITIES.map((fac) => {
                   const FacIcon = fac.icon;
-                  const isSelected = selectedFacility.id === fac.id;
+                  const isSelected = selectedFacility?.id === fac.id;
                   const restricted = fac.restricted && userProfile.membershipTier !== 'FOUNDING';
                   return (
                     <button
@@ -1240,10 +1242,10 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                 {/* Resource Selector */}
                 <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 space-y-4">
                   <h4 className="font-bold text-muted-foreground border-b pb-2 text-sm border-gray-100 dark:border-slate-700">
-                    2. Select Resource ({selectedFacility.label})
+                    2. Select Resource ({selectedFacility?.label || 'Facility'})
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {Array.from({ length: selectedFacility.count }).map((_, i) => (
+                    {Array.from({ length: selectedFacility?.count || 1 }).map((_, i) => (
                       <button
                         key={i + 1}
                         onClick={() => setSelectedResourceId(i + 1)}
@@ -1260,7 +1262,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   </div>
                   
                   {/* Hall Activity Type - RESTORED */}
-                  {selectedFacility.id === 'multipurpose-hall' && (
+                  {selectedFacility?.id === 'multipurpose-hall' && (
                     <div>
                       <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">
                         Purpose of Multipurpose Event
@@ -1282,7 +1284,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   )}
 
                   {/* Matchmaking Toggle */}
-                  {selectedFacility.id !== 'hall' && !selectedFacility.restricted && (
+                  {selectedFacility && selectedFacility.id !== 'hall' && !selectedFacility.restricted && (
                     <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-slate-700">
                       <label className="text-sm font-medium">Enable Matchmaking (Join a game)</label>
                       <button

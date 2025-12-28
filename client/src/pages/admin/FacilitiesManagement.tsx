@@ -396,13 +396,13 @@ export default function FacilitiesManagement() {
       status: facility.status || "PLANNED",
       imageUrl: facility.imageUrl || "",
       aboutContent: facility.aboutContent || "",
-      features: facility.features || [],
-      amenities: facility.amenities || [],
-      keywords: facility.keywords || [],
-      quickInfo: (typeof facility.quickInfo === 'object' && !Array.isArray(facility.quickInfo) ? facility.quickInfo : {}) as Record<string, string>,
+      features: Array.isArray(facility.features) ? facility.features : [],
+      amenities: Array.isArray(facility.amenities) ? facility.amenities : [],
+      keywords: Array.isArray(facility.keywords) ? facility.keywords : [],
+      quickInfo: (facility.quickInfo && typeof facility.quickInfo === 'object' && !Array.isArray(facility.quickInfo) ? facility.quickInfo : {}) as Record<string, string>,
       pricingNotes: facility.pricingNotes || "",
       certificationInfo: facility.certificationInfo || "",
-      galleryImages: facility.galleryImages || [],
+      galleryImages: Array.isArray(facility.galleryImages) ? facility.galleryImages : [],
       howToPlayContent: facility.howToPlayContent || "",
       scoringRulesContent: facility.scoringRulesContent || "",
       winningCriteriaContent: facility.winningCriteriaContent || "",
@@ -731,7 +731,7 @@ export default function FacilitiesManagement() {
                   <div className="space-y-2">
                     <Label>Features (one per line)</Label>
                     <Textarea
-                      value={formData.features.join('\n')}
+                      value={(formData.features || []).join('\n')}
                       onChange={(e) => setFormData({ ...formData, features: e.target.value.split('\n').filter(f => f.trim()) })}
                       placeholder="Professional lighting&#10;Climate controlled&#10;Premium equipment"
                       rows={4}
@@ -743,7 +743,7 @@ export default function FacilitiesManagement() {
                   <div className="space-y-2">
                     <Label>Amenities (one per line)</Label>
                     <Textarea
-                      value={formData.amenities.join('\n')}
+                      value={(formData.amenities || []).join('\n')}
                       onChange={(e) => setFormData({ ...formData, amenities: e.target.value.split('\n').filter(a => a.trim()) })}
                       placeholder="Changing rooms&#10;Shower facilities&#10;Equipment rental"
                       rows={4}
@@ -755,7 +755,7 @@ export default function FacilitiesManagement() {
                   <div className="space-y-2">
                     <Label>Keywords (comma-separated)</Label>
                     <Input
-                      value={formData.keywords.join(', ')}
+                      value={(formData.keywords || []).join(', ')}
                       onChange={(e) => setFormData({ ...formData, keywords: e.target.value.split(',').map(k => k.trim()).filter(k => k) })}
                       placeholder="padel, tennis, racquet sports, indoor"
                       data-testid="input-keywords"
@@ -766,7 +766,7 @@ export default function FacilitiesManagement() {
                   <div className="space-y-2">
                     <Label>Quick Info (key: value pairs, one per line)</Label>
                     <Textarea
-                      value={Object.entries(formData.quickInfo).map(([k, v]) => `${k}: ${v}`).join('\n')}
+                      value={Object.entries(formData.quickInfo || {}).map(([k, v]) => `${k}: ${v}`).join('\n')}
                       onChange={(e) => {
                         const newQuickInfo: Record<string, string> = {};
                         e.target.value.split('\n').forEach(line => {
@@ -813,7 +813,7 @@ export default function FacilitiesManagement() {
                   <div className="space-y-2">
                     <Label>Gallery Images (URLs, one per line)</Label>
                     <Textarea
-                      value={formData.galleryImages.join('\n')}
+                      value={(formData.galleryImages || []).join('\n')}
                       onChange={(e) => setFormData({ ...formData, galleryImages: e.target.value.split('\n').filter(u => u.trim()) })}
                       placeholder="/uploads/facility1.jpg&#10;/uploads/facility2.jpg"
                       rows={3}

@@ -86,7 +86,12 @@ export default function VenuesManagement() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Venue> }) => {
-      return await apiRequest("PATCH", `/api/admin/venues/${id}`, data);
+      const coercedData = {
+        ...data,
+        ...(data.sortOrder !== undefined && { sortOrder: Number(data.sortOrder) }),
+        ...(data.isDefault !== undefined && { isDefault: Boolean(data.isDefault) }),
+      };
+      return await apiRequest("PATCH", `/api/admin/venues/${id}`, coercedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/venues"] });
@@ -105,7 +110,11 @@ export default function VenuesManagement() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof newVenue) => {
-      return await apiRequest("POST", "/api/admin/venues", data);
+      return await apiRequest("POST", "/api/admin/venues", {
+        ...data,
+        sortOrder: Number(data.sortOrder),
+        isDefault: Boolean(data.isDefault),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/venues"] });

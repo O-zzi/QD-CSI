@@ -161,6 +161,8 @@ export default function BlogsManagement() {
   const handleSubmit = () => {
     const payload = {
       ...formData,
+      readTimeMinutes: Number(formData.readTimeMinutes) || 5,
+      sortOrder: Number(formData.sortOrder) || 0,
       tags: formData.tags ? formData.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
       publishedAt: formData.isPublished ? new Date().toISOString() : null,
     };
