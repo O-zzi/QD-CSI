@@ -206,7 +206,7 @@ export default function Certifications() {
                       <CardFooter>
                         {!isAuthenticated ? (
                           <Button variant="outline" className="w-full" asChild>
-                            <a href="/auth/login">Sign in to submit</a>
+                            <a href="/login">Sign in to submit</a>
                           </Button>
                         ) : userHasCert ? (
                           <Button variant="secondary" className="w-full" disabled>Already Certified</Button>
@@ -284,7 +284,7 @@ export default function Certifications() {
                       <CardFooter>
                         {!isAuthenticated ? (
                           <Button variant="outline" className="w-full" asChild>
-                            <a href="/auth/login">Sign in to enroll</a>
+                            <a href="/login">Sign in to enroll</a>
                           </Button>
                         ) : enrolled ? (
                           <Button variant="secondary" className="w-full" disabled>Already Enrolled</Button>
@@ -313,7 +313,7 @@ export default function Certifications() {
               <Card>
                 <CardContent className="p-8 text-center">
                   <p className="text-muted-foreground mb-4">Sign in to view your certifications</p>
-                  <Button asChild><a href="/auth/login">Sign In</a></Button>
+                  <Button asChild><a href="/login">Sign In</a></Button>
                 </CardContent>
               </Card>
             ) : (
