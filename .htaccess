@@ -1,8 +1,7 @@
-PassengerAppRoot /home/u805618386/domains/thequarterdeck.pk/public_html
+PassengerAppRoot /home/u805618386/public_html
 PassengerAppType node
-PassengerNodejs /opt/alt/alt-nodejs20/root/bin/node
+PassengerNodejs /home/u805618386/.nvm/versions/node/v20.19.6/bin/node
 PassengerStartupFile server.js
 PassengerBaseURI /
 
 SetEnv NODE_ENV production
-SetEnv PORT 5000
