@@ -1,0 +1,64 @@
+[u805618386@my-kul-web2051 public_html]$ # Check for error logs
+cat /home/u805618386/public_html/logs/*.log 2>/dev/null | tail -50
+
+# Remove PORT from .env (it conflicts with Passenger)
+cd /home/u805618386/public_html/
+sed -i '/^PORT=/d' .env
+
+# Verify PORT is removed
+grep PORT .env
+
+# Restart Passenger
+touch tmp/restart.txt
+{"level":"info","message":"member_benefits table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:46:52"}
+{"level":"info","message":"member_benefits.tier_id column verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:46:52"}
+{"level":"info","message":"career_benefits table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:46:52"}
+{"level":"info","message":"facility_add_ons.image_url column verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:46:52"}
+{"error":{"code":"42703","file":"parse_relation.c","length":107,"line":"3716","name":"error","position":"38","routine":"errorMissingColumn","severity":"ERROR"},"level":"warn","message":"Failed to seed venues and addons","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:46:53"}
+{"level":"info","message":"CMS Phase 2 content seeded","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:46:57"}
+{"level":"info","message":"All startup migrations completed successfully","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:46:57"}
+{"level":"info","message":"[scheduler] Initializing scheduled jobs","service":"quarterdeck-api","timestamp":"2025-12-28 15:46:57"}
+{"level":"info","message":"[scheduler] Scheduled jobs initialized","service":"quarterdeck-api","timestamp":"2025-12-28 15:46:57"}
+{"level":"info","message":"serving on 0.0.0.0:5000","service":"quarterdeck-api","source":"express","timestamp":"2025-12-28 15:46:57"}
+{"level":"info","message":"Validating environment variables...","service":"quarterdeck-api","source":"env","timestamp":"2025-12-28 15:54:43"}
+{"level":"info","message":"Environment validation passed","service":"quarterdeck-api","source":"env","timestamp":"2025-12-28 15:54:43"}
+{"databaseConfigured":true,"emailConfigured":false,"level":"info","message":"Environment summary","nodeEnv":"production","port":"5000","replitDeployment":false,"service":"quarterdeck-api","sessionSecretConfigured":true,"source":"startup","timestamp":"2025-12-28 15:54:43","turnstileConfigured":false}
+{"level":"info","message":"Stripe disabled - using offline payment system for Pakistan market","service":"quarterdeck-api","source":"express","timestamp":"2025-12-28 15:54:43"}
+{"level":"info","message":"Security: Helmet headers and rate limiting enabled","service":"quarterdeck-api","source":"express","timestamp":"2025-12-28 15:54:43"}
+{"level":"info","message":"Running startup migrations...","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:43"}
+{"level":"info","message":"user_role enum EDITOR value verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:44"}
+{"level":"info","message":"membership_tier_definitions table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:44"}
+{"level":"info","message":"blogs table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:44"}
+{"level":"info","message":"hero_sections table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:44"}
+{"level":"info","message":"ctas table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:44"}
+{"level":"info","message":"testimonials table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:44"}
+{"level":"info","message":"event_galleries table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:44"}
+{"level":"info","message":"event_registrations table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:45"}
+{"level":"info","message":"event_registrations payment columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:45"}
+{"level":"info","message":"bookings receipt columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:45"}
+{"level":"info","message":"career_applications table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:45"}
+{"level":"info","message":"facilities.is_hidden column verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:45"}
+{"level":"info","message":"facilities extended CMS columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:45"}
+{"level":"info","message":"facilities educational content columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:45"}
+{"level":"info","message":"pricing_tiers extended CMS columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:45"}
+{"level":"info","message":"pricing_tiers booking privilege columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:45"}
+{"level":"info","message":"pricing_tiers booking privileges seeded","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:46"}
+{"level":"info","message":"membership_applications table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:46"}
+{"level":"info","message":"certifications table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:46"}
+{"level":"info","message":"certification_classes table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:46"}
+{"level":"info","message":"certification_enrollments table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:46"}
+{"level":"info","message":"user_certifications table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:46"}
+{"level":"info","message":"page_content table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:46"}
+{"level":"info","message":"comparison_features table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:46"}
+{"level":"info","message":"member_benefits table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:46"}
+{"level":"info","message":"member_benefits.tier_id column verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:46"}
+{"level":"info","message":"career_benefits table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:47"}
+{"level":"info","message":"facility_add_ons.image_url column verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:47"}
+{"error":{"code":"42703","file":"parse_relation.c","length":107,"line":"3716","name":"error","position":"38","routine":"errorMissingColumn","severity":"ERROR"},"level":"warn","message":"Failed to seed venues and addons","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:47"}
+{"level":"info","message":"CMS Phase 2 content seeded","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:51"}
+{"level":"info","message":"All startup migrations completed successfully","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 15:54:51"}
+{"level":"info","message":"[scheduler] Initializing scheduled jobs","service":"quarterdeck-api","timestamp":"2025-12-28 15:54:51"}
+{"level":"info","message":"[scheduler] Scheduled jobs initialized","service":"quarterdeck-api","timestamp":"2025-12-28 15:54:51"}
+{"level":"info","message":"serving on 0.0.0.0:5000","service":"quarterdeck-api","source":"express","timestamp":"2025-12-28 15:54:51"}
+SMTP_PORT=465
+[u805618386@my-kul-web2051 public_html]$
