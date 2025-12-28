@@ -333,44 +333,56 @@ export default function FacilityDetail() {
               {dbFacility?.howToPlayContent && (
                 <section data-testid="section-how-to-play">
                   <h2 className="text-2xl font-bold text-primary mb-4">How To Play</h2>
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {dbFacility.howToPlayContent}
-                    </p>
-                  </div>
+                  <ul className="space-y-2 text-muted-foreground">
+                    {dbFacility.howToPlayContent.split('\n').filter(line => line.trim()).map((line, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-1" />
+                        <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </section>
               )}
 
               {dbFacility?.scoringRulesContent && (
                 <section data-testid="section-scoring-rules">
                   <h2 className="text-2xl font-bold text-primary mb-4">Scoring Rules</h2>
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {dbFacility.scoringRulesContent}
-                    </p>
-                  </div>
+                  <ul className="space-y-2 text-muted-foreground">
+                    {dbFacility.scoringRulesContent.split('\n').filter(line => line.trim()).map((line, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-1" />
+                        <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </section>
               )}
 
               {dbFacility?.winningCriteriaContent && (
                 <section data-testid="section-winning-criteria">
                   <h2 className="text-2xl font-bold text-primary mb-4">Winning Criteria</h2>
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {dbFacility.winningCriteriaContent}
-                    </p>
-                  </div>
+                  <ul className="space-y-2 text-muted-foreground">
+                    {dbFacility.winningCriteriaContent.split('\n').filter(line => line.trim()).map((line, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-1" />
+                        <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </section>
               )}
 
               {dbFacility?.pointsSystemContent && (
                 <section data-testid="section-points-system">
                   <h2 className="text-2xl font-bold text-primary mb-4">Points & Ranking System</h2>
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {dbFacility.pointsSystemContent}
-                    </p>
-                  </div>
+                  <ul className="space-y-2 text-muted-foreground">
+                    {dbFacility.pointsSystemContent.split('\n').filter(line => line.trim()).map((line, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-1" />
+                        <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </section>
               )}
             </div>
