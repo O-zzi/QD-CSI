@@ -1148,6 +1148,8 @@ export const insertBlogSchema = createInsertSchema(blogs).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  publishedAt: z.union([z.date(), z.string().transform((s) => s ? new Date(s) : null), z.null()]).optional(),
 });
 
 export const insertHeroSectionSchema = createInsertSchema(heroSections).omit({
