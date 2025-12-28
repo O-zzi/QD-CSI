@@ -40,7 +40,7 @@ const getIconComponent = (iconName: string) => {
 };
 
 const tierOptions = [
-  { value: "", label: "All Members (General)" },
+  { value: "__all__", label: "All Members (General)" },
   { value: "FOUNDING", label: "Founding Members" },
   { value: "GOLD", label: "Gold Members" },
   { value: "SILVER", label: "Silver Members" },
@@ -255,7 +255,7 @@ export default function MemberBenefitsManagement() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Membership Tier</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <Select onValueChange={(val) => field.onChange(val === "__all__" ? null : val)} value={field.value || "__all__"}>
                           <FormControl>
                             <SelectTrigger data-testid="select-benefit-tier">
                               <SelectValue placeholder="Select tier (optional)" />
@@ -263,7 +263,7 @@ export default function MemberBenefitsManagement() {
                           </FormControl>
                           <SelectContent>
                             {tierOptions.map((opt) => (
-                              <SelectItem key={opt.value || "all"} value={opt.value} data-testid={`select-tier-${opt.value || 'all'}`}>
+                              <SelectItem key={opt.value} value={opt.value} data-testid={`select-tier-${opt.value}`}>
                                 {opt.label}
                               </SelectItem>
                             ))}
