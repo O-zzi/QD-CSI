@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -12,7 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Users, Clock, Trophy, Check, Loader2, LogIn } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Calendar, Users, Clock, Trophy, Check, Loader2, LogIn, Upload, Building2, Banknote, X, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Event } from "@shared/schema";
@@ -30,6 +32,7 @@ const registrationFormSchema = z.object({
   phone: z.string().optional(),
   guestCount: z.number().min(0).max(10).default(0),
   notes: z.string().optional(),
+  paymentMethod: z.enum(['bank_transfer', 'cash']).optional(),
 });
 
 type RegistrationFormData = z.infer<typeof registrationFormSchema>;
@@ -45,6 +48,20 @@ export default function Events() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  
+  // Payment proof upload state
+  const [showProofUploadDialog, setShowProofUploadDialog] = useState(false);
+  const [pendingRegistrationId, setPendingRegistrationId] = useState<string | null>(null);
+  const [pendingRegistrationAmount, setPendingRegistrationAmount] = useState<number>(0);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMountedRef = useRef(true);
+  
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
 
   const { getValue } = useCmsMultiple([
     'page_events_title',
@@ -62,6 +79,7 @@ export default function Events() {
       phone: "",
       guestCount: 0,
       notes: "",
+      paymentMethod: "bank_transfer",
     },
   });
   
@@ -76,15 +94,44 @@ export default function Events() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegistrationFormData & { eventId: string }) => {
-      return await apiRequest("POST", `/api/events/${data.eventId}/register`, data);
+      const response = await apiRequest("POST", `/api/events/${data.eventId}/register`, data);
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to register for event');
+      }
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (result: any, variables) => {
+      if (!isMountedRef.current) return;
+      
       queryClient.invalidateQueries({ queryKey: ['/api/user/event-registrations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
-      toast({
-        title: "Registration Successful",
-        description: "You have been registered for this event.",
-      });
+      
+      const isPaidEvent = selectedEvent && (selectedEvent.price || 0) > 0;
+      const isBankTransfer = variables.paymentMethod === 'bank_transfer';
+      
+      if (isPaidEvent && isBankTransfer && result?.id) {
+        // Show payment proof upload dialog
+        setPendingRegistrationId(result.id);
+        setPendingRegistrationAmount(selectedEvent?.price || 0);
+        setProofFile(null);
+        setShowProofUploadDialog(true);
+        toast({
+          title: "Registration Submitted!",
+          description: "Please upload your payment receipt to complete the registration.",
+        });
+      } else if (isPaidEvent && variables.paymentMethod === 'cash') {
+        toast({
+          title: "Registration Submitted!",
+          description: "Please pay at the facility. Your registration will be confirmed upon payment verification.",
+        });
+      } else {
+        toast({
+          title: "Registration Successful",
+          description: "You have been registered for this event.",
+        });
+      }
+      
       setIsDialogOpen(false);
       setSelectedEvent(null);
       form.reset();
@@ -420,6 +467,48 @@ export default function Events() {
                 )}
               />
               
+              {/* Payment Method - only for paid events */}
+              {selectedEvent && (selectedEvent.price || 0) > 0 && (
+                <FormField
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Method *</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          value={field.value || "bank_transfer"}
+                          onValueChange={field.onChange}
+                          className="flex flex-col gap-3"
+                        >
+                          <div className="flex items-center gap-3 p-3 border rounded-md hover-elevate">
+                            <RadioGroupItem value="bank_transfer" id="evt-bank" data-testid="radio-event-bank-transfer" />
+                            <Label htmlFor="evt-bank" className="flex items-center gap-2 cursor-pointer flex-1">
+                              <Building2 className="w-4 h-4" />
+                              <div>
+                                <div className="font-medium">Bank Transfer</div>
+                                <div className="text-xs text-muted-foreground">Transfer to our bank account</div>
+                              </div>
+                            </Label>
+                          </div>
+                          <div className="flex items-center gap-3 p-3 border rounded-md hover-elevate">
+                            <RadioGroupItem value="cash" id="evt-cash" data-testid="radio-event-cash" />
+                            <Label htmlFor="evt-cash" className="flex items-center gap-2 cursor-pointer flex-1">
+                              <Banknote className="w-4 h-4" />
+                              <div>
+                                <div className="font-medium">Cash Payment</div>
+                                <div className="text-xs text-muted-foreground">Pay at the facility</div>
+                              </div>
+                            </Label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              
               <div className="flex justify-end gap-3 pt-4">
                 <Button 
                   type="button" 
@@ -493,6 +582,170 @@ export default function Events() {
               data-testid="button-cancel-login-prompt"
             >
               Maybe Later
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Proof Upload Dialog */}
+      <Dialog open={showProofUploadDialog} onOpenChange={(open) => {
+        if (!open && !uploadingProof) {
+          setShowProofUploadDialog(false);
+          setPendingRegistrationId(null);
+          setProofFile(null);
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2" data-testid="text-proof-upload-title">
+              <Upload className="w-5 h-5" />
+              Upload Payment Receipt
+            </DialogTitle>
+            <DialogDescription>
+              Please upload a screenshot or photo of your bank transfer receipt.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="p-4 bg-sky-50 dark:bg-sky-900/20 rounded-lg border border-sky-200 dark:border-sky-800">
+              <p className="text-sm font-medium text-sky-800 dark:text-sky-200">Amount to Transfer</p>
+              <p className="text-2xl font-bold text-sky-600 dark:text-sky-400">
+                PKR {pendingRegistrationAmount.toLocaleString()}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Bank details will be provided in your confirmation email
+              </p>
+            </div>
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".jpg,.jpeg,.png,.pdf"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (file.size > 5 * 1024 * 1024) {
+                    toast({
+                      title: "File too large",
+                      description: "Please upload a file smaller than 5MB",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  setProofFile(file);
+                }
+              }}
+              className="hidden"
+              data-testid="input-event-proof-file"
+            />
+            
+            {proofFile ? (
+              <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                <FileText className="w-5 h-5 text-primary" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{proofFile.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(proofFile.size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setProofFile(null)}
+                  data-testid="button-remove-event-proof"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => fileInputRef.current?.click()}
+                data-testid="button-select-event-proof"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Select File
+              </Button>
+            )}
+            
+            <p className="text-xs text-muted-foreground text-center">
+              Accepted formats: JPG, PNG, PDF (max 5MB)
+            </p>
+          </div>
+          
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowProofUploadDialog(false);
+                setPendingRegistrationId(null);
+                setProofFile(null);
+                toast({
+                  title: "Reminder",
+                  description: "You can upload your payment receipt later from My Profile.",
+                });
+              }}
+              disabled={uploadingProof}
+              data-testid="button-skip-event-proof"
+            >
+              Upload Later
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!proofFile || !pendingRegistrationId || uploadingProof) return;
+                
+                setUploadingProof(true);
+                try {
+                  const formData = new FormData();
+                  formData.append('proof', proofFile);
+                  
+                  const response = await fetch(`/api/event-registrations/${pendingRegistrationId}/upload-proof`, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include',
+                  });
+                  
+                  if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'Failed to upload proof');
+                  }
+                  
+                  if (isMountedRef.current) {
+                    toast({
+                      title: "Receipt Uploaded!",
+                      description: "Your payment proof has been submitted for verification.",
+                    });
+                    setShowProofUploadDialog(false);
+                    setPendingRegistrationId(null);
+                    setProofFile(null);
+                    queryClient.invalidateQueries({ queryKey: ['/api/user/event-registrations'] });
+                  }
+                } catch (error: any) {
+                  if (isMountedRef.current) {
+                    toast({
+                      title: "Upload Failed",
+                      description: error.message || "Failed to upload payment proof",
+                      variant: "destructive",
+                    });
+                  }
+                } finally {
+                  if (isMountedRef.current) {
+                    setUploadingProof(false);
+                  }
+                }
+              }}
+              disabled={!proofFile || uploadingProof}
+              data-testid="button-submit-event-proof"
+            >
+              {uploadingProof ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                'Submit Receipt'
+              )}
             </Button>
           </div>
         </DialogContent>
