@@ -18,8 +18,16 @@ import {
   MapPin, AlertCircle, Check, Wallet, Timer, Ticket,
   Trophy, User, CalendarDays, Minus, Plus,
   Headphones, Glasses, Droplets, Coffee, Speaker, CircleDot,
-  ShieldCheck, FileCheck, Target
+  ShieldCheck, FileCheck, Target, Upload
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { GiTennisRacket, GiSquare } from "react-icons/gi";
 import type { Facility, Booking } from "@shared/schema";
 
@@ -136,6 +144,14 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   const [selectedHallActivity, setSelectedHallActivity] = useState<string | null>(null);
   const [currentLeaderboardType, setCurrentLeaderboardType] = useState('cumulative');
   const [validatingMembership, setValidatingMembership] = useState(false);
+  
+  // Payment proof upload dialog state
+  const [showProofUploadDialog, setShowProofUploadDialog] = useState(false);
+  const [pendingBookingId, setPendingBookingId] = useState<string | null>(null);
+  const [pendingBookingAmount, setPendingBookingAmount] = useState<number | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const proofFileInputRef = useRef<HTMLInputElement>(null);
 
   // Ref to track mounted state and cleanup timers
   const isMountedRef = useRef(true);
@@ -678,9 +694,15 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
 
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData: any) => {
-      return await apiRequest('POST', '/api/bookings', bookingData);
+      const response = await apiRequest('POST', '/api/bookings', bookingData);
+      // Parse JSON and handle errors
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create booking');
+      }
+      return data;
     },
-    onSuccess: async (_, variables) => {
+    onSuccess: async (booking: any, variables) => {
       // Guard against unmounted component
       if (!isMountedRef.current) return;
       
@@ -688,10 +710,23 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       const isCash = variables.paymentMethod === 'cash';
       
       if (isBankTransfer) {
-        toast({
-          title: "Booking Created!",
-          description: "Please complete your bank transfer and share the receipt with us for verification.",
-        });
+        // Store booking info and show proof upload dialog only if we have a valid booking ID
+        if (booking?.id) {
+          setPendingBookingId(booking.id);
+          setPendingBookingAmount(booking?.totalPrice || variables.totalPrice || 0);
+          setProofFile(null);
+          setShowProofUploadDialog(true);
+          toast({
+            title: "Booking Created!",
+            description: "Please upload your payment receipt to complete the booking.",
+          });
+        } else {
+          // Fallback: booking created but ID not received
+          toast({
+            title: "Booking Created!",
+            description: "Please complete your bank transfer and upload your receipt from My Profile > Bookings.",
+          });
+        }
       } else if (isCash) {
         toast({
           title: "Booking Created!",
@@ -704,8 +739,8 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
         });
       }
       
-      // Prompt for notification permission after successful booking
-      if (notificationsSupported && notificationPermission === 'default') {
+      // Prompt for notification permission after successful booking (not for bank transfer - dialog will show)
+      if (!isBankTransfer && notificationsSupported && notificationPermission === 'default') {
         // Store timer in ref for cleanup on unmount
         notificationTimerRef.current = setTimeout(() => {
           // Only show toast if component is still mounted
@@ -781,6 +816,106 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   const timeToMinutes = (time: string): number => {
     const [hours, minutes] = time.split(':').map(Number);
     return hours * 60 + minutes;
+  };
+
+  // Check if a time slot is in the past (for today's bookings)
+  const isPastSlot = (time: string): boolean => {
+    const today = new Date().toISOString().split('T')[0];
+    if (selectedDate !== today) {
+      return false; // Only check for today's date
+    }
+    
+    // Get current time in Pakistan timezone (UTC+5)
+    const now = new Date();
+    const pktOffset = 5 * 60; // Pakistan is UTC+5
+    const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+    const currentMinutes = utcMinutes + pktOffset;
+    
+    const slotMinutes = timeToMinutes(time);
+    return slotMinutes <= currentMinutes;
+  };
+
+  // Handle payment proof file selection
+  const handleProofFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a JPG, PNG, or PDF file.",
+          variant: "destructive",
+        });
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please upload a file smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setProofFile(file);
+    }
+  };
+
+  // Upload payment proof
+  const handleUploadProof = async () => {
+    if (!pendingBookingId || !proofFile) return;
+    
+    setUploadingProof(true);
+    try {
+      const formData = new FormData();
+      formData.append('receipt', proofFile);
+      
+      const response = await fetch(`/api/bookings/${pendingBookingId}/upload-proof`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to upload receipt');
+      }
+      
+      toast({
+        title: "Receipt Uploaded!",
+        description: "Your payment proof has been submitted for verification. We'll confirm your booking shortly.",
+      });
+      
+      // Close dialog and reset state
+      setShowProofUploadDialog(false);
+      setPendingBookingId(null);
+      setPendingBookingAmount(null);
+      setProofFile(null);
+      
+      // Refresh bookings
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+    } catch (error: any) {
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Unable to upload receipt. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
+  // Skip proof upload (user will upload later)
+  const handleSkipProofUpload = () => {
+    setShowProofUploadDialog(false);
+    setPendingBookingId(null);
+    setPendingBookingAmount(null);
+    setProofFile(null);
+    toast({
+      title: "Upload Later",
+      description: "You can upload your payment proof from My Profile > Bookings.",
+    });
   };
 
   const handleMembershipNumberChange = async (value: string) => {
@@ -1431,17 +1566,19 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
                     {TIME_SLOTS.map((time) => {
                       const taken = isSlotTaken(time);
+                      const past = isPastSlot(time);
+                      const isDisabled = taken || past;
                       const isSelected = selectedStartTime === time;
                       const offPeak = isOffPeak(time);
 
                       return (
                         <button
                           key={time}
-                          onClick={() => !taken && setSelectedStartTime(time)}
-                          disabled={taken}
+                          onClick={() => !isDisabled && setSelectedStartTime(time)}
+                          disabled={isDisabled}
                           className={`py-2 px-1 rounded border text-sm font-medium transition relative overflow-hidden ${
-                            taken
-                              ? 'bg-gray-200 dark:bg-slate-600 text-muted-foreground cursor-not-allowed opacity-70'
+                            isDisabled
+                              ? 'bg-gray-200 dark:bg-slate-600 text-muted-foreground cursor-not-allowed opacity-50 line-through'
                               : isSelected
                               ? 'bg-green-500 text-white shadow-lg border-green-500'
                               : 'bg-white dark:bg-slate-700 text-foreground hover:bg-sky-50 dark:hover:bg-slate-600 border-gray-200 dark:border-slate-600'
@@ -1449,7 +1586,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                           data-testid={`button-time-${time.replace(':', '')}`}
                         >
                           {time}
-                          {offPeak && !taken && !isSelected && (
+                          {offPeak && !isDisabled && !isSelected && (
                             <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-400 rounded-bl-md" />
                           )}
                         </button>
@@ -2055,6 +2192,113 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
           </div>
         )}
       </div>
+
+      {/* Payment Proof Upload Dialog */}
+      <Dialog open={showProofUploadDialog} onOpenChange={(open) => !uploadingProof && setShowProofUploadDialog(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5 text-sky-600" />
+              Upload Payment Proof
+            </DialogTitle>
+            <DialogDescription>
+              Please upload your bank transfer receipt to complete your booking.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Amount Due */}
+            {pendingBookingAmount && (
+              <div className="bg-sky-50 dark:bg-sky-900/20 p-4 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">Amount to Transfer</p>
+                <p className="text-2xl font-bold text-sky-600">{formatPKR(pendingBookingAmount)}</p>
+              </div>
+            )}
+
+            {/* Bank Details */}
+            <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Bank:</span>
+                <span className="font-medium">{bankDetails.bankName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Account:</span>
+                <span className="font-medium">{bankDetails.accountNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Title:</span>
+                <span className="font-medium">{bankDetails.accountTitle}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">IBAN:</span>
+                <span className="font-medium text-xs">{bankDetails.iban}</span>
+              </div>
+            </div>
+
+            {/* File Upload */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Upload Receipt (JPG, PNG, or PDF)</label>
+              <div 
+                onClick={() => proofFileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
+                  proofFile 
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                    : 'border-gray-300 dark:border-slate-600 hover:border-sky-500'
+                }`}
+              >
+                <input
+                  ref={proofFileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,application/pdf"
+                  onChange={handleProofFileChange}
+                  className="hidden"
+                  data-testid="input-proof-file"
+                />
+                {proofFile ? (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <Check className="w-5 h-5" />
+                    <span className="font-medium">{proofFile.name}</span>
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">
+                    <Upload className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Click to select file</p>
+                    <p className="text-xs mt-1">Max size: 5MB</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={handleSkipProofUpload}
+              disabled={uploadingProof}
+              data-testid="button-skip-proof"
+            >
+              Upload Later
+            </Button>
+            <Button
+              onClick={handleUploadProof}
+              disabled={!proofFile || uploadingProof}
+              data-testid="button-upload-proof"
+            >
+              {uploadingProof ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Receipt
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

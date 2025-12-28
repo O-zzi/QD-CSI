@@ -3385,6 +3385,57 @@ export async function registerRoutes(
     });
   });
 
+  // User endpoint to upload booking payment proof (for their own bookings)
+  app.post('/api/bookings/:id/upload-proof', isAuthenticated, (req: any, res, next) => {
+    upload.single('receipt')(req, res, (err: any) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File too large. Maximum size is 5MB." });
+        }
+        return res.status(400).json({ message: err.message || "File upload failed" });
+      }
+      
+      (async () => {
+        try {
+          if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+          }
+          
+          const userId = req.user?.id;
+          const bookingId = req.params.id;
+          
+          // Verify the booking belongs to this user
+          const booking = await storage.getBookingById(bookingId);
+          if (!booking) {
+            return res.status(404).json({ message: "Booking not found" });
+          }
+          if (booking.userId !== userId) {
+            return res.status(403).json({ message: "You can only upload proof for your own bookings" });
+          }
+          
+          // Upload the file
+          const url = await handleFileUpload(req.file, 'booking-proof');
+          
+          // Update the booking with the proof URL
+          const updatedBooking = await storage.updateBookingPayment(bookingId, { 
+            paymentProofUrl: url,
+            paymentStatus: 'pending_verification'
+          });
+          
+          logger.info(`Payment proof uploaded by user ${userId} for booking ${bookingId}: ${url}`);
+          res.json({ 
+            success: true, 
+            url,
+            booking: updatedBooking 
+          });
+        } catch (error: any) {
+          logger.error("Error uploading booking payment proof:", error);
+          res.status(500).json({ message: error.message || "Failed to upload payment proof" });
+        }
+      })();
+    });
+  });
+
   app.patch('/api/admin/bookings/:id/status', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const { status, cancelReason } = req.body;
