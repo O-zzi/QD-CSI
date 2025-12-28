@@ -25,13 +25,12 @@ All images are database-driven and editable via the admin panel, eliminating har
 
 ### Navigation Structure
 
-**Top Navbar:**
+**Top Navbar (4 Category Dropdowns):**
 - Logo (links to home)
-- Facilities → /facilities
-- Events & Academies → /events
-- Updates → /updates
-- Contact → /contact
-- More dropdown: Blog, Testimonials, Leaderboard, Gallery, FAQ
+- Facilities dropdown: Padel Tennis, Squash Courts, Air Rifle Range, Multipurpose Hall (dynamic from API)
+- Experiences dropdown: Events & Academies, Leaderboard, Gallery
+- Community dropdown: Blog, Testimonials, Updates
+- About dropdown: Vision, Contact, FAQ, Club Rules
 - User Menu (authenticated): Profile, Admin Dashboard (for admins), Logout
 - Book Now button
 
