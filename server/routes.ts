@@ -2667,7 +2667,13 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Admin authentication required" });
       }
       
-      const result = insertCertificationClassSchema.safeParse(req.body);
+      // Convert scheduledDate string to Date object if provided
+      const body = { ...req.body };
+      if (body.scheduledDate && typeof body.scheduledDate === 'string') {
+        body.scheduledDate = new Date(body.scheduledDate);
+      }
+      
+      const result = insertCertificationClassSchema.safeParse(body);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
       }
@@ -2687,8 +2693,14 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Admin authentication required" });
       }
       
+      // Convert scheduledDate string to Date object if provided
+      const body = { ...req.body };
+      if (body.scheduledDate && typeof body.scheduledDate === 'string') {
+        body.scheduledDate = new Date(body.scheduledDate);
+      }
+      
       const partialSchema = insertCertificationClassSchema.partial();
-      const result = partialSchema.safeParse(req.body);
+      const result = partialSchema.safeParse(body);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
       }
