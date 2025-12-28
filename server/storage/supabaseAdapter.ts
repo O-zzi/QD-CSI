@@ -9,10 +9,14 @@ export class SupabaseStorageAdapter implements IStorageProvider {
   
   constructor() {
     this.supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+    // Support both SUPABASE_SERVICE_KEY and SUPABASE_SERVICE_ROLE_KEY for flexibility
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
     
     if (this.supabaseUrl && supabaseServiceKey) {
       this.client = createClient(this.supabaseUrl, supabaseServiceKey);
+      logger.info('Supabase storage adapter initialized successfully');
+    } else {
+      logger.warn('Supabase storage not configured - missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
     }
   }
   

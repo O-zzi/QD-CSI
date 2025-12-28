@@ -1,4 +1,5 @@
 import { promises as fs } from 'fs';
+import * as fsSync from 'fs';
 import path from 'path';
 import { logger } from '../logger';
 import { IStorageProvider, StorageUploadResult, StorageDeleteResult, UploadOptions } from './types';
@@ -7,6 +8,7 @@ export class LocalStorageAdapter implements IStorageProvider {
   name: 'local' = 'local';
   private uploadDir: string;
   private baseUrl: string;
+  private isWritable: boolean = false;
   
   constructor() {
     const envUploadDir = process.env.LOCAL_UPLOAD_DIR || 'uploads';
@@ -15,11 +17,24 @@ export class LocalStorageAdapter implements IStorageProvider {
       : path.join(process.cwd(), envUploadDir);
     this.baseUrl = process.env.LOCAL_STORAGE_BASE_URL || '/uploads';
     
-    logger.info(`Local storage adapter initialized: uploadDir=${this.uploadDir}, baseUrl=${this.baseUrl}`);
+    // Test if directory is writable on initialization
+    try {
+      if (!fsSync.existsSync(this.uploadDir)) {
+        fsSync.mkdirSync(this.uploadDir, { recursive: true });
+      }
+      const testFile = path.join(this.uploadDir, '.write-test');
+      fsSync.writeFileSync(testFile, 'test');
+      fsSync.unlinkSync(testFile);
+      this.isWritable = true;
+      logger.info(`Local storage adapter initialized: uploadDir=${this.uploadDir}, baseUrl=${this.baseUrl}, writable=true`);
+    } catch (error) {
+      this.isWritable = false;
+      logger.warn(`Local storage not writable at ${this.uploadDir}:`, error);
+    }
   }
   
   isConfigured(): boolean {
-    return true;
+    return this.isWritable;
   }
   
   async ensureUploadDir(): Promise<void> {
