@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, Medal, Target } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/layout/PageHero";
@@ -36,7 +35,6 @@ export default function Leaderboard() {
   });
 
   const [selectedFacility, setSelectedFacility] = useState('all');
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const { getValue } = useCmsMultiple([
     'page_leaderboard_title',
@@ -67,52 +65,6 @@ export default function Leaderboard() {
     }
     return <span className="text-sm font-bold">{rank}</span>;
   };
-
-  // Auth loading state
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navbar />
-        <main className="flex-1">
-          <div className="qd-container py-8">
-            <Skeleton className="h-12 w-64 mb-8" />
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-20 rounded-xl" />
-              ))}
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  // Auth gate - require login
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navbar />
-        <main className="flex-1 flex items-center justify-center">
-          <Card className="max-w-md w-full mx-4">
-            <CardContent className="pt-6 text-center">
-              <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Sign In Required</h2>
-              <p className="text-muted-foreground mb-6">
-                Please log in to view the leaderboard and player rankings.
-              </p>
-              <Link href="/login">
-                <Button className="w-full" data-testid="button-login-prompt">
-                  Sign In
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
