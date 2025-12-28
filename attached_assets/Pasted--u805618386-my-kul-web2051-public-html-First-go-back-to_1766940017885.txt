@@ -1,0 +1,160 @@
+[u805618386@my-kul-web2051 public_html]$ # First, go back to the app directory
+cd /home/u805618386/domains/thequarterdeck.pk/public_html/
+
+# Run the database push again and select "create table" when prompted
+npm run db:push
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/u805618386/domains/thequarterdeck.pk/public_html/driz                                                                                                                                                             zle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
++ cms_fields table will be created
++ cms_pages table will be created
++ facility_venues table will be created
++ time_slot_blocks table will be created
+--- all table conflicts resolved ---
+
+
++ country column will be created
+--- all columns conflicts in venues table resolved ---
+
+
++ icon column will be created
+--- all columns conflicts in facility_add_ons table resolved ---
+
+
++ score column will be created
+
++ ranking_points column will be created
+--- all columns conflicts in leaderboard table resolved ---
+
+
++ name column will be created
+
++ is_peak column will be created
+
++ discount_disabled column will be created
+
++ founding_discount column will be created
+
++ gold_discount column will be created
+
++ silver_discount column will be created
+
++ guest_discount column will be created
+
++ founding_booking_window column will be created
+
++ gold_booking_window column will be created
+
++ silver_booking_window column will be created
+
++ guest_booking_window column will be created
+
++ season_start column will be created
+
++ season_end column will be created
+
++ sort_order column will be created
+
++ is_active column will be created
+--- all columns conflicts in peak_windows table resolved ---
+
+
++ slug column will be created
+
++ icon column will be created
+
++ base_price column will be created
+
++ max_hours column will be created
+
++ max_capacity column will be created
+
++ min_capacity column will be created
+
++ resources_required column will be created
+
++ requires_approval column will be created
+
++ requires_deposit column will be created
+
++ deposit_amount column will be created
+--- all columns conflicts in hall_activities table resolved ---
+
+
++ resource column will be created
+--- all columns conflicts in admin_audit_logs table resolved ---
+
+
++ payment_rejected_reason column will be created
+--- all columns conflicts in memberships table resolved ---
+
+
+
+
+
+
+
+
+· You're about to add users_email_unique unique constraint to the table, which contains 3 items. If this statement fails, you will receive an error from the database. Do you want to truncate users table?
+
+· You're about to add venues_slug_unique unique constraint to the table, which contains 1 items. If this statement fails, you will receive an error from the database. Do you want to truncate venues table?
+
+· You're about to add site_settings_key_unique unique constraint to the table, which contains 20 items. If this statement fails, you will receive an error from the database. Do you want to truncate site_settings table?
+
+· You're about to add membership_tier_definitions_slug_unique unique constraint to the table, which contains 4 items. If this statement fails, you will receive an error from the database. Do you want to truncate membership_tier_definitions table?
+
+· You're about to add cms_content_key_unique unique constraint to the table, which contains 49 items. If this statement fails, you will receive an error from the database. Do you want to truncate cms_content table?
+
+· You're about to add blogs_slug_unique unique constraint to the table, which contains 2 items. If this statement fails, you will receive an error from the database. Do you want to truncate blogs table?
+
+· You're about to add hero_sections_page_unique unique constraint to the table, which contains 11 items. If this statement fails, you will receive an error from the database. Do you want to truncate hero_sections table?
+
+· You're about to add ctas_key_unique unique constraint to the table, which contains 6 items. If this statement fails, you will receive an error from the database. Do you want to truncate ctas table?
+
+· You're about to add site_images_key_unique unique constraint to the table, which contains 17 items. If this statement fails, you will receive an error from the database. Do you want to truncate site_images table?
+
+· You're about to add facilities_slug_unique unique constraint to the table, which contains 5 items. If this statement fails, you will receive an error from the database. Do you want to truncate facilities table?
+
+ Warning  Found data-loss statements:
+· You're about to delete address column in venues table with 1 items
+· You're about to delete phone column in venues table with 1 items
+· You're about to delete email column in venues table with 1 items
+· You're about to delete operating_hours_start column in venues table with 1 items
+· You're about to delete operating_hours_end column in venues table with 1 items
+· You're about to delete description column in venues table with 1 items
+· You're about to delete image_url column in venues table with 1 items
+· You're about to delete latitude column in venues table with 1 items
+· You're about to delete longitude column in venues table with 1 items
+· You're about to delete location column in events table with 7 items
+· You're about to delete registered_count column in events table with 7 items
+· You're about to delete start_time column in events table with 7 items
+· You're about to delete end_time column in events table with 7 items
+· You're about to delete is_featured column in events table with 7 items
+· You're about to delete event_type column in events table with 7 items
+· You're about to delete is_active column in navbar_items table with 6 items
+· You're about to delete parent_id column in navbar_items table with 6 items
+· You're about to delete name column in construction_phases table with 4 items
+· You're about to delete description column in construction_phases table with 4 items
+· You're about to delete start_date column in construction_phases table with 4 items
+· You're about to delete end_date column in construction_phases table with 4 items
+· You're about to delete progress_percent column in construction_phases table with 4 items
+· You're about to delete milestone_text column in construction_phases table with 4 items
+· You're about to delete image_url column in construction_phases table with 4 items
+· You're about to delete page column in cms_content table with 49 items
+· You're about to delete section column in cms_content table with 49 items
+· You're about to delete content_key column in cms_content table with 49 items
+· You're about to delete content_value column in cms_content table with 49 items
+· You're about to delete content_type column in cms_content table with 49 items
+· You're about to delete image_key column in site_images table with 17 items
+· You're about to delete alt_text column in site_images table with 17 items
+· You're about to delete caption column in site_images table with 17 items
+
+THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
+
+Do you still want to push changes?
+[x] All changes were aborted
