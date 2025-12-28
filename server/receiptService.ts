@@ -3,7 +3,8 @@ import { Booking, EventRegistration, MembershipApplication, Facility, Event, Pri
 
 interface ReceiptData {
   receiptNumber: string;
-  transactionType: 'BOOKING' | 'EVENT_REGISTRATION' | 'MEMBERSHIP';
+  transactionType: 'BOOKING' | 'EVENT_REGISTRATION' | 'MEMBERSHIP' | 'CREDIT_TOPUP';
+  transactionCategory: string;
   transactionId: string;
   date: Date;
   customerName: string;
@@ -20,8 +21,11 @@ interface ReceiptData {
   discountDescription?: string;
   total: number;
   paymentMethod: string;
+  paymentMethodLabel: string;
   paymentStatus: string;
   paymentReference?: string | null;
+  paidBy?: 'self' | 'other_member' | 'credits';
+  payerDetails?: string | null;
   notes?: string | null;
 }
 
@@ -39,7 +43,8 @@ export function generateBookingReceiptData(
   facility: Facility | null,
   customerName: string,
   customerEmail: string,
-  customerPhone?: string | null
+  customerPhone?: string | null,
+  payerName?: string | null
 ): ReceiptData {
   const basePrice = booking.basePrice || 0;
   const discount = booking.discount || 0;
@@ -62,9 +67,22 @@ export function generateBookingReceiptData(
     });
   }
 
+  const paymentMethod = booking.paymentMethod || 'cash';
+  const paidBy = determinePaidBy(paymentMethod, booking.payerType);
+  let payerDetails: string | null = null;
+  
+  if (paidBy === 'other_member' && booking.payerMembershipNumber) {
+    payerDetails = payerName 
+      ? `${payerName} (Member #${booking.payerMembershipNumber})`
+      : `Member #${booking.payerMembershipNumber}`;
+  } else if (paidBy === 'credits') {
+    payerDetails = 'Deducted from account credit balance';
+  }
+
   return {
     receiptNumber: booking.receiptNumber || generateReceiptNumber('QD-BK'),
     transactionType: 'BOOKING',
+    transactionCategory: `Facility Booking - ${facility?.name || 'Sports Facility'}`,
     transactionId: booking.id,
     date: booking.createdAt || new Date(),
     customerName,
@@ -75,11 +93,38 @@ export function generateBookingReceiptData(
     discount: discount > 0 ? discount : undefined,
     discountDescription: discount > 0 ? 'Membership discount' : undefined,
     total,
-    paymentMethod: booking.paymentMethod || 'Not specified',
+    paymentMethod: paymentMethod,
+    paymentMethodLabel: getPaymentMethodLabel(paymentMethod),
     paymentStatus: booking.paymentStatus || 'PENDING',
-    paymentReference: booking.paymentProofUrl ? 'Receipt uploaded' : null,
+    paymentReference: booking.paymentProofUrl ? 'Payment proof uploaded' : null,
+    paidBy,
+    payerDetails,
     notes: `Time slot: ${booking.startTime} - ${booking.endTime}`,
   };
+}
+
+function determinePaidBy(paymentMethod: string, payerType?: string | null): 'self' | 'other_member' | 'credits' {
+  if (paymentMethod === 'credits' || paymentMethod === 'CREDITS') {
+    return 'credits';
+  }
+  if (payerType === 'OTHER' || payerType === 'other') {
+    return 'other_member';
+  }
+  return 'self';
+}
+
+function getPaymentMethodLabel(method: string): string {
+  const labels: Record<string, string> = {
+    'cash': 'Cash Payment',
+    'CASH': 'Cash Payment',
+    'bank_transfer': 'Bank Transfer',
+    'BANK_TRANSFER': 'Bank Transfer',
+    'credits': 'Credit Balance',
+    'CREDITS': 'Credit Balance',
+    'card': 'Card Payment',
+    'CARD': 'Card Payment',
+  };
+  return labels[method] || method || 'Not specified';
 }
 
 export function generateEventRegistrationReceiptData(
@@ -106,9 +151,12 @@ export function generateEventRegistrationReceiptData(
     });
   }
 
+  const paymentMethod = registration.paymentMethod || 'cash';
+
   return {
     receiptNumber: generateReceiptNumber('QD-EV'),
     transactionType: 'EVENT_REGISTRATION',
+    transactionCategory: `Event Registration - ${event?.title || 'Event'}`,
     transactionId: registration.id,
     date: registration.createdAt || new Date(),
     customerName: registration.fullName,
@@ -117,9 +165,11 @@ export function generateEventRegistrationReceiptData(
     items,
     subtotal: total,
     total,
-    paymentMethod: registration.paymentMethod || 'Not specified',
+    paymentMethod: paymentMethod,
+    paymentMethodLabel: getPaymentMethodLabel(paymentMethod),
     paymentStatus: registration.paymentStatus || 'PENDING',
-    paymentReference: registration.paymentProofUrl ? 'Receipt uploaded' : null,
+    paymentReference: registration.paymentProofUrl ? 'Payment proof uploaded' : null,
+    paidBy: 'self',
     notes: event ? `Event: ${event.scheduleDay} ${event.scheduleTime || ''}` : null,
   };
 }
@@ -132,10 +182,12 @@ export function generateMembershipReceiptData(
   customerPhone?: string | null
 ): ReceiptData {
   const price = application.paymentAmount || tier?.price || 0;
+  const paymentMethod = application.paymentMethod || 'bank_transfer';
   
   return {
     receiptNumber: generateReceiptNumber('QD-MB'),
     transactionType: 'MEMBERSHIP',
+    transactionCategory: `Membership Payment - ${tier?.name || application.tierDesired} Tier`,
     transactionId: application.id,
     date: application.createdAt || new Date(),
     customerName,
@@ -149,9 +201,11 @@ export function generateMembershipReceiptData(
     }],
     subtotal: price,
     total: price,
-    paymentMethod: application.paymentMethod || 'Not specified',
+    paymentMethod: paymentMethod,
+    paymentMethodLabel: getPaymentMethodLabel(paymentMethod),
     paymentStatus: application.status || 'PENDING',
-    paymentReference: application.paymentProofUrl ? 'Receipt uploaded' : null,
+    paymentReference: application.paymentProofUrl ? 'Payment proof uploaded' : null,
+    paidBy: 'self',
     notes: `Billing: ${tier?.billingPeriod || 'monthly'}`,
   };
 }
@@ -194,13 +248,13 @@ export async function generateReceiptPDF(data: ReceiptData): Promise<Buffer> {
     doc.fontSize(10).fillColor(mutedColor);
     doc.text('Receipt Number:', leftCol, startY);
     doc.text('Date:', leftCol, startY + 15);
-    doc.text('Transaction Type:', leftCol, startY + 30);
+    doc.text('Category:', leftCol, startY + 30);
     doc.text('Transaction ID:', leftCol, startY + 45);
     
     doc.fillColor(primaryColor);
     doc.text(data.receiptNumber, leftCol + 100, startY);
     doc.text(formatDate(data.date), leftCol + 100, startY + 15);
-    doc.text(formatTransactionType(data.transactionType), leftCol + 100, startY + 30);
+    doc.text(data.transactionCategory || formatTransactionType(data.transactionType), leftCol + 100, startY + 30);
     doc.text(data.transactionId.substring(0, 8) + '...', leftCol + 100, startY + 45);
     
     doc.fillColor(mutedColor);
@@ -280,7 +334,7 @@ export async function generateReceiptPDF(data: ReceiptData): Promise<Buffer> {
     
     doc.fontSize(10).fillColor(mutedColor);
     doc.text('Payment Method:', 50, itemY);
-    doc.fillColor(primaryColor).text(formatPaymentMethod(data.paymentMethod), 150, itemY);
+    doc.fillColor(primaryColor).text(data.paymentMethodLabel || formatPaymentMethod(data.paymentMethod), 150, itemY);
     itemY += 15;
     
     doc.fillColor(mutedColor).text('Payment Status:', 50, itemY);
@@ -288,6 +342,21 @@ export async function generateReceiptPDF(data: ReceiptData): Promise<Buffer> {
                         data.paymentStatus === 'PENDING' ? '#F59E0B' : mutedColor;
     doc.fillColor(statusColor).text(data.paymentStatus, 150, itemY);
     itemY += 15;
+    
+    if (data.paidBy) {
+      doc.fillColor(mutedColor).text('Paid By:', 50, itemY);
+      const paidByLabel = data.paidBy === 'self' ? 'Self' : 
+                          data.paidBy === 'other_member' ? 'Another Member' :
+                          data.paidBy === 'credits' ? 'Credit Balance' : data.paidBy;
+      doc.fillColor(primaryColor).text(paidByLabel, 150, itemY);
+      itemY += 15;
+    }
+    
+    if (data.payerDetails) {
+      doc.fillColor(mutedColor).text('Payer Details:', 50, itemY);
+      doc.fillColor(primaryColor).text(data.payerDetails, 150, itemY);
+      itemY += 15;
+    }
     
     if (data.paymentReference) {
       doc.fillColor(mutedColor).text('Reference:', 50, itemY);
@@ -337,7 +406,8 @@ function formatTransactionType(type: string): string {
   const types: Record<string, string> = {
     'BOOKING': 'Facility Booking',
     'EVENT_REGISTRATION': 'Event Registration',
-    'MEMBERSHIP': 'Membership Application',
+    'MEMBERSHIP': 'Membership Payment',
+    'CREDIT_TOPUP': 'Credit Balance Top-up',
   };
   return types[type] || type;
 }
