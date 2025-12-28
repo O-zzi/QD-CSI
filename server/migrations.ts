@@ -509,6 +509,20 @@ export async function runStartupMigrations() {
       logger.warn("Failed to seed CMS Phase 2 content", { source: "migrations", error: seedError });
     }
     
+    // Ensure dev bypass user exists in database (for development mode only)
+    if (process.env.NODE_ENV !== 'production' && process.env.DEV_AUTH_BYPASS === 'true') {
+      try {
+        await pool.query(`
+          INSERT INTO users (id, email, first_name, last_name, role, email_verified, created_at)
+          VALUES ('dev-user-bypass', 'dev@quarterdeck.local', 'Dev', 'User', 'SUPER_ADMIN', true, NOW())
+          ON CONFLICT (id) DO NOTHING
+        `);
+        logger.info("Dev bypass user ensured in database", { source: "migrations" });
+      } catch (devUserError) {
+        logger.warn("Failed to create dev bypass user", { source: "migrations", error: devUserError });
+      }
+    }
+    
     logger.info("All startup migrations completed successfully", { source: "migrations" });
   } catch (error) {
     logger.error("Error running startup migrations", { source: "migrations", error });
