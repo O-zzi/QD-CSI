@@ -103,7 +103,7 @@ export const CMS_DEFAULTS: Record<string, string> = {
   membership_comparison_title: 'Quick Comparison',
   membership_footer: 'Questions about membership? Contact us for more details or to discuss corporate packages.',
   membership_contact_cta: 'Contact for Details',
-  membership_contact_cta_url: '#contact',
+  membership_contact_cta_url: '/contact',
   membership_terms_cta: 'View Terms & Conditions',
   membership_terms_cta_url: '/terms',
   
