@@ -6,8 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
   MapPin, Phone, Mail, Clock, Send, MessageSquare, 
-  Users, Calendar, Building2, ChevronDown, Loader2,
-  Facebook, Instagram, Twitter, HelpCircle
+  Users, Calendar, Building2, ChevronDown, Loader2, HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -322,52 +321,6 @@ export default function Contact() {
                         {getSetting("operating_hours") || "6:00 AM - 11:00 PM Daily"}
                       </p>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>{getValue('page_contact_social_title')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-3">
-                    {getSetting("facebook") && (
-                      <a 
-                        href={getSetting("facebook")} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center hover-elevate"
-                        data-testid="link-social-facebook"
-                      >
-                        <Facebook className="w-5 h-5 text-primary" />
-                      </a>
-                    )}
-                    {getSetting("instagram") && (
-                      <a 
-                        href={getSetting("instagram")} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center hover-elevate"
-                        data-testid="link-social-instagram"
-                      >
-                        <Instagram className="w-5 h-5 text-primary" />
-                      </a>
-                    )}
-                    {getSetting("twitter") && (
-                      <a 
-                        href={getSetting("twitter")} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center hover-elevate"
-                        data-testid="link-social-twitter"
-                      >
-                        <Twitter className="w-5 h-5 text-primary" />
-                      </a>
-                    )}
-                    {!getSetting("facebook") && !getSetting("instagram") && !getSetting("twitter") && (
-                      <p className="text-sm text-muted-foreground">Social links coming soon</p>
-                    )}
                   </div>
                 </CardContent>
               </Card>
