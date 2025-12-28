@@ -67,8 +67,8 @@ export function generateBookingReceiptData(
     });
   }
 
-  const paymentMethod = booking.paymentMethod || 'cash';
-  const paidBy = determinePaidBy(paymentMethod, booking.payerType);
+  const paymentMethod = booking.paymentMethod || null;
+  const paidBy = paymentMethod ? determinePaidBy(paymentMethod, booking.payerType) : undefined;
   let payerDetails: string | null = null;
   
   if (paidBy === 'other_member' && booking.payerMembershipNumber) {
@@ -93,8 +93,8 @@ export function generateBookingReceiptData(
     discount: discount > 0 ? discount : undefined,
     discountDescription: discount > 0 ? 'Membership discount' : undefined,
     total,
-    paymentMethod: paymentMethod,
-    paymentMethodLabel: getPaymentMethodLabel(paymentMethod),
+    paymentMethod: paymentMethod || 'Not specified',
+    paymentMethodLabel: paymentMethod ? getPaymentMethodLabel(paymentMethod) : 'Not specified',
     paymentStatus: booking.paymentStatus || 'PENDING',
     paymentReference: booking.paymentProofUrl ? 'Payment proof uploaded' : null,
     paidBy,
@@ -151,7 +151,7 @@ export function generateEventRegistrationReceiptData(
     });
   }
 
-  const paymentMethod = registration.paymentMethod || 'cash';
+  const paymentMethod = registration.paymentMethod || null;
 
   return {
     receiptNumber: generateReceiptNumber('QD-EV'),
@@ -165,8 +165,8 @@ export function generateEventRegistrationReceiptData(
     items,
     subtotal: total,
     total,
-    paymentMethod: paymentMethod,
-    paymentMethodLabel: getPaymentMethodLabel(paymentMethod),
+    paymentMethod: paymentMethod || 'Not specified',
+    paymentMethodLabel: paymentMethod ? getPaymentMethodLabel(paymentMethod) : 'Not specified',
     paymentStatus: registration.paymentStatus || 'PENDING',
     paymentReference: registration.paymentProofUrl ? 'Payment proof uploaded' : null,
     paidBy: 'self',
@@ -182,7 +182,7 @@ export function generateMembershipReceiptData(
   customerPhone?: string | null
 ): ReceiptData {
   const price = application.paymentAmount || tier?.price || 0;
-  const paymentMethod = application.paymentMethod || 'bank_transfer';
+  const paymentMethod = application.paymentMethod || null;
   
   return {
     receiptNumber: generateReceiptNumber('QD-MB'),
@@ -201,8 +201,8 @@ export function generateMembershipReceiptData(
     }],
     subtotal: price,
     total: price,
-    paymentMethod: paymentMethod,
-    paymentMethodLabel: getPaymentMethodLabel(paymentMethod),
+    paymentMethod: paymentMethod || 'Not specified',
+    paymentMethodLabel: paymentMethod ? getPaymentMethodLabel(paymentMethod) : 'Not specified',
     paymentStatus: application.status || 'PENDING',
     paymentReference: application.paymentProofUrl ? 'Payment proof uploaded' : null,
     paidBy: 'self',
