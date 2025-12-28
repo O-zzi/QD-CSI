@@ -843,6 +843,7 @@ export const memberBenefits = pgTable("member_benefits", {
   icon: varchar("icon").notNull(),
   title: varchar("title").notNull(),
   description: text("description"),
+  tierId: varchar("tier_id"), // Optional: links benefit to a specific membership tier (FOUNDING, GOLD, SILVER, GUEST)
   sortOrder: integer("sort_order").default(0),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),

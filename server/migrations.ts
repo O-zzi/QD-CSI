@@ -446,6 +446,15 @@ export async function runStartupMigrations() {
     `);
     logger.info("member_benefits table created/verified", { source: "migrations" });
     
+    // Add tier_id column to member_benefits if not exists
+    await pool.query(`
+      ALTER TABLE member_benefits 
+      ADD COLUMN IF NOT EXISTS tier_id VARCHAR
+    `).catch(() => {
+      // Column might already exist
+    });
+    logger.info("member_benefits.tier_id column verified", { source: "migrations" });
+    
     // Create career_benefits table if not exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS career_benefits (

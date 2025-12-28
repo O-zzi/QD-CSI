@@ -39,10 +39,19 @@ const getIconComponent = (iconName: string) => {
   return found?.icon || HelpCircle;
 };
 
+const tierOptions = [
+  { value: "", label: "All Members (General)" },
+  { value: "FOUNDING", label: "Founding Members" },
+  { value: "GOLD", label: "Gold Members" },
+  { value: "SILVER", label: "Silver Members" },
+  { value: "GUEST", label: "Pay-to-Play" },
+];
+
 const benefitSchema = z.object({
   icon: z.string().min(1, "Icon is required"),
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
+  tierId: z.string().optional(),
   sortOrder: z.coerce.number().default(0),
 });
 
@@ -65,6 +74,7 @@ export default function MemberBenefitsManagement() {
       icon: "gift",
       title: "",
       description: "",
+      tierId: "",
       sortOrder: 0,
     },
   });
@@ -124,6 +134,7 @@ export default function MemberBenefitsManagement() {
       icon: benefit.icon || "gift",
       title: benefit.title,
       description: benefit.description || "",
+      tierId: benefit.tierId || "",
       sortOrder: benefit.sortOrder || 0,
     });
     setDialogOpen(true);
@@ -240,6 +251,30 @@ export default function MemberBenefitsManagement() {
                   />
                   <FormField
                     control={form.control}
+                    name="tierId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Membership Tier</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-benefit-tier">
+                              <SelectValue placeholder="Select tier (optional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {tierOptions.map((opt) => (
+                              <SelectItem key={opt.value || "all"} value={opt.value} data-testid={`select-tier-${opt.value || 'all'}`}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
                     name="sortOrder"
                     render={({ field }) => (
                       <FormItem>
@@ -296,7 +331,14 @@ export default function MemberBenefitsManagement() {
                   <CardContent>
                     <CardTitle className="text-base mb-1">{benefit.title}</CardTitle>
                     <p className="text-sm text-muted-foreground">{benefit.description}</p>
-                    <p className="text-xs text-muted-foreground mt-2">Sort: {benefit.sortOrder || 0}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      {benefit.tierId && (
+                        <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                          {tierOptions.find(t => t.value === benefit.tierId)?.label || benefit.tierId}
+                        </span>
+                      )}
+                      <span className="text-xs text-muted-foreground">Sort: {benefit.sortOrder || 0}</span>
+                    </div>
                   </CardContent>
                 </Card>
               );
