@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatPKR, calculateEndTime, isOffPeak } from "@/lib/authUtils";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/use-notifications";
 import { 
   Crosshair, Building2, Spade,
   Calendar, Clock, ArrowLeft, ChevronLeft, ChevronRight,
@@ -104,6 +105,7 @@ const FACILITY_SORT_ORDER = ['padel-tennis', 'squash', 'air-rifle-range', 'bridg
 export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps) {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const { isSupported: notificationsSupported, permission: notificationPermission, requestPermission } = useNotifications();
   
   const [currentView, setCurrentView] = useState(initialView);
   const [selectedFacility, setSelectedFacility] = useState<{
@@ -632,7 +634,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     mutationFn: async (bookingData: any) => {
       return await apiRequest('POST', '/api/bookings', bookingData);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       const isBankTransfer = variables.paymentMethod === 'bank_transfer';
       const isCash = variables.paymentMethod === 'cash';
       
@@ -652,6 +654,34 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
           description: "Your booking has been successfully created.",
         });
       }
+      
+      // Prompt for notification permission after successful booking
+      if (notificationsSupported && notificationPermission === 'default') {
+        setTimeout(() => {
+          toast({
+            title: "Enable Booking Reminders?",
+            description: "Get notified 1 hour before your booking starts.",
+            action: (
+              <Button
+                size="sm"
+                onClick={async () => {
+                  const result = await requestPermission();
+                  if (result === 'granted') {
+                    toast({
+                      title: "Reminders Enabled",
+                      description: "You'll receive notifications before your bookings.",
+                    });
+                  }
+                }}
+                data-testid="button-enable-notifications"
+              >
+                Enable
+              </Button>
+            ),
+          });
+        }, 1500);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
       setSelectedStartTime(null);
       setSelectedAddOns(new Set());

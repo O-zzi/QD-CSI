@@ -382,12 +382,12 @@ export default function FacilityDetail() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {facility.quickInfo && Object.keys(facility.quickInfo).length > 0 ? (
-                    Object.entries(facility.quickInfo).map(([key, value]: [string, string]) => (
+                    Object.entries(facility.quickInfo).map(([key, value]) => (
                       <div key={key} className="flex items-center gap-3">
                         <Clock className="w-5 h-5 text-muted-foreground" />
                         <div>
                           <p className="text-sm text-muted-foreground">{key}</p>
-                          <p className="font-medium">{value}</p>
+                          <p className="font-medium">{String(value)}</p>
                         </div>
                       </div>
                     ))

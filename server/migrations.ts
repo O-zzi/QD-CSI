@@ -201,6 +201,16 @@ export async function runStartupMigrations() {
     `).catch(() => {});
     logger.info("facilities extended CMS columns verified", { source: "migrations" });
     
+    // Add educational content columns to facilities table
+    await pool.query(`
+      ALTER TABLE facilities 
+      ADD COLUMN IF NOT EXISTS how_to_play_content TEXT,
+      ADD COLUMN IF NOT EXISTS scoring_rules_content TEXT,
+      ADD COLUMN IF NOT EXISTS winning_criteria_content TEXT,
+      ADD COLUMN IF NOT EXISTS points_system_content TEXT
+    `).catch(() => {});
+    logger.info("facilities educational content columns verified", { source: "migrations" });
+    
     // Add extended CMS fields to pricing_tiers table
     await pool.query(`
       ALTER TABLE pricing_tiers 
