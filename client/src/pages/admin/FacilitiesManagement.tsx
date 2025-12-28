@@ -59,6 +59,10 @@ export default function FacilitiesManagement() {
     pricingNotes: "",
     certificationInfo: "",
     galleryImages: [] as string[],
+    howToPlayContent: "",
+    scoringRulesContent: "",
+    winningCriteriaContent: "",
+    pointsSystemContent: "",
   });
 
   const [venueFormData, setVenueFormData] = useState({
@@ -258,6 +262,10 @@ export default function FacilitiesManagement() {
       pricingNotes: "",
       certificationInfo: "",
       galleryImages: [],
+      howToPlayContent: "",
+      scoringRulesContent: "",
+      winningCriteriaContent: "",
+      pointsSystemContent: "",
     });
     setActiveTab("details");
     setUploadedFile(null);
@@ -395,6 +403,10 @@ export default function FacilitiesManagement() {
       pricingNotes: facility.pricingNotes || "",
       certificationInfo: facility.certificationInfo || "",
       galleryImages: facility.galleryImages || [],
+      howToPlayContent: facility.howToPlayContent || "",
+      scoringRulesContent: facility.scoringRulesContent || "",
+      winningCriteriaContent: facility.winningCriteriaContent || "",
+      pointsSystemContent: facility.pointsSystemContent || "",
     });
     setActiveTab("details");
     setIsDialogOpen(true);
@@ -807,6 +819,65 @@ export default function FacilitiesManagement() {
                       rows={3}
                       data-testid="input-gallery-images"
                     />
+                  </div>
+
+                  <div className="border-t pt-4 mt-4">
+                    <h3 className="font-semibold mb-4">Educational Content</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Help players understand the sport with detailed guides.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="howToPlayContent">How To Play</Label>
+                    <Textarea
+                      id="howToPlayContent"
+                      value={formData.howToPlayContent}
+                      onChange={(e) => setFormData({ ...formData, howToPlayContent: e.target.value })}
+                      placeholder="Explain how the sport/game is played, basic rules, court layout, equipment needed..."
+                      rows={5}
+                      data-testid="input-how-to-play"
+                    />
+                    <p className="text-xs text-muted-foreground">Describe the basics of how to play this sport.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="scoringRulesContent">Scoring Rules</Label>
+                    <Textarea
+                      id="scoringRulesContent"
+                      value={formData.scoringRulesContent}
+                      onChange={(e) => setFormData({ ...formData, scoringRulesContent: e.target.value })}
+                      placeholder="Explain how points are scored, game structure (sets, games), point values..."
+                      rows={5}
+                      data-testid="input-scoring-rules"
+                    />
+                    <p className="text-xs text-muted-foreground">Describe how scoring works in this sport.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="winningCriteriaContent">Winning Criteria</Label>
+                    <Textarea
+                      id="winningCriteriaContent"
+                      value={formData.winningCriteriaContent}
+                      onChange={(e) => setFormData({ ...formData, winningCriteriaContent: e.target.value })}
+                      placeholder="Explain how to determine the winner, tiebreakers, match formats..."
+                      rows={5}
+                      data-testid="input-winning-criteria"
+                    />
+                    <p className="text-xs text-muted-foreground">Describe how winners are determined.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pointsSystemContent">Points & Ranking System</Label>
+                    <Textarea
+                      id="pointsSystemContent"
+                      value={formData.pointsSystemContent}
+                      onChange={(e) => setFormData({ ...formData, pointsSystemContent: e.target.value })}
+                      placeholder="Explain how leaderboard points are awarded, ranking system, tournament points..."
+                      rows={5}
+                      data-testid="input-points-system"
+                    />
+                    <p className="text-xs text-muted-foreground">Describe the points and ranking system at The Quarterdeck.</p>
                   </div>
 
                   <div className="flex justify-end gap-2">

@@ -329,6 +329,50 @@ export default function FacilityDetail() {
                   </div>
                 </section>
               )}
+
+              {dbFacility?.howToPlayContent && (
+                <section data-testid="section-how-to-play">
+                  <h2 className="text-2xl font-bold text-primary mb-4">How To Play</h2>
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      {dbFacility.howToPlayContent}
+                    </p>
+                  </div>
+                </section>
+              )}
+
+              {dbFacility?.scoringRulesContent && (
+                <section data-testid="section-scoring-rules">
+                  <h2 className="text-2xl font-bold text-primary mb-4">Scoring Rules</h2>
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      {dbFacility.scoringRulesContent}
+                    </p>
+                  </div>
+                </section>
+              )}
+
+              {dbFacility?.winningCriteriaContent && (
+                <section data-testid="section-winning-criteria">
+                  <h2 className="text-2xl font-bold text-primary mb-4">Winning Criteria</h2>
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      {dbFacility.winningCriteriaContent}
+                    </p>
+                  </div>
+                </section>
+              )}
+
+              {dbFacility?.pointsSystemContent && (
+                <section data-testid="section-points-system">
+                  <h2 className="text-2xl font-bold text-primary mb-4">Points & Ranking System</h2>
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      {dbFacility.pointsSystemContent}
+                    </p>
+                  </div>
+                </section>
+              )}
             </div>
 
             <div className="space-y-6">

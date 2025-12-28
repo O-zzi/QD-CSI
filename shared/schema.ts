@@ -125,6 +125,11 @@ export const facilities = pgTable("facilities", {
   pricingNotes: text("pricing_notes"),
   certificationInfo: text("certification_info"),
   galleryImages: text("gallery_images").array(),
+  // Educational content fields
+  howToPlayContent: text("how_to_play_content"),
+  scoringRulesContent: text("scoring_rules_content"),
+  winningCriteriaContent: text("winning_criteria_content"),
+  pointsSystemContent: text("points_system_content"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
