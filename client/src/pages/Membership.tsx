@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Check, Crown, Star, Sparkles, Users, ChevronDown, ChevronUp, Award, Clock, Gift, Shield, Target, Zap, Heart, Ticket, Calendar, Trophy, HelpCircle } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -164,6 +165,7 @@ export default function Membership() {
 
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuth();
 
@@ -178,7 +180,7 @@ export default function Membership() {
     } else if (userMembership) {
       setLocation('/profile?tab=membership');
     } else {
-      document.getElementById('apply')?.scrollIntoView({ behavior: 'smooth' });
+      setShowApplicationDialog(true);
     }
   };
 
@@ -440,17 +442,17 @@ export default function Membership() {
             )}
           </section>
 
-          {isAuthenticated && !userMembership && (
-            <section className="mb-16 max-w-xl mx-auto" id="apply">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold mb-4">Apply for Membership</h2>
-                <p className="text-muted-foreground">
-                  Complete your application and start enjoying member benefits today
-                </p>
-              </div>
-              <MembershipApplicationForm />
-            </section>
-          )}
+          <Dialog open={showApplicationDialog} onOpenChange={setShowApplicationDialog}>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Apply for Membership</DialogTitle>
+                <DialogDescription>
+                  Choose your membership tier and complete the payment to join The Quarterdeck
+                </DialogDescription>
+              </DialogHeader>
+              <MembershipApplicationForm onSuccess={() => setShowApplicationDialog(false)} />
+            </DialogContent>
+          </Dialog>
 
           <section className="text-center max-w-2xl mx-auto">
             <Card>
@@ -469,7 +471,7 @@ export default function Membership() {
                       <Button data-testid="button-view-my-membership">View My Membership</Button>
                     </Link>
                   ) : (
-                    <Button onClick={() => document.getElementById('apply')?.scrollIntoView({ behavior: 'smooth' })} data-testid="button-apply-membership">Apply for Membership</Button>
+                    <Button onClick={() => setShowApplicationDialog(true)} data-testid="button-apply-membership">Apply for Membership</Button>
                   )}
                   <Link href="/contact">
                     <Button variant="outline" data-testid="button-contact-membership">{getValue('page_membership_contact_cta')}</Button>
