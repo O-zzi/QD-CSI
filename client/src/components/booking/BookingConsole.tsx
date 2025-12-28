@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -152,6 +152,16 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [uploadingProof, setUploadingProof] = useState(false);
   const proofFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Event registration payment dialog state
+  const [showEventPaymentDialog, setShowEventPaymentDialog] = useState(false);
+  const [pendingEventRegistration, setPendingEventRegistration] = useState<EventData | null>(null);
+  const [eventPaymentMethod, setEventPaymentMethod] = useState<'bank_transfer' | 'cash'>('bank_transfer');
+  const [showEventProofUploadDialog, setShowEventProofUploadDialog] = useState(false);
+  const [pendingEventRegistrationId, setPendingEventRegistrationId] = useState<string | null>(null);
+  const [eventProofFile, setEventProofFile] = useState<File | null>(null);
+  const [uploadingEventProof, setUploadingEventProof] = useState(false);
+  const eventProofFileInputRef = useRef<HTMLInputElement>(null);
 
   // Ref to track mounted state and cleanup timers
   const isMountedRef = useRef(true);
@@ -422,9 +432,11 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   });
 
   // Transform venues to simple city list - fallback to Islamabad if API empty
+  // Use Set to ensure unique cities
   const VENUES = useMemo(() => {
     if (apiVenues.length === 0) return ['Islamabad'];
-    return apiVenues.map(v => v.city);
+    const uniqueCities = Array.from(new Set(apiVenues.map(v => v.city)));
+    return uniqueCities;
   }, [apiVenues]);
 
   // Transform hall activities - no fallback, show loading if empty
@@ -650,15 +662,43 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
 
   // Event registration mutation
   const eventRegisterMutation = useMutation({
-    mutationFn: async (data: { eventId: string; fullName: string; email: string; phone?: string }) => {
-      return await apiRequest('POST', `/api/events/${data.eventId}/register`, data);
+    mutationFn: async (data: { eventId: string; fullName: string; email: string; phone?: string; paymentMethod?: string }) => {
+      const response = await apiRequest('POST', `/api/events/${data.eventId}/register`, data);
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to register for event');
+      }
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (result: any, variables) => {
       if (!isMountedRef.current) return;
-      toast({
-        title: "Registration Submitted!",
-        description: "Your registration is pending approval. You'll receive a confirmation email once approved.",
-      });
+      
+      const isPaidEvent = pendingEventRegistration && (pendingEventRegistration.price || 0) > 0;
+      const isBankTransfer = variables.paymentMethod === 'bank_transfer';
+      
+      if (isPaidEvent && isBankTransfer && result?.id) {
+        // Show payment proof upload dialog for bank transfer
+        setPendingEventRegistrationId(result.id);
+        setEventProofFile(null);
+        setShowEventProofUploadDialog(true);
+        toast({
+          title: "Registration Submitted!",
+          description: "Please upload your payment receipt to complete registration.",
+        });
+      } else if (isPaidEvent && variables.paymentMethod === 'cash') {
+        toast({
+          title: "Registration Submitted!",
+          description: "Please pay at the facility. Your registration will be confirmed upon payment.",
+        });
+      } else {
+        toast({
+          title: "Registration Successful!",
+          description: "You have been registered for this event.",
+        });
+      }
+      
+      setShowEventPaymentDialog(false);
+      setPendingEventRegistration(null);
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
     },
     onError: (error: Error) => {
@@ -671,21 +711,118 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     },
   });
 
-  const handleEventRegister = (event: { id: string; title: string }) => {
+  const handleEventRegister = (event: EventData) => {
     if (!isAuthenticated || !user) {
       toast({
         title: "Login Required",
         description: "Please log in to register for events.",
         variant: "destructive",
       });
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
+    // For paid events, show payment method dialog first
+    if ((event.price || 0) > 0) {
+      setPendingEventRegistration(event);
+      setEventPaymentMethod('bank_transfer');
+      setShowEventPaymentDialog(true);
+      return;
+    }
+
+    // For free events, register directly
     eventRegisterMutation.mutate({
       eventId: event.id,
       fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Member',
       email: user.email || '',
+    });
+  };
+  
+  // Confirm event registration with payment method
+  const confirmEventRegistration = () => {
+    if (!pendingEventRegistration || !user) return;
+    
+    eventRegisterMutation.mutate({
+      eventId: pendingEventRegistration.id,
+      fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Member',
+      email: user.email || '',
+      paymentMethod: eventPaymentMethod,
+    });
+  };
+  
+  // Handle event proof file selection
+  const handleEventProofFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a JPG, PNG, or PDF file.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please upload a file smaller than 10MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setEventProofFile(file);
+    }
+  };
+  
+  // Upload event payment proof
+  const handleUploadEventProof = async () => {
+    if (!pendingEventRegistrationId || !eventProofFile) return;
+    
+    setUploadingEventProof(true);
+    try {
+      const formData = new FormData();
+      formData.append('receipt', eventProofFile);
+      
+      const response = await fetch(`/api/event-registrations/${pendingEventRegistrationId}/upload-proof`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to upload receipt');
+      }
+      
+      toast({
+        title: "Receipt Uploaded!",
+        description: "Your payment proof has been submitted for verification.",
+      });
+      
+      setShowEventProofUploadDialog(false);
+      setPendingEventRegistrationId(null);
+      setEventProofFile(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+    } catch (error: any) {
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Unable to upload receipt. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingEventProof(false);
+    }
+  };
+  
+  // Skip event proof upload
+  const handleSkipEventProofUpload = () => {
+    setShowEventProofUploadDialog(false);
+    setPendingEventRegistrationId(null);
+    setEventProofFile(null);
+    toast({
+      title: "Upload Later",
+      description: "You can upload your payment proof from your profile.",
     });
   };
 
@@ -1102,8 +1239,10 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
     }));
   }, [apiLeaderboard]);
 
+  const [, navigate] = useLocation();
+  
   const handleBackToHome = () => {
-    window.location.href = '/';
+    navigate('/');
   };
 
   // Show loading state while facilities are being fetched
@@ -2285,6 +2424,226 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
               data-testid="button-upload-proof"
             >
               {uploadingProof ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Receipt
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Payment Method Dialog */}
+      <Dialog open={showEventPaymentDialog} onOpenChange={(open) => !eventRegisterMutation.isPending && setShowEventPaymentDialog(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-sky-600" />
+              Event Registration Payment
+            </DialogTitle>
+            <DialogDescription>
+              Select your payment method for {pendingEventRegistration?.title}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Amount Due */}
+            {pendingEventRegistration && (
+              <div className="bg-sky-50 dark:bg-sky-900/20 p-4 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">Registration Fee</p>
+                <p className="text-2xl font-bold text-sky-600">{formatPKR(pendingEventRegistration.price || 0)}</p>
+              </div>
+            )}
+
+            {/* Payment Method Selection */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium">Payment Method</label>
+              <div className="space-y-2">
+                <label 
+                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition ${
+                    eventPaymentMethod === 'bank_transfer' 
+                      ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20' 
+                      : 'border-gray-200 dark:border-slate-700 hover:border-gray-300'
+                  }`}
+                  onClick={() => setEventPaymentMethod('bank_transfer')}
+                >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    eventPaymentMethod === 'bank_transfer' ? 'border-sky-500' : 'border-gray-300'
+                  }`}>
+                    {eventPaymentMethod === 'bank_transfer' && <div className="w-3 h-3 rounded-full bg-sky-500" />}
+                  </div>
+                  <Building2 className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Bank Transfer</p>
+                    <p className="text-xs text-muted-foreground">Transfer to our bank account</p>
+                  </div>
+                </label>
+                
+                <label 
+                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition ${
+                    eventPaymentMethod === 'cash' 
+                      ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20' 
+                      : 'border-gray-200 dark:border-slate-700 hover:border-gray-300'
+                  }`}
+                  onClick={() => setEventPaymentMethod('cash')}
+                >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    eventPaymentMethod === 'cash' ? 'border-sky-500' : 'border-gray-300'
+                  }`}>
+                    {eventPaymentMethod === 'cash' && <div className="w-3 h-3 rounded-full bg-sky-500" />}
+                  </div>
+                  <Wallet className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Cash Payment</p>
+                    <p className="text-xs text-muted-foreground">Pay at the facility</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Bank Details (shown for bank transfer) */}
+            {eventPaymentMethod === 'bank_transfer' && (
+              <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Bank:</span>
+                  <span className="font-medium">{bankDetails.bankName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Account:</span>
+                  <span className="font-medium">{bankDetails.accountNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Title:</span>
+                  <span className="font-medium">{bankDetails.accountTitle}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">IBAN:</span>
+                  <span className="font-medium text-xs">{bankDetails.iban}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEventPaymentDialog(false);
+                setPendingEventRegistration(null);
+              }}
+              disabled={eventRegisterMutation.isPending}
+              data-testid="button-cancel-event-payment"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmEventRegistration}
+              disabled={eventRegisterMutation.isPending}
+              data-testid="button-confirm-event-payment"
+            >
+              {eventRegisterMutation.isPending ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  Registering...
+                </>
+              ) : (
+                'Confirm Registration'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Payment Proof Upload Dialog */}
+      <Dialog open={showEventProofUploadDialog} onOpenChange={(open) => !uploadingEventProof && setShowEventProofUploadDialog(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5 text-sky-600" />
+              Upload Payment Proof
+            </DialogTitle>
+            <DialogDescription>
+              Please upload your bank transfer receipt to complete registration.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Bank Details */}
+            <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Bank:</span>
+                <span className="font-medium">{bankDetails.bankName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Account:</span>
+                <span className="font-medium">{bankDetails.accountNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Title:</span>
+                <span className="font-medium">{bankDetails.accountTitle}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">IBAN:</span>
+                <span className="font-medium text-xs">{bankDetails.iban}</span>
+              </div>
+            </div>
+
+            {/* File Upload */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Upload Receipt (JPG, PNG, or PDF)</label>
+              <div 
+                onClick={() => eventProofFileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
+                  eventProofFile 
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                    : 'border-gray-300 dark:border-slate-600 hover:border-sky-500'
+                }`}
+              >
+                <input
+                  ref={eventProofFileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,application/pdf"
+                  onChange={handleEventProofFileChange}
+                  className="hidden"
+                  data-testid="input-event-proof-file"
+                />
+                {eventProofFile ? (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <Check className="w-5 h-5" />
+                    <span className="font-medium">{eventProofFile.name}</span>
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">
+                    <Upload className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Click to select file</p>
+                    <p className="text-xs mt-1">Max size: 10MB</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={handleSkipEventProofUpload}
+              disabled={uploadingEventProof}
+              data-testid="button-skip-event-proof"
+            >
+              Upload Later
+            </Button>
+            <Button
+              onClick={handleUploadEventProof}
+              disabled={!eventProofFile || uploadingEventProof}
+              data-testid="button-upload-event-proof"
+            >
+              {uploadingEventProof ? (
                 <>
                   <Clock className="w-4 h-4 mr-2 animate-spin" />
                   Uploading...
