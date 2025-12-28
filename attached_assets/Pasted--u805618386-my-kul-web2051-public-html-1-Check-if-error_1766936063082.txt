@@ -1,0 +1,48 @@
+[u805618386@my-kul-web2051 public_html]$ # 1. Check if error logs exist
+cat ~/logs/error.log
+
+# 2. Or check Passenger logs
+ls -la ~/logs/
+cat ~/logs/*.log | tail -50
+
+# 3. Check if .env file exists with your real values
+cat /home/u805618386/public_html/.env
+
+# 4. Check if dist folder and files exist
+ls -la /home/u805618386/public_html/dist/
+cat: /home/u805618386/logs/error.log: No such file or directory
+ls: cannot access '/home/u805618386/logs/': No such file or directory
+cat: '/home/u805618386/logs/*.log': No such file or directory
+DATABASE_URL=postgresql://postgres:kKFYxZxNPc4KoxhV@db.ttnwtyixezjjubdcquhg.supabase.co:5432/postgres
+SESSION_SECRET=Q6sCtt6IA7zVKj4pI6e9zFudV0Id5DoK9qhMgk3807U=
+SUPABASE_URL=https://ttnwtyixezjjubdcquhg.supabase.co
+SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0bnd0eWl4ZXpqanViZGNxdWhnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjMyMzkyMCwiZXhwIjoyMDgxODk5OTIwfQ.omFpjdduSyOWhQy_vQso0oTcWd5X_tVMh0V7OMvn5Mo
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0bnd0eWl4ZXpqanViZGNxdWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzMjM5MjAsImV4cCI6MjA4MTg5OTkyMH0.8yJNyhGSmQbFumwOyBqbuJ6FbLgB55f8lpK0VBfqrE8
+VITE_SUPABASE_URL=https://ttnwtyixezjjubdcquhg.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0bnd0eWl4ZXpqanViZGNxdWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzMjM5MjAsImV4cCI6MjA4MTg5OTkyMH0.8yJNyhGSmQbFumwOyBqbuJ6FbLgB55f8lpK0VBfqrE8
+ADMIN_PATH=manage-qd2025-secure
+TURNSTILE_SECRET_KEY=0x4AAAAAACH3Rm_GQGy6mzyPEzo2QRa88x4
+VITE_TURNSTILE_SITE_KEY=0x4AAAAAACH3Rro7rzcnIGQw
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=465
+SMTP_USER=admin@thequarterdeck.pk
+SMTP_PASS=QD-CSI-2026-pk
+EMAIL_FROM=admin@thequarterdeck.pk
+STORAGE_MODE=local-only
+LOCAL_UPLOAD_DIR=uploads
+PORT=5000
+NODE_ENV=production
+APP_URL=https://thequarterdeck.pk
+LOG_LEVEL=info
+LOCAL_STORAGE_BASE_URL=/uploads
+
+# Session store (set to 'true' to use PostgreSQL for sessions)
+USE_PG_SESSION_STORE=true
+total 1740
+drwxr-xr-x  3 u805618386 o1007739533    4096 Dec 28 15:28 .
+drwxr-xr-x 16 u805618386 o1007739533    4096 Dec 28 15:30 ..
+-rw-r--r--  1 u805618386 o1007739533 1746833 Dec 28 15:28 index.cjs
+-rw-r--r--  1 u805618386 o1007739533     847 Dec 28 15:28 index.js
+-rw-r--r--  1 u805618386 o1007739533      19 Dec 28 15:28 package.json
+drwxr-xr-x  3 u805618386 o1007739533    4096 Dec 28 15:28 public
+[u805618386@my-kul-web2051 public_html]$
