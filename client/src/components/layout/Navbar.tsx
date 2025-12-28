@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Menu, X, ChevronDown, User, Settings, LogOut } from "lucide-react";
+import { Menu, X, ChevronDown, User, Settings, LogOut, MoreHorizontal, BookOpen, MessageSquare, Trophy, HelpCircle, Image } from "lucide-react";
 import footerBg from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -194,6 +194,45 @@ export function Navbar({ onScrollTo }: NavbarProps) {
                 </button>
               )
             ))}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-1 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="button-nav-more">
+                  More <ChevronDown className="w-3 h-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <Link href="/blog">
+                  <DropdownMenuItem className="cursor-pointer" data-testid="menu-item-blog">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Blog
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/testimonials">
+                  <DropdownMenuItem className="cursor-pointer" data-testid="menu-item-testimonials">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Testimonials
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/leaderboard">
+                  <DropdownMenuItem className="cursor-pointer" data-testid="menu-item-leaderboard">
+                    <Trophy className="w-4 h-4 mr-2" />
+                    Leaderboard
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/gallery">
+                  <DropdownMenuItem className="cursor-pointer" data-testid="menu-item-gallery">
+                    <Image className="w-4 h-4 mr-2" />
+                    Gallery
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/faq">
+                  <DropdownMenuItem className="cursor-pointer" data-testid="menu-item-faq">
+                    <HelpCircle className="w-4 h-4 mr-2" />
+                    FAQ
+                  </DropdownMenuItem>
+                </Link>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
@@ -292,6 +331,36 @@ export function Navbar({ onScrollTo }: NavbarProps) {
                 </button>
               )
             ))}
+            <div className="border-t border-primary-foreground/10 pt-3 mt-2">
+              <span className="text-xs text-primary-foreground/50 uppercase tracking-wider">More</span>
+              <div className="flex flex-col gap-1 mt-2">
+                <Link href="/blog" onClick={() => setMobileMenuOpen(false)}>
+                  <span className="flex items-center gap-2 py-2 text-sm text-primary-foreground/70 hover:text-primary-foreground cursor-pointer" data-testid="link-mobile-blog">
+                    <BookOpen className="w-4 h-4" /> Blog
+                  </span>
+                </Link>
+                <Link href="/testimonials" onClick={() => setMobileMenuOpen(false)}>
+                  <span className="flex items-center gap-2 py-2 text-sm text-primary-foreground/70 hover:text-primary-foreground cursor-pointer" data-testid="link-mobile-testimonials">
+                    <MessageSquare className="w-4 h-4" /> Testimonials
+                  </span>
+                </Link>
+                <Link href="/leaderboard" onClick={() => setMobileMenuOpen(false)}>
+                  <span className="flex items-center gap-2 py-2 text-sm text-primary-foreground/70 hover:text-primary-foreground cursor-pointer" data-testid="link-mobile-leaderboard">
+                    <Trophy className="w-4 h-4" /> Leaderboard
+                  </span>
+                </Link>
+                <Link href="/gallery" onClick={() => setMobileMenuOpen(false)}>
+                  <span className="flex items-center gap-2 py-2 text-sm text-primary-foreground/70 hover:text-primary-foreground cursor-pointer" data-testid="link-mobile-gallery">
+                    <Image className="w-4 h-4" /> Gallery
+                  </span>
+                </Link>
+                <Link href="/faq" onClick={() => setMobileMenuOpen(false)}>
+                  <span className="flex items-center gap-2 py-2 text-sm text-primary-foreground/70 hover:text-primary-foreground cursor-pointer" data-testid="link-mobile-faq">
+                    <HelpCircle className="w-4 h-4" /> FAQ
+                  </span>
+                </Link>
+              </div>
+            </div>
             <div className="flex items-center justify-between border-t border-primary-foreground/10 pt-4 mt-4">
               <span className="text-sm text-primary-foreground/70">Theme</span>
               <ThemeToggle />

@@ -31,6 +31,7 @@ All images are database-driven and editable via the admin panel, eliminating har
 - Events & Academies → /events
 - Updates → /updates
 - Contact → /contact
+- More dropdown: Blog, Testimonials, Leaderboard, Gallery, FAQ
 - User Menu (authenticated): Profile, Admin Dashboard (for admins), Logout
 - Book Now button
 
