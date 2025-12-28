@@ -183,8 +183,13 @@ export default function CertificationsManagement() {
       setIsClassDialogOpen(false);
       resetClassForm();
     },
-    onError: () => {
-      toast({ title: "Failed to create class", variant: "destructive" });
+    onError: (error: Error) => {
+      console.error("Failed to create class:", error);
+      toast({ 
+        title: "Failed to create class", 
+        description: error.message || "An unknown error occurred",
+        variant: "destructive" 
+      });
     },
   });
 
@@ -326,7 +331,10 @@ export default function CertificationsManagement() {
   const handleSubmitClass = () => {
     const submitData = {
       ...classFormData,
-      scheduledDate: classFormData.scheduledDate ? new Date(classFormData.scheduledDate).toISOString() : "",
+      scheduledDate: classFormData.scheduledDate ? new Date(classFormData.scheduledDate).toISOString() : null,
+      description: classFormData.description || null,
+      instructor: classFormData.instructor || null,
+      location: classFormData.location || null,
     };
     if (editingClass) {
       updateClassMutation.mutate({ id: editingClass.id, data: submitData });

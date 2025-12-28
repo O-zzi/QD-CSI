@@ -183,6 +183,7 @@ interface VisibilitySection {
 }
 
 const visibilitySections: VisibilitySection[] = [
+  { key: "section_construction_status_visible", orderKey: "section_construction_status_order", label: "Construction Status Panel", description: "Hero section construction progress card", defaultOrder: 0 },
   { key: "section_about_visible", orderKey: "section_about_order", label: "About Section", description: "Vision, philosophy and team info", defaultOrder: 1 },
   { key: "section_facilities_visible", orderKey: "section_facilities_order", label: "Facilities Section", description: "Sports facility cards", defaultOrder: 2 },
   { key: "section_updates_visible", orderKey: "section_updates_order", label: "Construction Updates", description: "Progress timeline and milestones", defaultOrder: 3 },

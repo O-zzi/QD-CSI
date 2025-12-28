@@ -56,6 +56,20 @@ export function HeroSection() {
     staleTime: 1000 * 60 * 5,
   });
 
+  const { data: siteSettings = {} } = useQuery<Record<string, string>>({
+    queryKey: ['/api/site-settings'],
+    queryFn: async () => {
+      const res = await fetch('/api/site-settings');
+      const data = await res.json();
+      return typeof data === 'object' && data !== null ? data : {};
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const showConstructionStatus = useMemo(() => {
+    return siteSettings.section_construction_status_visible !== 'false';
+  }, [siteSettings]);
+
   const heroBackground = useMemo(() => {
     if (!Array.isArray(siteImages)) return heroBackgroundDefault;
     const heroImage = siteImages.find(img => img.section === 'hero' && img.isActive);
@@ -192,65 +206,67 @@ export function HeroSection() {
             </div>
           </div>
 
-          <aside>
-            <div className="qd-hero-card">
-              <div className="flex justify-between items-center mb-4">
-                <div className="text-sm uppercase tracking-widest text-muted-foreground">
-                  Construction Status
+          {showConstructionStatus && (
+            <aside>
+              <div className="qd-hero-card">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="text-sm uppercase tracking-widest text-muted-foreground">
+                    Construction Status
+                  </div>
+                  {phasesLoading ? (
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  ) : activePhase ? (
+                    <span className="text-xs py-1 px-3 rounded-full bg-blue-50 dark:bg-blue-900/30 text-slate-800 dark:text-blue-200 font-semibold uppercase tracking-wide">
+                      {activePhase.label}
+                    </span>
+                  ) : (
+                    <span className="text-xs py-1 px-3 rounded-full bg-gray-100 dark:bg-slate-700 text-muted-foreground font-semibold uppercase tracking-wide">
+                      Planning
+                    </span>
+                  )}
                 </div>
+
                 {phasesLoading ? (
-                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <>
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-3 w-full rounded-full" />
+                    <Skeleton className="h-12 w-full mt-4" />
+                  </>
                 ) : activePhase ? (
-                  <span className="text-xs py-1 px-3 rounded-full bg-blue-50 dark:bg-blue-900/30 text-slate-800 dark:text-blue-200 font-semibold uppercase tracking-wide">
-                    {activePhase.label}
-                  </span>
+                  <>
+                    <div className="flex justify-between text-xs text-muted-foreground mb-2">
+                      <span>{activePhase.label}: {activePhase.title}</span>
+                      <span>{activePhase.progress}% Complete</span>
+                    </div>
+                    <div className="qd-progress-track">
+                      <div className="qd-progress-fill" style={{ width: `${activePhase.progress}%` }}></div>
+                    </div>
+
+                    {activePhase.highlights && activePhase.highlights.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-4">
+                        {activePhase.highlights[0]}
+                      </p>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3 mt-5">
+                      <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                        <div className="text-xs text-muted-foreground">Completed</div>
+                        <div className="font-semibold text-sm">{sortedPhases.filter(p => p.isComplete).length} phases</div>
+                      </div>
+                      <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                        <div className="text-xs text-muted-foreground">Overall</div>
+                        <div className="font-semibold text-sm">{Math.round(overallProgress)}% done</div>
+                      </div>
+                    </div>
+                  </>
                 ) : (
-                  <span className="text-xs py-1 px-3 rounded-full bg-gray-100 dark:bg-slate-700 text-muted-foreground font-semibold uppercase tracking-wide">
-                    Planning
-                  </span>
+                  <p className="text-xs text-muted-foreground">
+                    Construction timeline will be available soon.
+                  </p>
                 )}
               </div>
-
-              {phasesLoading ? (
-                <>
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-3 w-full rounded-full" />
-                  <Skeleton className="h-12 w-full mt-4" />
-                </>
-              ) : activePhase ? (
-                <>
-                  <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                    <span>{activePhase.label}: {activePhase.title}</span>
-                    <span>{activePhase.progress}% Complete</span>
-                  </div>
-                  <div className="qd-progress-track">
-                    <div className="qd-progress-fill" style={{ width: `${activePhase.progress}%` }}></div>
-                  </div>
-
-                  {activePhase.highlights && activePhase.highlights.length > 0 && (
-                    <p className="text-xs text-muted-foreground mt-4">
-                      {activePhase.highlights[0]}
-                    </p>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-3 mt-5">
-                    <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-                      <div className="text-xs text-muted-foreground">Completed</div>
-                      <div className="font-semibold text-sm">{sortedPhases.filter(p => p.isComplete).length} phases</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-                      <div className="text-xs text-muted-foreground">Overall</div>
-                      <div className="font-semibold text-sm">{Math.round(overallProgress)}% done</div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Construction timeline will be available soon.
-                </p>
-              )}
-            </div>
-          </aside>
+            </aside>
+          )}
         </div>
       </div>
     </section>
