@@ -509,6 +509,15 @@ export async function runStartupMigrations() {
       logger.warn("Failed to seed CMS Phase 2 content", { source: "migrations", error: seedError });
     }
     
+    // Add location column to navbar_items if not exists (for header vs footer navigation)
+    await pool.query(`
+      ALTER TABLE navbar_items 
+      ADD COLUMN IF NOT EXISTS location VARCHAR DEFAULT 'header' NOT NULL
+    `).catch(() => {
+      // Column might already exist
+    });
+    logger.info("navbar_items.location column verified", { source: "migrations" });
+
     // Ensure dev bypass user exists in database (for development mode only)
     if (process.env.NODE_ENV !== 'production' && process.env.DEV_AUTH_BYPASS === 'true') {
       try {

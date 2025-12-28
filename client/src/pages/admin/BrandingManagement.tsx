@@ -31,15 +31,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { SiteSetting, NavbarItem } from "@shared/schema";
 
 export default function BrandingManagement() {
   const { toast } = useToast();
   const [editingNavItem, setEditingNavItem] = useState<NavbarItem | null>(null);
   const [isNavDialogOpen, setIsNavDialogOpen] = useState(false);
+  const [activeNavTab, setActiveNavTab] = useState<"header" | "footer">("header");
   const [navFormData, setNavFormData] = useState({
     label: "",
     href: "",
+    location: "header" as "header" | "footer",
     sortOrder: 0,
     isVisible: true,
     target: "_self",
@@ -176,6 +179,7 @@ export default function BrandingManagement() {
     setNavFormData({
       label: "",
       href: "",
+      location: activeNavTab,
       sortOrder: 0,
       isVisible: true,
       target: "_self",
@@ -189,6 +193,7 @@ export default function BrandingManagement() {
     setNavFormData({
       label: item.label,
       href: item.href,
+      location: (item as any).location || "header",
       sortOrder: item.sortOrder,
       isVisible: item.isVisible,
       target: item.target || "_self",
@@ -197,6 +202,10 @@ export default function BrandingManagement() {
     });
     setIsNavDialogOpen(true);
   };
+  
+  // Filter navbar items by location
+  const headerNavItems = navbarItems?.filter((item: any) => (item.location || 'header') === 'header') || [];
+  const footerNavItems = navbarItems?.filter((item: any) => (item.location || 'header') === 'footer') || [];
 
   const handleNavSubmit = () => {
     if (editingNavItem) {
@@ -391,7 +400,7 @@ export default function BrandingManagement() {
                 Navigation Items
               </CardTitle>
               <CardDescription>
-                Manage the navigation links that appear in the header.
+                Manage header and footer navigation links.
               </CardDescription>
             </div>
             <Button
@@ -407,71 +416,148 @@ export default function BrandingManagement() {
             </Button>
           </CardHeader>
           <CardContent>
-            {navbarItems && navbarItems.length > 0 ? (
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[50px]">Order</TableHead>
-                      <TableHead>Label</TableHead>
-                      <TableHead>Link</TableHead>
-                      <TableHead>Visibility</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {navbarItems.map((item) => (
-                      <TableRow key={item.id} data-testid={`row-nav-${item.id}`}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <GripVertical className="h-4 w-4 text-muted-foreground" />
-                            <span>{item.sortOrder}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">{item.label}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            {item.href}
-                            {item.target === "_blank" && <ExternalLink className="h-3 w-3" />}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {item.isVisible ? (
-                            <Badge variant="default" className="bg-green-600">Visible</Badge>
-                          ) : (
-                            <Badge variant="secondary">Hidden</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => handleEditNavItem(item)}
-                              data-testid={`button-edit-nav-${item.id}`}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => deleteNavMutation.mutate(item.id)}
-                              data-testid={`button-delete-nav-${item.id}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No navigation items configured. Click "Add Item" to create one.
-              </div>
-            )}
+            <Tabs value={activeNavTab} onValueChange={(v) => setActiveNavTab(v as "header" | "footer")}>
+              <TabsList className="mb-4">
+                <TabsTrigger value="header" data-testid="tab-header-nav">Top Navbar ({headerNavItems.length})</TabsTrigger>
+                <TabsTrigger value="footer" data-testid="tab-footer-nav">Footer Links ({footerNavItems.length})</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="header">
+                {headerNavItems.length > 0 ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[50px]">Order</TableHead>
+                          <TableHead>Label</TableHead>
+                          <TableHead>Link</TableHead>
+                          <TableHead>Visibility</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {headerNavItems.map((item) => (
+                          <TableRow key={item.id} data-testid={`row-nav-${item.id}`}>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                <span>{item.sortOrder}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">{item.label}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                {item.href}
+                                {item.target === "_blank" && <ExternalLink className="h-3 w-3" />}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {item.isVisible ? (
+                                <Badge variant="default" className="bg-green-600">Visible</Badge>
+                              ) : (
+                                <Badge variant="secondary">Hidden</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => handleEditNavItem(item)}
+                                  data-testid={`button-edit-nav-${item.id}`}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => deleteNavMutation.mutate(item.id)}
+                                  data-testid={`button-delete-nav-${item.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No header navigation items. Click "Add Item" to create one.
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="footer">
+                {footerNavItems.length > 0 ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[50px]">Order</TableHead>
+                          <TableHead>Label</TableHead>
+                          <TableHead>Link</TableHead>
+                          <TableHead>Visibility</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {footerNavItems.map((item) => (
+                          <TableRow key={item.id} data-testid={`row-nav-footer-${item.id}`}>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                <span>{item.sortOrder}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">{item.label}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                {item.href}
+                                {item.target === "_blank" && <ExternalLink className="h-3 w-3" />}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {item.isVisible ? (
+                                <Badge variant="default" className="bg-green-600">Visible</Badge>
+                              ) : (
+                                <Badge variant="secondary">Hidden</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => handleEditNavItem(item)}
+                                  data-testid={`button-edit-nav-footer-${item.id}`}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => deleteNavMutation.mutate(item.id)}
+                                  data-testid={`button-delete-nav-footer-${item.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No footer navigation items. Click "Add Item" to create one.
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
@@ -502,6 +588,21 @@ export default function BrandingManagement() {
                   placeholder="/home or https://..."
                   data-testid="input-nav-href"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="navLocation">Navigation Location</Label>
+                <Select
+                  value={navFormData.location}
+                  onValueChange={(value) => setNavFormData({ ...navFormData, location: value as "header" | "footer" })}
+                >
+                  <SelectTrigger data-testid="select-nav-location">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="header">Top Navbar</SelectItem>
+                    <SelectItem value="footer">Footer</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

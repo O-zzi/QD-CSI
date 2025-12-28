@@ -415,6 +415,7 @@ export const navbarItems = pgTable("navbar_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   label: varchar("label").notNull(),
   href: varchar("href").notNull(),
+  location: varchar("location").default('header').notNull(), // 'header' or 'footer'
   sortOrder: integer("sort_order").default(0).notNull(),
   isVisible: boolean("is_visible").default(true).notNull(),
   target: varchar("target").default('_self'),
