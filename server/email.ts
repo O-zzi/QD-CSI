@@ -918,7 +918,7 @@ export async function sendMembershipRenewalReminderEmail(user: { email: string; 
 }
 
 // Admin alert email functions
-const ADMIN_EMAIL = 'admin@thequarterdeck.pk';
+const getAdminEmail = () => process.env.ADMIN_EMAIL || 'admin@thequarterdeck.pk';
 
 export async function sendAdminNewUserAlert(user: { email: string; firstName: string; lastName: string; createdAt?: string }): Promise<boolean> {
   const html = emailWrapper(`
@@ -955,7 +955,7 @@ export async function sendAdminNewUserAlert(user: { email: string; firstName: st
   `);
   
   return emailService.sendEmail(
-    ADMIN_EMAIL,
+    getAdminEmail(),
     `New User Registration: ${user.firstName} ${user.lastName} | The Quarterdeck`,
     html
   );
@@ -1004,7 +1004,7 @@ export async function sendAdminMembershipSelectionAlert(user: { email: string; f
   `);
   
   return emailService.sendEmail(
-    ADMIN_EMAIL,
+    getAdminEmail(),
     `Membership Selection: ${user.firstName} wants ${tier} | The Quarterdeck`,
     html
   );
@@ -1072,7 +1072,7 @@ export async function sendAdminPaymentSubmissionAlert(
   `);
   
   return emailService.sendEmail(
-    ADMIN_EMAIL,
+    getAdminEmail(),
     `PAYMENT VERIFICATION REQUIRED: ${user.firstName} ${user.lastName} | The Quarterdeck`,
     html
   );

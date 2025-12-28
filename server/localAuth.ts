@@ -8,7 +8,7 @@ import connectPg from "connect-pg-simple";
 import createMemoryStore from "memorystore";
 import { storage } from "./storage";
 import { getDatabaseUrl } from "./db";
-import { sendWelcomeEmail, sendPasswordResetEmail, sendEmailVerificationEmail } from "./email";
+import { sendWelcomeEmail, sendPasswordResetEmail, sendEmailVerificationEmail, sendAdminNewUserAlert } from "./email";
 import { verifySupabaseToken, syncSupabaseUser, isSupabaseAuthEnabled } from "./supabaseAuth";
 import { logger } from "./logger";
 
@@ -222,6 +222,14 @@ export async function setupAuth(app: Express) {
       } catch (emailError) {
         console.error('[auth] Failed to send verification email:', emailError);
       }
+
+      // Send admin alert for new user registration
+      sendAdminNewUserAlert({
+        email: user.email!,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        createdAt: new Date().toLocaleString(),
+      }).catch(err => console.error('[auth] Failed to send admin new user alert:', err));
 
       return res.status(201).json({ 
         message: "Account created. Please check your email to verify your account.",
