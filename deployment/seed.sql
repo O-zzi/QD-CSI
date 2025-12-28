@@ -37,7 +37,7 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 -- Site Settings
-INSERT INTO site_settings (setting_key, setting_value)
+INSERT INTO site_settings (key, value)
 VALUES 
     ('contact_email', 'info@thequarterdeck.pk'),
     ('contact_phone', '+92 51 123 4567'),
@@ -49,7 +49,7 @@ VALUES
     ('whatsapp_button_text', 'Chat on WhatsApp'),
     ('whatsapp_default_message', 'Hello! I have a question about The Quarterdeck.'),
     ('operating_hours', '6:00 AM - 11:00 PM')
-ON CONFLICT (setting_key) DO NOTHING;
+ON CONFLICT (key) DO NOTHING;
 
 -- Sample Announcements
 INSERT INTO announcements (title, content, category, is_active)
