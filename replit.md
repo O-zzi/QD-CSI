@@ -1,164 +1,43 @@
 # The Quarterdeck - Sports & Recreation Complex
 
 ## Overview
-
-The Quarterdeck is a full-stack web application for a sports and recreation complex, scheduled for a Q4 2026 launch. It features a public landing page and a comprehensive booking system for various facilities (e.g., Padel Tennis, Squash, Air Rifle Range). The platform supports membership tiers, real-time booking, event registration, a leaderboard, and a robust CMS for dynamic content, aiming to streamline operations and enhance user experience.
+The Quarterdeck is a full-stack web application for a sports and recreation complex, targeting a Q4 2026 launch. It provides a public landing page and a comprehensive booking system for various facilities like Padel Tennis, Squash, and an Air Rifle Range. The platform supports membership tiers, real-time booking, event registration, a leaderboard, and a robust CMS for dynamic content, aiming to streamline operations and enhance user experience with a strong business vision for market leadership in sports recreation.
 
 ## User Preferences
-
 Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Frontend Architecture
+### Frontend
+The frontend uses React 18, TypeScript, Vite, Wouter for routing, and React Query for server state management. UI components are built with Shadcn/ui (New York style) on Radix UI primitives, styled with Tailwind CSS and custom CSS. The design prioritizes a mobile-first approach and adheres to consistent styling guidelines.
 
-The frontend is built with React 18, TypeScript, Vite, Wouter for routing, and React Query for server state management. UI components leverage Shadcn/ui (New York style) on Radix UI primitives, styled with Tailwind CSS and custom CSS variables. The design is mobile-first and strictly adheres to existing HTML/Tailwind implementations, focusing on consistent color palettes, typography, spacing, and component patterns.
+### Backend
+The backend is built with Express.js and Node.js, featuring WebSocket capabilities. Supabase Auth handles user authentication (email/password, verification, password reset), with Supabase users synced to a PostgreSQL `users` table. The API is RESTful, covering authentication, memberships, bookings, events, leaderboards, and CMS. Drizzle ORM provides type-safe database interactions with Zod validation. Key features include double-booking prevention, membership validation, and role-based access control.
 
-### Backend Architecture
-
-The backend uses Express.js and Node.js with WebSocket capabilities. **Authentication is now handled by Supabase Auth** (email/password with email verification, password reset flows). Supabase users are synced to the PostgreSQL users table on sign-in via the `/api/auth/sync` endpoint. Backend validates Supabase JWTs via middleware. The API is RESTful, covering authentication, memberships, bookings, events, leaderboards, and CMS. Drizzle ORM is used for type-safe database interactions with a schema-first approach and Zod validation. Key features include double-booking prevention, membership validation, and role-based access control. Session cookies are still used for legacy compatibility but Supabase Auth is the primary authentication method.
-
-### Database Architecture
-
-**Production Database:** Supabase PostgreSQL (hosted at ttnwtyixezjjubdcquhg.supabase.co)
-**Development Database:** Replit PostgreSQL (separate from production)
-
-A PostgreSQL database, managed by Drizzle ORM and Drizzle Kit, defines core tables such as `users`, `memberships`, `facilities`, `bookings`, `events`, `leaderboard`, and `cms_content`. Relationships support various operational flows, and PostgreSQL enums with Drizzle-Zod integration ensure type safety. Dedicated tables manage multi-venue support, construction timelines, and site-wide CMS fields.
-
-**IMPORTANT:** Development and Production databases are separate. Changes to data in development DO NOT affect production. Schema migrations run automatically on server startup via `server/migrations.ts`.
-
-**Phase 2 CMS Expansion Tables (added December 2024):**
-- `blogs` - Full blog/news article management with slugs, categories, tags, and publishing workflow
-- `hero_sections` - Per-page hero banner configuration with background images/videos and CTAs
-- `ctas` - Call-to-action components with styling options and page/section placement
-- `testimonials` - Customer testimonials with ratings and facility associations
-- `event_galleries` - Image galleries for events with captions and ordering
-
-All new CMS tables have complete CRUD APIs with admin protection and Zod validation.
+### Database
+The project utilizes PostgreSQL, managed by Drizzle ORM and Drizzle Kit. Core tables include `users`, `memberships`, `facilities`, `bookings`, `events`, `leaderboard`, `cms_content`, and various CMS expansion tables for blogs, hero sections, CTAs, testimonials, and event galleries. Development and production databases are separate. Schema migrations run automatically on server startup. All new CMS tables include CRUD APIs with admin protection and Zod validation.
 
 ### Admin Dashboard
-
-An `/admin` panel provides role-based access with a 4-tier hierarchy for managing the platform:
-
-**Role Hierarchy (lowest to highest):**
-1. **USER** - Regular members who can make bookings, register for events, and manage their profile
-2. **EDITOR** - Reception staff with limited admin access:
-   - Can view/manage bookings
-   - Can view members (read-only)
-   - Can process membership applications
-   - Can manage certifications
-   - CANNOT access CMS, site settings, pricing, events, announcements, gallery, or content management
-3. **ADMIN** - Full administrative access to all features including CMS, site settings, facilities, events, and content management
-4. **SUPER_ADMIN** - All admin permissions plus user role management (can promote/demote users)
-
-The admin navigation menu dynamically shows/hides sections based on the logged-in user's role. All admin API endpoints are protected using `isEditorOrAbove` (for EDITOR-accessible routes), `isAdmin` (for ADMIN-accessible routes), and `isSuperAdmin` (for role management routes). It includes CRUD operations for dynamic membership tier definitions with configurable properties like discounts and guest passes, and an interface for payment verification.
+An `/admin` panel provides role-based access with a 4-tier hierarchy: USER, EDITOR, ADMIN, and SUPER_ADMIN. This panel allows for managing bookings, members, certifications, facilities, events, and all CMS content, including dynamic membership tier definitions and payment verification. Admin navigation dynamically adjusts based on user roles, and all admin API endpoints are role-protected.
 
 ### CMS Image Management
+All images are database-driven and editable via the admin panel, eliminating hardcoded images in the frontend. This includes site-wide images (hero, footer, navbar backgrounds), per-page hero section images/videos, facility images, gallery images, and event images. Seed scripts are available for populating default images and CMS Phase 2 content.
 
-All images on the site are database-driven and editable via the admin panel. No images are hardcoded in the frontend.
-
-**Image Locations (Admin Panel):**
-
-1. **Site Images** (`/admin` > Site Images)
-   - `landing_hero_background` - Main hero background on homepage (1920x1080)
-   - `footer_background` - Footer section background (1920x400)
-   - `navbar_background` - Navigation bar texture (1920x100)
-   - Key fields: `key`, `imageUrl`, `page`, `section`, `dimensions`
-
-2. **Hero Sections** (`/admin` > Hero Sections)
-   - Per-page hero banners with background images/videos
-   - Pages: facilities, events, contact, careers, membership, gallery, roadmap, faq, rules, leaderboard
-   - Key fields: `page`, `backgroundImageUrl`, `backgroundVideoUrl`, `title`, `subtitle`, `overlayOpacity`
-
-3. **Facility Images** (`/admin` > Facilities)
-   - Each facility has an `imageUrl` field for its card/page image
-   - Facilities: padel-tennis, squash, air-rifle-range, bridge-room, multipurpose-hall, cafe-bar
-
-4. **Gallery Images** (`/admin` > Gallery)
-   - Construction progress photos and architectural renders
-   - Key fields: `imageUrl`, `caption`, `category`, `sortOrder`
-
-5. **Event Images** (`/admin` > Events)
-   - Each event has `imageUrl` plus an event gallery
-   - Event galleries managed via Admin > Events > [Event] > Gallery
-
-**Image Seeding:**
-- Run `POST /api/admin/images/seed` to populate default images
-- Seed script: `server/seeds/seedImages.ts`
-- Uses stock images from `attached_assets/stock_images/`
-
-**CMS Phase 2 Seeding (December 2024):**
-- Run `POST /api/admin/cms/seed` to populate CMS Phase 2 content
-- Seed script: `server/seeds/seedCmsPhase2.ts`
-- Auto-runs on server startup via `server/migrations.ts`
-- Seeds the following content:
-  - **Hero Sections** (12 entries): Per-page hero banners for landing, facilities, membership, events, contact, careers, gallery, roadmap, faq, rules, leaderboard
-  - **CTAs** (6 entries): Call-to-action components for landing, facilities, membership, events pages
-  - **Comparison Features** (12 entries): Membership tier comparison table data
-  - **Member Benefits** (8 entries): "Why Become a Member" section icons and descriptions
+### Navigation Structure
+The application features a CMS-driven top navigation bar and a consistent footer navigation. Public pages include landing, facilities, events, membership, roadmap, gallery, contact, careers, rules, FAQ, leaderboard, terms, privacy, and vision. Authenticated users access a multi-tab profile page and a booking console. Admin pages are role-protected, covering various management functionalities.
 
 ### Key Features
+Key features include event registration, career application forms (with CV/cover letter upload), a contact form, admin-configurable site settings, membership discount logic for off-peak hours, a real-time notifications system, and an enhanced user profile with photo uploads. The system employs standardized page layouts, Winston-based structured logging, environment variable validation, and a health check endpoint. Admins can reorder homepage sections and manage facility certifications (e.g., Air Rifle Range requires certification). Email test endpoints and scheduled cron jobs for event reminders are also implemented.
 
-- **Event Registration:** Authenticated users can register and cancel event participation.
-- **Career Applications:** Job seekers can apply through a modal form, including CV and cover letter uploads.
-- **Contact Form:** Visitors can submit inquiries, stored for admin review.
-- **Site Settings:** Admin-configurable settings for contact information and social media.
-- **Membership Discount Logic:** Discounts are applied only during off-peak hours (10 AM - 5 PM) based on membership tier.
-- **Notifications System:** Real-time user notifications (bookings, events, membership) stored in a `notifications` table, accessible via API and a dedicated bell component/profile tab.
-- **Enhanced User Profile:** A multi-tab profile page (Account, Bookings, Notifications, Membership) supporting profile photo uploads (up to 5MB, image types only) and detailed displays.
-- **Standardized Page Layouts:** Consistent layout structure with shared headers and footers across all major pages, including specific hero banner heights.
-- **Deployment Infrastructure:** Includes Winston-based structured logging, environment variable validation, a health check endpoint (`/api/health`), and Passenger compatibility for VPS deployment. Deployment artifacts include SQL schemas and seeding scripts.
-- **Homepage Section Ordering:** Admin can reorder homepage sections (About, Facilities, Updates, Gallery, Membership, Rules, Careers) via the Homepage Management panel. Sections are sorted by their order number (lower = appears first).
-- **Facility Certification:** Air Rifle Range requires safety certification before booking. Admin can toggle `requiresCertification` on any facility via Facilities Management.
-- **Email Test Endpoint:** Admin can test SMTP configuration via `POST /api/admin/email/test` endpoint.
-- **Scheduled Email Jobs:** Daily cron job at 9 AM sends event reminders to registered participants (1-day and 3-day advance notifications).
-
-### Supabase Integration (Optional)
-
-The system supports optional integration with Supabase for Storage, Auth, and Realtime capabilities.
-- **Supabase Storage:** For file uploads (profile photos, admin uploads) to an `uploads` bucket, with a local `/uploads/` directory fallback. Max file size is 10MB.
-- **Supabase Auth:** A hybrid approach where Supabase Auth coexists with Passport.js. Supabase users are synced to PostgreSQL, and backend validates Supabase JWTs.
-- **Supabase Realtime:** Provides live updates for bookings, notifications, and events, integrating with React Query for cache invalidation.
-
-### Email Configuration (Supabase Auth)
-
-**Email Verification Flow:**
-- Users must verify their email address before accessing authenticated features
-- If email is not verified, login will fail with a clear "verify your email" message
-- The `/api/auth/sync` endpoint returns 403 if email is unverified, preventing backend session creation
-
-**Customizing Email Templates (Branding):**
-1. Go to Supabase Dashboard > Authentication > Email Templates
-2. Customize the following templates with Quarterdeck branding:
-   - **Confirm signup** - Email verification link
-   - **Reset password** - Password reset link
-   - **Magic Link** - Passwordless login (if enabled)
-3. Update the "From" email address in Supabase Dashboard > Authentication > SMTP Settings
-4. For custom sender domain (e.g., noreply@thequarterdeck.pk), configure a custom SMTP server
-
-**Custom SMTP Setup (for branded sender):**
-1. Go to Supabase Dashboard > Authentication > SMTP Settings
-2. Enable "Custom SMTP"
-3. Configure with your SMTP provider details:
-   - Host, Port, Username, Password
-   - Sender name: "The Quarterdeck"
-   - Sender email: noreply@thequarterdeck.pk
-4. Recommended SMTP providers: Resend, SendGrid, Amazon SES, Mailgun
-
-**DNS Records for Custom Email Domain:**
-If using custom domain for sending emails (e.g., @thequarterdeck.pk):
-1. **SPF Record** - Add TXT record: `v=spf1 include:_spf.your-email-provider.com ~all`
-2. **DKIM Record** - Add TXT record provided by your email service
-3. **DMARC Record** - Add TXT record: `v=DMARC1; p=quarantine; rua=mailto:admin@thequarterdeck.pk`
-
-These records are configured in your DNS provider (e.g., Cloudflare, Namecheap, GoDaddy).
+### Email Configuration
+Supabase Auth handles email verification, requiring users to verify their email before accessing authenticated features. Custom email templates (confirm signup, reset password, magic link) can be branded via the Supabase Dashboard. Custom SMTP settings and DNS records (SPF, DKIM, DMARC) are configurable for branded sender domains.
 
 ## External Dependencies
 
 **Authentication & Session Management:**
-- Supabase Auth (primary - email/password with JWT tokens)
-- PostgreSQL (`connect-pg-simple` for legacy session persistence)
-- `@supabase/supabase-js` for auth client
+- Supabase Auth (primary)
+- PostgreSQL (`connect-pg-simple` for legacy sessions)
+- `@supabase/supabase-js`
 
 **UI Component Libraries:**
 - Radix UI
@@ -188,21 +67,13 @@ These records are configured in your DNS provider (e.g., Cloudflare, Namecheap, 
 - `drizzle-zod`
 
 **Payment Processing:**
-- Offline Payment System (Bank Transfer, Cash) for the Pakistan market.
-- Stripe client libraries are present for future integration but currently disabled.
+- Offline Payment System (Bank Transfer, Cash) for Pakistan market.
 
 **Email Notifications:**
-- Nodemailer with Hostinger SMTP for transactional emails (e.g., booking confirmations, payment status, event registrations, membership updates).
-- Email templates configured for various notifications.
-- Required environment variables:
-  - `SMTP_HOST` - SMTP server hostname (default: smtp.hostinger.com)
-  - `SMTP_PORT` - SMTP port (default: 465 for SSL)
-  - `SMTP_USER` - SMTP username (e.g., noreply@thequarterdeck.pk)
-  - `SMTP_PASS` - SMTP password (stored as secret)
-  - `EMAIL_FROM` - Sender display name and email (default: "The Quarterdeck" <noreply@thequarterdeck.pk>)
+- Nodemailer with Hostinger SMTP for transactional emails (booking confirmations, event reminders, etc.).
 
 **Utility Libraries:**
 - `nanoid`
 - `memoizee`
-- `ws` (for WebSocket infrastructure)
+- `ws` (WebSockets)
 - Winston (logging)
