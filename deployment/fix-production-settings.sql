@@ -1,12 +1,16 @@
 -- Fix Production Settings for The Quarterdeck
 -- Run this in Supabase SQL Editor
 
--- 1. Fix site_settings table schema (column rename to match code)
-ALTER TABLE site_settings RENAME COLUMN setting_key TO key;
-ALTER TABLE site_settings RENAME COLUMN setting_value TO value;
-ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS type VARCHAR DEFAULT 'text';
-ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS label VARCHAR;
-ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS category VARCHAR DEFAULT 'general';
+-- 1. Ensure site_settings columns exist (skip if already correct)
+DO $$ 
+BEGIN
+  -- Add columns if they don't exist
+  ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS type VARCHAR DEFAULT 'text';
+  ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS label VARCHAR;
+  ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS category VARCHAR DEFAULT 'general';
+EXCEPTION WHEN others THEN
+  NULL;
+END $$;
 
 -- 2. Add WhatsApp Button Settings (update phone number!)
 INSERT INTO site_settings (key, value, category) VALUES 
