@@ -106,6 +106,14 @@ All images are database-driven and editable via the admin panel, eliminating har
 ### Key Features
 Key features include event registration, career application forms (with CV/cover letter upload), a contact form, admin-configurable site settings, membership discount logic for off-peak hours, a real-time notifications system, and an enhanced user profile with photo uploads. The system employs standardized page layouts, Winston-based structured logging, environment variable validation, and a health check endpoint. Admins can reorder homepage sections and manage facility certifications (e.g., Air Rifle Range requires certification). Email test endpoints and scheduled cron jobs for event reminders are also implemented.
 
+### Receipt Generation
+PDF receipts are generated for all transactions using PDFKit. Receipt endpoints:
+- GET /api/bookings/:id/receipt - Booking receipts with facility, pricing, and payment details
+- GET /api/event-registrations/:id/receipt - Event registration receipts
+- GET /api/membership-applications/:id/receipt - Membership application receipts
+
+Each receipt includes: receipt number (format: QD-TYPE-YYYYMMDD-XXXXX), customer details, itemized pricing, discounts, payment status, and The Quarterdeck branding. Receipts are generated on-demand as PDFs and downloaded directly.
+
 ### Email Configuration
 Supabase Auth handles email verification, requiring users to verify their email before accessing authenticated features. Custom email templates (confirm signup, reset password, magic link) can be branded via the Supabase Dashboard. Custom SMTP settings and DNS records (SPF, DKIM, DMARC) are configurable for branded sender domains.
 

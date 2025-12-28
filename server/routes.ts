@@ -68,6 +68,13 @@ import path from "path";
 import fs from "fs";
 import { logger } from "./logger";
 import { getStorageService } from "./storage/compositeStorage";
+import { 
+  generateReceiptNumber,
+  generateBookingReceiptData,
+  generateEventRegistrationReceiptData,
+  generateMembershipReceiptData,
+  generateReceiptPDF 
+} from "./receiptService";
 import type { MirroredUploadResult } from "./storage/types";
 
 // Setup file upload directory (fallback for local storage)
@@ -4610,6 +4617,116 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting event gallery image:", error);
       res.status(500).json({ message: "Failed to delete event gallery image" });
+    }
+  });
+
+  // ========== RECEIPT DOWNLOAD ROUTES ==========
+  
+  // Generate and download booking receipt
+  app.get('/api/bookings/:id/receipt', isAuthenticated, async (req, res) => {
+    try {
+      const booking = await storage.getBookingById(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Verify user owns this booking or is admin
+      const user = req.user as any;
+      if (booking.userId !== user.id && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+        return res.status(403).json({ message: "Unauthorized to view this receipt" });
+      }
+      
+      const facility = await storage.getFacility(booking.facilityId);
+      const bookingUser = await storage.getUserById(booking.userId);
+      
+      const customerName = bookingUser ? `${bookingUser.firstName || ''} ${bookingUser.lastName || ''}`.trim() || 'Customer' : 'Customer';
+      const customerEmail = bookingUser?.email || '';
+      const customerPhone = bookingUser?.phone || null;
+      
+      const receiptData = generateBookingReceiptData(booking, facility, customerName, customerEmail, customerPhone);
+      const pdfBuffer = await generateReceiptPDF(receiptData);
+      
+      // Update booking with receipt number if not already set
+      if (!booking.receiptNumber) {
+        await storage.updateBooking(booking.id, { 
+          receiptNumber: receiptData.receiptNumber,
+          receiptGeneratedAt: new Date()
+        });
+      }
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="receipt-${receiptData.receiptNumber}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating booking receipt:", error);
+      res.status(500).json({ message: "Failed to generate receipt" });
+    }
+  });
+  
+  // Generate and download event registration receipt
+  app.get('/api/event-registrations/:id/receipt', isAuthenticated, async (req, res) => {
+    try {
+      const registration = await storage.getEventRegistration(req.params.id);
+      if (!registration) {
+        return res.status(404).json({ message: "Registration not found" });
+      }
+      
+      // Verify user owns this registration or is admin
+      const user = req.user as any;
+      if (registration.userId !== user.id && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+        return res.status(403).json({ message: "Unauthorized to view this receipt" });
+      }
+      
+      const event = await storage.getEvent(registration.eventId);
+      const regUser = await storage.getUserById(registration.userId);
+      
+      const customerName = regUser ? `${regUser.firstName || ''} ${regUser.lastName || ''}`.trim() || 'Customer' : 'Customer';
+      const customerEmail = regUser?.email || '';
+      const customerPhone = regUser?.phone || null;
+      
+      const receiptData = generateEventRegistrationReceiptData(registration, event, customerName, customerEmail, customerPhone);
+      const pdfBuffer = await generateReceiptPDF(receiptData);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="receipt-${receiptData.receiptNumber}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating event registration receipt:", error);
+      res.status(500).json({ message: "Failed to generate receipt" });
+    }
+  });
+  
+  // Generate and download membership application receipt
+  app.get('/api/membership-applications/:id/receipt', isAuthenticated, async (req, res) => {
+    try {
+      const application = await storage.getMembershipApplication(req.params.id);
+      if (!application) {
+        return res.status(404).json({ message: "Membership application not found" });
+      }
+      
+      // Verify user owns this application or is admin
+      const user = req.user as any;
+      if (application.userId !== user.id && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+        return res.status(403).json({ message: "Unauthorized to view this receipt" });
+      }
+      
+      const tiers = await storage.getPricingTiers();
+      const tier = tiers.find(t => t.tier === application.tierDesired);
+      const appUser = await storage.getUserById(application.userId);
+      
+      const customerName = appUser ? `${appUser.firstName || ''} ${appUser.lastName || ''}`.trim() || 'Customer' : 'Customer';
+      const customerEmail = appUser?.email || '';
+      const customerPhone = appUser?.phone || null;
+      
+      const receiptData = generateMembershipReceiptData(application, tier || null, customerName, customerEmail, customerPhone);
+      const pdfBuffer = await generateReceiptPDF(receiptData);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="receipt-${receiptData.receiptNumber}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating membership receipt:", error);
+      res.status(500).json({ message: "Failed to generate receipt" });
     }
   });
 

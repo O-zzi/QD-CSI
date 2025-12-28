@@ -296,6 +296,7 @@ export interface IStorage {
   
   // Event Registration operations
   registerForEvent(data: InsertEventRegistration): Promise<EventRegistration>;
+  getEventRegistration(id: string): Promise<EventRegistration | undefined>;
   getEventRegistrations(eventId: string): Promise<EventRegistration[]>;
   getUserEventRegistrations(userId: string): Promise<EventRegistration[]>;
   isUserRegisteredForEvent(userId: string, eventId: string): Promise<boolean>;
@@ -1232,6 +1233,11 @@ export class DatabaseStorage implements IStorage {
     await db.update(events)
       .set({ enrolledCount: sql`COALESCE(enrolled_count, 0) + 1` })
       .where(eq(events.id, data.eventId));
+    return registration;
+  }
+
+  async getEventRegistration(id: string): Promise<EventRegistration | undefined> {
+    const [registration] = await db.select().from(eventRegistrations).where(eq(eventRegistrations.id, id));
     return registration;
   }
 
