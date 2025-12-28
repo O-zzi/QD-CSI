@@ -35,6 +35,7 @@ const registrationFormSchema = z.object({
   phone: z.string().optional(),
   guestCount: z.number().min(0).max(10).default(0),
   notes: z.string().optional(),
+  paymentMethod: z.enum(['bank_transfer', 'cash']).optional(),
 });
 
 type RegistrationFormData = z.infer<typeof registrationFormSchema>;
@@ -64,7 +65,7 @@ export default function EventDetail() {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [pendingRegistration, setPendingRegistration] = useState<{ id: string; isPaid: boolean } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer'>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer'>('bank_transfer');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: bankSettings } = useQuery<SiteSetting[]>({
@@ -120,21 +121,33 @@ export default function EventDetail() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegistrationFormData & { eventId: string }) => {
-      return await apiRequest("POST", `/api/events/${data.eventId}/register`, data);
+      const response = await apiRequest("POST", `/api/events/${data.eventId}/register`, data);
+      // Parse the JSON response properly
+      const result = await response.json();
+      return result;
     },
-    onSuccess: (response: any) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/event-registrations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       setIsDialogOpen(false);
       form.reset();
       
-      if (response.isPaidEvent) {
-        setPendingRegistration({ id: response.id, isPaid: true });
-        setShowPaymentDialog(true);
-        toast({
-          title: "Registration Initiated",
-          description: "Please complete the payment to confirm your spot.",
-        });
+      if (data.isPaidEvent) {
+        setPendingRegistration({ id: data.id, isPaid: true });
+        // If bank transfer, show payment dialog for proof upload
+        if (paymentMethod === 'bank_transfer') {
+          setShowPaymentDialog(true);
+          toast({
+            title: "Registration Initiated",
+            description: "Please upload your payment proof to confirm your spot.",
+          });
+        } else {
+          // Cash payment - just show success message
+          toast({
+            title: "Registration Successful",
+            description: "Your registration is pending. Please pay at the venue to confirm your spot.",
+          });
+        }
       } else {
         toast({
           title: "Registration Successful",
@@ -244,7 +257,14 @@ export default function EventDetail() {
 
   const onSubmit = (data: RegistrationFormData) => {
     if (!event) return;
-    registerMutation.mutate({ ...data, eventId: event.id });
+    // Include payment method for paid events - convert to uppercase for backend
+    const backendPaymentMethod = paymentMethod === 'bank_transfer' ? 'BANK_TRANSFER' : 'CASH';
+    const submissionData = {
+      ...data,
+      eventId: event.id,
+      paymentMethod: event.price && event.price > 0 ? backendPaymentMethod : undefined,
+    };
+    registerMutation.mutate(submissionData);
   };
 
   const handleShare = () => {
@@ -582,6 +602,61 @@ export default function EventDetail() {
                   </FormItem>
                 )}
               />
+              
+              {/* Payment method selection for paid events */}
+              {event.price && event.price > 0 && (
+                <div className="space-y-3 pt-2 border-t">
+                  <Alert className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+                    <DollarSign className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-amber-800 dark:text-amber-300">
+                      <span className="font-semibold">Registration Fee: PKR {event.price.toLocaleString()}</span>
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Payment Method *</p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('cash')}
+                        className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition border ${
+                          paymentMethod === 'cash'
+                            ? 'bg-green-500 text-white border-green-500'
+                            : 'bg-muted text-foreground border-border hover:bg-muted/80'
+                        }`}
+                        data-testid="button-payment-cash-reg"
+                      >
+                        Pay On-Site (Cash)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('bank_transfer')}
+                        className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition border ${
+                          paymentMethod === 'bank_transfer'
+                            ? 'bg-purple-600 text-white border-purple-600'
+                            : 'bg-muted text-foreground border-border hover:bg-muted/80'
+                        }`}
+                        data-testid="button-payment-bank-reg"
+                      >
+                        Bank Transfer
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {paymentMethod === 'cash' && (
+                    <p className="text-xs text-muted-foreground">
+                      Pay in cash when you arrive at the event. Your registration is pending until payment.
+                    </p>
+                  )}
+                  
+                  {paymentMethod === 'bank_transfer' && (
+                    <p className="text-xs text-muted-foreground">
+                      After registration, you'll see bank details and can upload your payment proof.
+                    </p>
+                  )}
+                </div>
+              )}
+              
               <Button 
                 type="submit" 
                 className="w-full"
@@ -593,6 +668,8 @@ export default function EventDetail() {
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Registering...
                   </>
+                ) : event.price && event.price > 0 ? (
+                  `Register & Proceed to Payment`
                 ) : (
                   'Complete Registration'
                 )}
