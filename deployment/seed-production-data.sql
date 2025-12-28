@@ -13,20 +13,20 @@ WHERE email = 'admin@quarterdeck.pk';
 -- ============================================
 INSERT INTO construction_phases (id, label, title, status, progress, is_active, is_complete, timeframe, milestones, highlights, icon, sort_order) VALUES
 (gen_random_uuid()::text, 'Phase 1', 'Site Preparation & Foundation', 'COMPLETE', 100, false, true, 'Q1 2025', 
- ARRAY['Land clearing completed', 'Foundation laid', 'Underground utilities installed'], 
- ARRAY['5,000 sqm site prepared', 'Deep foundation work completed'], 
+ '["Land clearing completed", "Foundation laid", "Underground utilities installed"]'::jsonb, 
+ '["5,000 sqm site prepared", "Deep foundation work completed"]'::jsonb, 
  'check-circle', 1),
 (gen_random_uuid()::text, 'Phase 2', 'Structural Framework', 'IN_PROGRESS', 65, true, false, 'Q2 2025', 
- ARRAY['Steel framework installation', 'Roofing structure', 'Primary walls construction'], 
- ARRAY['Main building structure 65% complete', 'Roof installation in progress'], 
+ '["Steel framework installation", "Roofing structure", "Primary walls construction"]'::jsonb, 
+ '["Main building structure 65% complete", "Roof installation in progress"]'::jsonb, 
  'hammer', 2),
 (gen_random_uuid()::text, 'Phase 3', 'Interior & Facilities', 'NOT_STARTED', 0, false, false, 'Q3 2025', 
- ARRAY['Court installations', 'Locker rooms', 'Reception and lounges', 'Air conditioning'], 
- ARRAY['Premium sports surfaces', 'Modern amenities'], 
+ '["Court installations", "Locker rooms", "Reception and lounges", "Air conditioning"]'::jsonb, 
+ '["Premium sports surfaces", "Modern amenities"]'::jsonb, 
  'hard-hat', 3),
 (gen_random_uuid()::text, 'Phase 4', 'Grand Opening', 'NOT_STARTED', 0, false, false, 'Q4 2026', 
- ARRAY['Final inspections', 'Staff training', 'Soft launch', 'Grand opening ceremony'], 
- ARRAY['World-class facilities ready', 'Premium membership launch'], 
+ '["Final inspections", "Staff training", "Soft launch", "Grand opening ceremony"]'::jsonb, 
+ '["World-class facilities ready", "Premium membership launch"]'::jsonb, 
  'rocket', 4)
 ON CONFLICT (id) DO NOTHING;
 
