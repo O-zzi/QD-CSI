@@ -1,0 +1,39 @@
+[u805618386@my-kul-web2051 public_html]$ cd /home/u805618386/public_html/
+git pull origin main
+touch tmp/restart.txt
+remote: Enumerating objects: 26, done.
+remote: Counting objects: 100% (26/26), done.
+remote: Compressing objects: 100% (6/6), done.
+remote: Total 20 (delta 14), reused 20 (delta 14), pack-reused 0 (from 0)
+Unpacking objects: 100% (20/20), 6.89 KiB | 190.00 KiB/s, done.
+From https://github.com/O-zzi/QD-CSI
+ * branch            main       -> FETCH_HEAD
+   ba9c114..7c90bab  main       -> origin/main
+Updating ba9c114..7c90bab
+Fast-forward
+ attached_assets/Pasted--u805618386-my-kul-web2051-public-html-1-Check-if-error_1766936063082.txt           |  48 +++++++++++++++++++++++++++++++++++++++
+ attached_assets/Pasted--u805618386-my-kul-web2051-public-html-cd-home-u8056183_1766936279614.txt           |  82 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ app.js => attached_assets/Pasted-u805618386-my-kul-web2051-public-html-Try-running-the-a_1766936091406.txt | 151 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------------
+ dist/index.cjs                                                                                             |   2 +-
+ server/index.ts                                                                                            |   2 +-
+ 5 files changed, 217 insertions(+), 68 deletions(-)
+ create mode 100644 attached_assets/Pasted--u805618386-my-kul-web2051-public-html-1-Check-if-error_1766936063082.txt
+ create mode 100644 attached_assets/Pasted--u805618386-my-kul-web2051-public-html-cd-home-u8056183_1766936279614.txt
+ rename app.js => attached_assets/Pasted-u805618386-my-kul-web2051-public-html-Try-running-the-a_1766936091406.txt (66%)
+[u805618386@my-kul-web2051 public_html]$ # 1. Find your Node.js path
+which node
+
+# 2. Create Passengerfile.json (replace the node path if different)
+cd /home/u805618386/public_html/
+cat > Passengerfile.json << 'EOF'
+{
+  "app_type": "node",
+  "startup_file": "server.js",
+  "environment": "production",
+  "node": "/opt/alt/alt-nodejs20/root/usr/bin/node"
+}
+EOF
+
+# 3. Restart Passenger
+touch tmp/restart.txt
+~/.nvm/versions/node/v20.19.6/bin/node
