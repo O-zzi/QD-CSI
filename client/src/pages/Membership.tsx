@@ -178,7 +178,7 @@ export default function Membership() {
     } else if (userMembership) {
       setLocation('/profile?tab=membership');
     } else {
-      setLocation(`/contact?subject=Membership%20Application%20-%20${tier.name}`);
+      document.getElementById('apply')?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 

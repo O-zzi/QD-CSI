@@ -9,12 +9,27 @@ export class LocalStorageAdapter implements IStorageProvider {
   private baseUrl: string;
   
   constructor() {
-    this.uploadDir = process.env.LOCAL_UPLOAD_DIR || 'uploads';
+    const envUploadDir = process.env.LOCAL_UPLOAD_DIR || 'uploads';
+    this.uploadDir = path.isAbsolute(envUploadDir) 
+      ? envUploadDir 
+      : path.join(process.cwd(), envUploadDir);
     this.baseUrl = process.env.LOCAL_STORAGE_BASE_URL || '/uploads';
+    
+    logger.info(`Local storage adapter initialized: uploadDir=${this.uploadDir}, baseUrl=${this.baseUrl}`);
   }
   
   isConfigured(): boolean {
     return true;
+  }
+  
+  async ensureUploadDir(): Promise<void> {
+    try {
+      await fs.mkdir(this.uploadDir, { recursive: true });
+      logger.info(`Upload directory ensured: ${this.uploadDir}`);
+    } catch (error) {
+      logger.error(`Failed to create upload directory ${this.uploadDir}:`, error);
+      throw error;
+    }
   }
   
   async upload(buffer: Buffer, filename: string, options?: UploadOptions): Promise<StorageUploadResult> {
@@ -25,11 +40,14 @@ export class LocalStorageAdapter implements IStorageProvider {
         ? path.join(this.uploadDir, folder)
         : this.uploadDir;
       
+      logger.info(`Attempting to create directory: ${targetDir}`);
       await fs.mkdir(targetDir, { recursive: true });
       
-      const uniqueFilename = `${Date.now()}-${filename}`;
+      const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const uniqueFilename = `${Date.now()}-${sanitizedFilename}`;
       const filePath = path.join(targetDir, uniqueFilename);
       
+      logger.info(`Writing file to: ${filePath} (size: ${buffer.length} bytes)`);
       await fs.writeFile(filePath, buffer);
       
       const relativePath = folder 
@@ -38,7 +56,7 @@ export class LocalStorageAdapter implements IStorageProvider {
       
       const publicUrl = `${this.baseUrl}/${relativePath}`;
       
-      logger.info(`Successfully uploaded to local storage: ${filePath}`);
+      logger.info(`Successfully uploaded to local storage: ${filePath} -> ${publicUrl}`);
       
       return {
         success: true,
@@ -47,12 +65,18 @@ export class LocalStorageAdapter implements IStorageProvider {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Local storage upload exception:', error);
+      const errorCode = (error as any)?.code || 'UNKNOWN';
+      logger.error(`Local storage upload failed [${errorCode}]: ${errorMessage}`, { 
+        folder, 
+        filename, 
+        uploadDir: this.uploadDir,
+        error 
+      });
       return {
         success: false,
         url: null,
         provider: 'local',
-        error: errorMessage
+        error: `${errorCode}: ${errorMessage}`
       };
     }
   }
