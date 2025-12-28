@@ -1396,7 +1396,13 @@ export async function registerRoutes(
 
   app.post('/api/admin/events', isAuthenticated, isAdmin, async (req, res) => {
     try {
-      const result = insertEventSchema.safeParse(req.body);
+      // Convert date strings to Date objects
+      const dataWithDates = {
+        ...req.body,
+        scheduleDatetime: req.body.scheduleDatetime ? new Date(req.body.scheduleDatetime) : null,
+        enrollmentDeadline: req.body.enrollmentDeadline ? new Date(req.body.enrollmentDeadline) : null,
+      };
+      const result = insertEventSchema.safeParse(dataWithDates);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
       }
@@ -1410,8 +1416,14 @@ export async function registerRoutes(
 
   app.patch('/api/admin/events/:id', isAuthenticated, isAdmin, async (req, res) => {
     try {
+      // Convert date strings to Date objects if present
+      const dataWithDates = {
+        ...req.body,
+        ...(req.body.scheduleDatetime !== undefined && { scheduleDatetime: req.body.scheduleDatetime ? new Date(req.body.scheduleDatetime) : null }),
+        ...(req.body.enrollmentDeadline !== undefined && { enrollmentDeadline: req.body.enrollmentDeadline ? new Date(req.body.enrollmentDeadline) : null }),
+      };
       const partialSchema = insertEventSchema.partial();
-      const result = partialSchema.safeParse(req.body);
+      const result = partialSchema.safeParse(dataWithDates);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
       }
