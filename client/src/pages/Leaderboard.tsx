@@ -23,9 +23,9 @@ interface LeaderboardEntryWithUser extends LeaderboardEntry {
 
 const FACILITIES = [
   { id: 'all', name: 'All Sports', icon: Trophy },
-  { id: 'padel', name: 'Padel', icon: Target },
+  { id: 'padel-tennis', name: 'Padel', icon: Target },
   { id: 'squash', name: 'Squash', icon: Target },
-  { id: 'rifle', name: 'Air Rifle', icon: Target },
+  { id: 'air-rifle-range', name: 'Air Rifle', icon: Target },
 ];
 
 export default function Leaderboard() {
@@ -43,7 +43,15 @@ export default function Leaderboard() {
   ], CMS_DEFAULTS);
 
   const { data: entries = [], isLoading } = useQuery<LeaderboardEntryWithUser[]>({
-    queryKey: ['/api/leaderboard', selectedFacility !== 'all' ? selectedFacility : undefined],
+    queryKey: ['/api/leaderboard', selectedFacility !== 'all' ? `?facilitySlug=${selectedFacility}` : ''],
+    queryFn: async () => {
+      const url = selectedFacility !== 'all' 
+        ? `/api/leaderboard?facilitySlug=${selectedFacility}` 
+        : '/api/leaderboard';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch leaderboard');
+      return res.json();
+    },
   });
 
   const getRankStyle = (rank: number) => {

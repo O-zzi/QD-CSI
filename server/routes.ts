@@ -889,8 +889,19 @@ export async function registerRoutes(
   // ========== LEADERBOARD ROUTES ==========
   app.get('/api/leaderboard', async (req, res) => {
     try {
-      const { facilityId } = req.query;
-      const entries = await storage.getLeaderboard(facilityId as string | undefined);
+      const { facilityId, facilitySlug } = req.query;
+      
+      let targetFacilityId = facilityId as string | undefined;
+      
+      // If facilitySlug provided, look up the facility ID
+      if (facilitySlug && !targetFacilityId) {
+        const facility = await storage.getFacilityBySlug(facilitySlug as string);
+        if (facility) {
+          targetFacilityId = facility.id;
+        }
+      }
+      
+      const entries = await storage.getLeaderboard(targetFacilityId);
       res.json(entries);
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
