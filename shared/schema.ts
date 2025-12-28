@@ -319,7 +319,7 @@ export const membershipTierDefinitions = pgTable("membership_tier_definitions", 
 export const pricingTiers = pgTable("pricing_tiers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
-  tier: membershipTierEnum("tier").notNull(),
+  tier: varchar("tier").notNull(), // Dynamic tier slug from membership_tier_definitions
   price: integer("price").default(0).notNull(),
   billingPeriod: varchar("billing_period").default('yearly'),
   benefits: text("benefits").array(),

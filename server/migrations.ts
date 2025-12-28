@@ -479,6 +479,23 @@ export async function runStartupMigrations() {
     });
     logger.info("facility_add_ons.image_url column verified", { source: "migrations" });
     
+    // Convert pricing_tiers.tier from enum to varchar to support dynamic tier types
+    // Check if the column is still using the enum type
+    const tierColumnCheck = await pool.query(`
+      SELECT data_type, udt_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'pricing_tiers' AND column_name = 'tier'
+    `);
+    
+    if (tierColumnCheck.rows.length > 0 && tierColumnCheck.rows[0].data_type === 'USER-DEFINED') {
+      logger.info("Converting pricing_tiers.tier from enum to varchar...", { source: "migrations" });
+      await pool.query(`
+        ALTER TABLE pricing_tiers 
+        ALTER COLUMN tier TYPE varchar USING tier::text
+      `);
+      logger.info("pricing_tiers.tier converted to varchar", { source: "migrations" });
+    }
+    
     // Seed default tier definitions if table is empty
     const { rows } = await pool.query(`SELECT COUNT(*) as count FROM membership_tier_definitions`);
     if (parseInt(rows[0].count) === 0) {

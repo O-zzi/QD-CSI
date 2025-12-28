@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,22 +40,12 @@ export function MembershipApplicationForm({ onSuccess }: MembershipApplicationFo
   const [uploadedProof, setUploadedProof] = useState<{ name: string; url: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  interface SiteSettingItem {
-    key: string;
-    value: string;
-  }
-  const { data: siteSettings } = useQuery<SiteSettingItem[]>({
+  const { data: siteSettings } = useQuery<Record<string, string>>({
     queryKey: ["/api/site-settings"],
   });
 
-  // Transform array to keyed object
-  const settingsMap = useMemo(() => {
-    if (!siteSettings) return {};
-    return siteSettings.reduce((acc, s) => {
-      acc[s.key] = s.value;
-      return acc;
-    }, {} as Record<string, string>);
-  }, [siteSettings]);
+  // Site settings is already a keyed object
+  const settingsMap = siteSettings || {};
 
   const bankDetails = {
     bankName: settingsMap?.bank_name || "Bank Details Loading...",

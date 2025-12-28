@@ -38,7 +38,7 @@ export default function PricingManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    tier: "SILVER" as "FOUNDING" | "GOLD" | "SILVER" | "GUEST",
+    tier: "silver", // Now supports dynamic tier slugs
     price: 0,
     billingPeriod: "yearly",
     benefits: [] as string[],
@@ -227,29 +227,29 @@ export default function PricingManagement() {
                     <Label htmlFor="tier">Tier Level</Label>
                     <Select
                       value={formData.tier}
-                      onValueChange={(value: typeof formData.tier) => setFormData({ ...formData, tier: value })}
+                      onValueChange={(value: string) => setFormData({ ...formData, tier: value })}
                     >
                       <SelectTrigger data-testid="select-tier-level">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* Only show tier definitions that match valid enum values */}
-                        {tierDefinitions?.filter(t => t.isActive && ['founding', 'gold', 'silver', 'guest'].includes(t.slug.toLowerCase())).map((tier) => (
+                        {/* Show all active tier definitions - now supports dynamic tiers */}
+                        {tierDefinitions?.filter(t => t.isActive).map((tier) => (
                           <SelectItem 
                             key={tier.id} 
-                            value={tier.slug.toUpperCase()}
+                            value={tier.slug}
                             data-testid={`select-tier-${tier.slug}`}
                           >
                             {tier.displayName}
                           </SelectItem>
                         ))}
-                        {/* Fallback if no matching tier definitions found */}
-                        {(!tierDefinitions || tierDefinitions.filter(t => t.isActive && ['founding', 'gold', 'silver', 'guest'].includes(t.slug.toLowerCase())).length === 0) && (
+                        {/* Fallback if no tier definitions found */}
+                        {(!tierDefinitions || tierDefinitions.length === 0) && (
                           <>
-                            <SelectItem value="FOUNDING">Founding</SelectItem>
-                            <SelectItem value="GOLD">Gold</SelectItem>
-                            <SelectItem value="SILVER">Silver</SelectItem>
-                            <SelectItem value="GUEST">Guest</SelectItem>
+                            <SelectItem value="founding">Founding</SelectItem>
+                            <SelectItem value="gold">Gold</SelectItem>
+                            <SelectItem value="silver">Silver</SelectItem>
+                            <SelectItem value="guest">Guest</SelectItem>
                           </>
                         )}
                       </SelectContent>
