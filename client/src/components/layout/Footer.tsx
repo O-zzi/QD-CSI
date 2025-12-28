@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Instagram, Facebook, Linkedin, Loader2 } from "lucide-react";
+import { Instagram, Facebook, Linkedin, Youtube } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import footerBgDefault from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
@@ -46,6 +46,7 @@ export function Footer() {
   const instagramUrl = getSetting("instagram_url") || getSetting("social_instagram", "#");
   const facebookUrl = getSetting("facebook_url") || getSetting("social_facebook", "#");
   const linkedinUrl = getSetting("linkedin_url") || getSetting("social_linkedin", "#");
+  const youtubeUrl = getSetting("youtube_url") || getSetting("social_youtube", "#");
   const copyrightYear = new Date().getFullYear();
 
   return (
@@ -56,7 +57,8 @@ export function Footer() {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/95 to-primary/80 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900/80" />
       <div className="qd-container relative z-10">
-        <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          {/* Left: Logo */}
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer" data-testid="link-footer-logo">
               <div className="qd-logo-mark">{siteName.charAt(0)}</div>
@@ -67,25 +69,32 @@ export function Footer() {
             </div>
           </Link>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/terms">
-              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-terms">
-                Terms
-              </span>
-            </Link>
-            <Link href="/privacy">
-              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-privacy">
-                Privacy
-              </span>
-            </Link>
-            <Link href="/careers">
-              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-careers">
-                Careers
-              </span>
-            </Link>
+          {/* Center: Links + Copyright */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-wrap justify-center gap-6">
+              <Link href="/terms">
+                <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-terms">
+                  Terms
+                </span>
+              </Link>
+              <Link href="/privacy">
+                <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-privacy">
+                  Privacy
+                </span>
+              </Link>
+              <Link href="/careers">
+                <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-careers">
+                  Careers
+                </span>
+              </Link>
+            </div>
+            <p className="text-primary-foreground/60 text-xs">
+              © {copyrightYear} {siteName} – All rights reserved.
+            </p>
           </div>
 
-          <div className="flex gap-4">
+          {/* Right: Social Icons */}
+          <div className="flex gap-3">
             <a
               href={instagramUrl}
               target="_blank"
@@ -116,12 +125,18 @@ export function Footer() {
             >
               <Linkedin className="w-4 h-4" />
             </a>
+            <a
+              href={youtubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="qd-social-icon"
+              aria-label="YouTube"
+              data-testid="link-social-youtube"
+            >
+              <Youtube className="w-4 h-4" />
+            </a>
           </div>
         </div>
-
-        <p className="text-center mt-6 text-primary-foreground/60 text-xs">
-          © {copyrightYear} {siteName} – All rights reserved.
-        </p>
       </div>
     </footer>
   );
