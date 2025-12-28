@@ -71,6 +71,7 @@ import BlogsManagement from "@/pages/admin/BlogsManagement";
 import TestimonialsManagement from "@/pages/admin/TestimonialsManagement";
 import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
+import Testimonials from "@/pages/Testimonials";
 
 function AdminRoutes() {
   const { adminPath, isAuthorized, isLoading } = useAdminPath();
@@ -150,6 +151,7 @@ function PublicRoutes() {
       <Route path="/membership" component={Membership} />
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/blog" component={Blog} />
+      <Route path="/testimonials" component={Testimonials} />
       <Route path="/certifications" component={Certifications} />
       <Route path="/updates" component={Updates} />
       <Route path="/login" component={Login} />

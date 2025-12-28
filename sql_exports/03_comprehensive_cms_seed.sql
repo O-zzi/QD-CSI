@@ -145,7 +145,7 @@ ON CONFLICT DO NOTHING;
 -- ============================================
 -- 7. TESTIMONIALS
 -- ============================================
-INSERT INTO testimonials (id, author_name, author_title, content, rating, is_featured, is_active)
+INSERT INTO testimonials (id, name, title, quote, rating, is_featured, is_active)
 VALUES
   (gen_random_uuid()::text, 'Ahmed Khan', 'Founding Member', 'The Quarterdeck has transformed my fitness routine. The facilities are world-class and the staff is incredibly helpful.', 5, true, true),
   (gen_random_uuid()::text, 'Sarah Ali', 'Gold Member', 'Best padel courts in Islamabad! I love the atmosphere and the community of players here.', 5, true, true),
