@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -136,6 +136,22 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   const [selectedHallActivity, setSelectedHallActivity] = useState<string | null>(null);
   const [currentLeaderboardType, setCurrentLeaderboardType] = useState('cumulative');
   const [validatingMembership, setValidatingMembership] = useState(false);
+
+  // Ref to track mounted state and cleanup timers
+  const isMountedRef = useRef(true);
+  const notificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (notificationTimerRef.current) {
+        clearTimeout(notificationTimerRef.current);
+        notificationTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Fetch user's membership data from database
   const { data: membershipData } = useQuery<MembershipData | null>({
@@ -622,6 +638,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       return await apiRequest('POST', `/api/events/${data.eventId}/register`, data);
     },
     onSuccess: () => {
+      if (!isMountedRef.current) return;
       toast({
         title: "Registration Submitted!",
         description: "Your registration is pending approval. You'll receive a confirmation email once approved.",
@@ -629,6 +646,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
     },
     onError: (error: Error) => {
+      if (!isMountedRef.current) return;
       toast({
         title: "Registration Failed",
         description: error.message || "Unable to register for this event.",
@@ -663,6 +681,9 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       return await apiRequest('POST', '/api/bookings', bookingData);
     },
     onSuccess: async (_, variables) => {
+      // Guard against unmounted component
+      if (!isMountedRef.current) return;
+      
       const isBankTransfer = variables.paymentMethod === 'bank_transfer';
       const isCash = variables.paymentMethod === 'cash';
       
@@ -685,7 +706,10 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       
       // Prompt for notification permission after successful booking
       if (notificationsSupported && notificationPermission === 'default') {
-        setTimeout(() => {
+        // Store timer in ref for cleanup on unmount
+        notificationTimerRef.current = setTimeout(() => {
+          // Only show toast if component is still mounted
+          if (!isMountedRef.current) return;
           toast({
             title: "Enable Booking Reminders?",
             description: "Get notified 1 hour before your booking starts.",
@@ -694,7 +718,7 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                 size="sm"
                 onClick={async () => {
                   const result = await requestPermission();
-                  if (result === 'granted') {
+                  if (result === 'granted' && isMountedRef.current) {
                     toast({
                       title: "Reminders Enabled",
                       description: "You'll receive notifications before your bookings.",
@@ -711,13 +735,17 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       }
       
       queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
-      setSelectedStartTime(null);
-      setSelectedAddOns(new Set());
-      setCoachBooked(false);
-      setIsMatchmaking(false);
-      setCurrentGroupSize(1);
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setSelectedStartTime(null);
+        setSelectedAddOns(new Set());
+        setCoachBooked(false);
+        setIsMatchmaking(false);
+        setCurrentGroupSize(1);
+      }
     },
     onError: (error: any) => {
+      if (!isMountedRef.current) return;
       const isCertificationRequired = error.message?.includes("certification");
       toast({
         title: isCertificationRequired ? "Certification Required" : "Booking Failed",
