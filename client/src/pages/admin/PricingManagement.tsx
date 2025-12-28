@@ -233,7 +233,8 @@ export default function PricingManagement() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {tierDefinitions?.filter(t => t.isActive).map((tier) => (
+                        {/* Only show tier definitions that match valid enum values */}
+                        {tierDefinitions?.filter(t => t.isActive && ['founding', 'gold', 'silver', 'guest'].includes(t.slug.toLowerCase())).map((tier) => (
                           <SelectItem 
                             key={tier.id} 
                             value={tier.slug.toUpperCase()}
@@ -242,7 +243,8 @@ export default function PricingManagement() {
                             {tier.displayName}
                           </SelectItem>
                         ))}
-                        {(!tierDefinitions || tierDefinitions.length === 0) && (
+                        {/* Fallback if no matching tier definitions found */}
+                        {(!tierDefinitions || tierDefinitions.filter(t => t.isActive && ['founding', 'gold', 'silver', 'guest'].includes(t.slug.toLowerCase())).length === 0) && (
                           <>
                             <SelectItem value="FOUNDING">Founding</SelectItem>
                             <SelectItem value="GOLD">Gold</SelectItem>
