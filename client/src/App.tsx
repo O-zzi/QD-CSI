@@ -69,6 +69,7 @@ import ComparisonFeaturesManagement from "@/pages/admin/ComparisonFeaturesManage
 import MemberBenefitsManagement from "@/pages/admin/MemberBenefitsManagement";
 import BlogsManagement from "@/pages/admin/BlogsManagement";
 import TestimonialsManagement from "@/pages/admin/TestimonialsManagement";
+import UserManagement from "@/pages/admin/UserManagement";
 import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
 import Testimonials from "@/pages/Testimonials";
@@ -114,6 +115,7 @@ function AdminRoutes() {
       <Route path={`${base}/member-benefits`} component={MemberBenefitsManagement} />
       <Route path={`${base}/blogs`} component={BlogsManagement} />
       <Route path={`${base}/testimonials`} component={TestimonialsManagement} />
+      <Route path={`${base}/user-management`} component={UserManagement} />
       <Route path={`${base}/site-settings`} component={SiteSettingsManagement} />
       <Route path={base} component={AdminDashboard} />
     </Switch>

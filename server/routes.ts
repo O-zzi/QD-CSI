@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, isAdmin, sessionHeartbeat, adminHeartbeat } from "./localAuth";
+import { setupAuth, isAuthenticated, isAdmin, isEditorOrAbove, isSuperAdmin, sessionHeartbeat, adminHeartbeat } from "./localAuth";
 import { logAdminAction } from "./auditLog";
 import {
   sendBookingCreatedEmail,
@@ -1344,8 +1344,8 @@ export async function registerRoutes(
     }
   });
 
-  // Admin Users Management routes
-  app.get('/api/admin/users', isAuthenticated, isAdmin, async (req, res) => {
+  // Admin Users Management routes (EDITOR can read, ADMIN can write)
+  app.get('/api/admin/users', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -1355,7 +1355,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get('/api/admin/users/:id', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/users/:id', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const user = await storage.getUser(req.params.id);
       if (!user) {
@@ -1368,20 +1368,14 @@ export async function registerRoutes(
     }
   });
 
-  app.patch('/api/admin/users/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+  app.patch('/api/admin/users/:id', isAuthenticated, isSuperAdmin, async (req: any, res) => {
     try {
       const result = updateUserProfileSchema.safeParse(req.body);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid data", errors: result.error.errors });
       }
       
-      const currentUser = req.user;
       const updateData = { ...result.data };
-      
-      // Strip role field unless current user is SUPER_ADMIN
-      if (currentUser.role !== 'SUPER_ADMIN') {
-        delete updateData.role;
-      }
       
       const updated = await storage.updateUser(req.params.id, updateData);
       if (!updated) {
@@ -1708,8 +1702,8 @@ export async function registerRoutes(
     }
   });
 
-  // Admin Membership Application routes
-  app.get('/api/admin/membership-applications', isAuthenticated, isAdmin, async (req, res) => {
+  // Admin Membership Application routes (EDITOR accessible)
+  app.get('/api/admin/membership-applications', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const { status } = req.query;
       const applications = await storage.getMembershipApplications(status as string);
@@ -1720,7 +1714,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get('/api/admin/membership-applications/:id', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/membership-applications/:id', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const application = await storage.getMembershipApplication(req.params.id);
       if (!application) {
@@ -1735,7 +1729,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/admin/membership-applications/:id/approve', isAuthenticated, isAdmin, async (req, res) => {
+  app.post('/api/admin/membership-applications/:id/approve', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const admin = req.user as any;
       const { notes, skipAmountVerification } = req.body;
@@ -1794,7 +1788,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/admin/membership-applications/:id/reject', isAuthenticated, isAdmin, async (req, res) => {
+  app.post('/api/admin/membership-applications/:id/reject', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const admin = req.user as any;
       const { notes } = req.body;
@@ -2449,8 +2443,8 @@ export async function registerRoutes(
     }
   });
 
-  // Admin Certifications routes
-  app.get('/api/admin/certifications', isAuthenticated, isAdmin, async (req, res) => {
+  // Admin Certifications routes (EDITOR accessible)
+  app.get('/api/admin/certifications', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const certs = await storage.getCertifications();
       res.json(certs);
@@ -2460,7 +2454,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get('/api/admin/certifications/:id', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/certifications/:id', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const cert = await storage.getCertification(req.params.id);
       if (!cert) {
@@ -2473,7 +2467,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/admin/certifications', isAuthenticated, isAdmin, async (req, res) => {
+  app.post('/api/admin/certifications', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const adminId = (req as any).user?.id;
       if (!adminId) {
@@ -2493,7 +2487,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch('/api/admin/certifications/:id', isAuthenticated, isAdmin, async (req, res) => {
+  app.patch('/api/admin/certifications/:id', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const adminId = (req as any).user?.id;
       if (!adminId) {
@@ -2517,7 +2511,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete('/api/admin/certifications/:id', isAuthenticated, isAdmin, async (req, res) => {
+  app.delete('/api/admin/certifications/:id', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const adminId = (req as any).user?.id;
       if (!adminId) {
@@ -2533,8 +2527,8 @@ export async function registerRoutes(
     }
   });
 
-  // Admin Certification Classes routes
-  app.get('/api/admin/certification-classes', isAuthenticated, isAdmin, async (req, res) => {
+  // Admin Certification Classes routes (EDITOR accessible)
+  app.get('/api/admin/certification-classes', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const { certificationId } = req.query;
       const classes = await storage.getCertificationClasses(certificationId as string | undefined);
@@ -2545,7 +2539,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/admin/certification-classes', isAuthenticated, isAdmin, async (req, res) => {
+  app.post('/api/admin/certification-classes', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const adminId = (req as any).user?.id;
       if (!adminId) {
@@ -2565,7 +2559,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch('/api/admin/certification-classes/:id', isAuthenticated, isAdmin, async (req, res) => {
+  app.patch('/api/admin/certification-classes/:id', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const adminId = (req as any).user?.id;
       if (!adminId) {
@@ -2589,7 +2583,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete('/api/admin/certification-classes/:id', isAuthenticated, isAdmin, async (req, res) => {
+  app.delete('/api/admin/certification-classes/:id', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const adminId = (req as any).user?.id;
       if (!adminId) {
@@ -2606,7 +2600,7 @@ export async function registerRoutes(
   });
 
   // Admin User Certifications routes (for verification and management)
-  app.get('/api/admin/user-certifications', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/user-certifications', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const { status } = req.query;
       const userCerts = await storage.getAllUserCertifications(status as string | undefined);
@@ -2617,7 +2611,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/admin/user-certifications', isAuthenticated, isAdmin, async (req, res) => {
+  app.post('/api/admin/user-certifications', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const adminId = (req as any).user?.id;
       if (!adminId) {
@@ -2659,7 +2653,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch('/api/admin/user-certifications/:id', isAuthenticated, isAdmin, async (req, res) => {
+  app.patch('/api/admin/user-certifications/:id', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const adminId = (req as any).user?.id;
       if (!adminId) {
@@ -2693,7 +2687,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/admin/user-certifications/:id/revoke', isAuthenticated, isAdmin, async (req, res) => {
+  app.post('/api/admin/user-certifications/:id/revoke', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const adminId = (req as any).user?.id;
       if (!adminId) {
@@ -2983,9 +2977,9 @@ export async function registerRoutes(
     }
   });
 
-  // ========== ADMIN BOOKING ROUTES ==========
+  // ========== ADMIN BOOKING ROUTES (EDITOR accessible) ==========
   
-  app.get('/api/admin/bookings', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/bookings', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const allBookings = await storage.getAllBookings();
       res.json(allBookings);
@@ -2995,7 +2989,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get('/api/admin/bookings/:id', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/admin/bookings/:id', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const booking = await storage.getBookingById(req.params.id);
       if (!booking) {
@@ -3015,7 +3009,7 @@ export async function registerRoutes(
     status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED']).optional(),
   });
 
-  app.patch('/api/admin/bookings/:id/payment', isAuthenticated, isAdmin, async (req: any, res) => {
+  app.patch('/api/admin/bookings/:id/payment', isAuthenticated, isEditorOrAbove, async (req: any, res) => {
     try {
       const result = paymentVerificationSchema.safeParse(req.body);
       if (!result.success) {
@@ -3071,7 +3065,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch('/api/admin/bookings/:id/status', isAuthenticated, isAdmin, async (req, res) => {
+  app.patch('/api/admin/bookings/:id/status', isAuthenticated, isEditorOrAbove, async (req, res) => {
     try {
       const { status, cancelReason } = req.body;
       if (!['PENDING', 'CONFIRMED', 'CANCELLED'].includes(status)) {

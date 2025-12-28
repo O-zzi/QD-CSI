@@ -601,6 +601,34 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
+export const isEditorOrAbove = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = req.user as any;
+
+  if (user.role !== 'EDITOR' && user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+    return res.status(403).json({ message: "Forbidden - Editor or Admin access required" });
+  }
+
+  next();
+};
+
+export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = req.user as any;
+
+  if (user.role !== 'SUPER_ADMIN') {
+    return res.status(403).json({ message: "Forbidden - Super Admin access required" });
+  }
+
+  next();
+};
+
 export const sessionHeartbeat = async (req: Request, res: Response) => {
   if (!req.isAuthenticated() || !req.user) {
     return res.status(401).json({ message: "Unauthorized" });

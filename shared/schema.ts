@@ -16,7 +16,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Enums
-export const userRoleEnum = pgEnum('user_role', ['USER', 'ADMIN', 'SUPER_ADMIN']);
+export const userRoleEnum = pgEnum('user_role', ['USER', 'EDITOR', 'ADMIN', 'SUPER_ADMIN']);
 export const membershipTierEnum = pgEnum('membership_tier', ['FOUNDING', 'GOLD', 'SILVER', 'GUEST']);
 export const membershipStatusEnum = pgEnum('membership_status', ['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'ACTIVE', 'EXPIRED', 'SUSPENDED']);
 export const bookingStatusEnum = pgEnum('booking_status', ['PENDING', 'CONFIRMED', 'CANCELLED']);

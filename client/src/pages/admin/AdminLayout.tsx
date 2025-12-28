@@ -38,35 +38,56 @@ import type { User, Booking, Facility } from "@shared/schema";
 import { useAdminSession } from "@/hooks/useAdminSession";
 import { useAdminPath } from "@/hooks/useAdminPath";
 
-function getNavItems(basePath: string) {
+type UserRole = 'USER' | 'EDITOR' | 'ADMIN' | 'SUPER_ADMIN';
+
+interface NavItem {
+  path: string;
+  label: string;
+  icon: any;
+  minRole: UserRole;
+}
+
+const roleHierarchy: Record<UserRole, number> = {
+  'USER': 0,
+  'EDITOR': 1,
+  'ADMIN': 2,
+  'SUPER_ADMIN': 3,
+};
+
+function hasMinRole(userRole: UserRole, minRole: UserRole): boolean {
+  return roleHierarchy[userRole] >= roleHierarchy[minRole];
+}
+
+function getNavItems(basePath: string): NavItem[] {
   return [
-    { path: basePath, label: "Dashboard", icon: LayoutDashboard },
-    { path: `${basePath}/branding`, label: "Branding & Nav", icon: Palette },
-    { path: `${basePath}/homepage`, label: "Site Content", icon: Home },
-    { path: `${basePath}/coming-soon`, label: "Coming Soon", icon: Clock },
-    { path: `${basePath}/venues`, label: "Venues & Locations", icon: MapPin },
-    { path: `${basePath}/facilities`, label: "Facilities", icon: Building2 },
-    { path: `${basePath}/bookings`, label: "Bookings", icon: CreditCard },
-    { path: `${basePath}/members`, label: "Members", icon: Users },
-    { path: `${basePath}/membership-applications`, label: "Membership Applications", icon: ClipboardCheck },
-    { path: `${basePath}/certifications`, label: "Certifications", icon: Award },
-    { path: `${basePath}/comparison-features`, label: "Comparison Features", icon: LayoutGrid },
-    { path: `${basePath}/member-benefits`, label: "Member Benefits", icon: Gift },
-    { path: `${basePath}/blogs`, label: "Blog / News", icon: FileEdit },
-    { path: `${basePath}/testimonials`, label: "Testimonials", icon: MessageSquareQuote },
-    { path: `${basePath}/roadmap`, label: "Construction Status", icon: HardHat },
-    { path: `${basePath}/events`, label: "Events & Academies", icon: Calendar },
-    { path: `${basePath}/pricing`, label: "Pricing Tiers", icon: DollarSign },
-    { path: `${basePath}/announcements`, label: "Announcements", icon: Bell },
-    { path: `${basePath}/careers`, label: "Careers", icon: Briefcase },
-    { path: `${basePath}/rules`, label: "Rules & Safety", icon: FileText },
-    { path: `${basePath}/faq`, label: "FAQ", icon: HelpCircle },
-    { path: `${basePath}/policies`, label: "Privacy & Terms", icon: ShieldCheck },
-    { path: `${basePath}/gallery`, label: "Gallery", icon: Image },
-    { path: `${basePath}/site-images`, label: "Site Images", icon: Image },
-    { path: `${basePath}/hero-sections`, label: "Hero Sections", icon: Image },
-    { path: `${basePath}/ctas`, label: "CTAs", icon: MousePointer2 },
-    { path: `${basePath}/site-settings`, label: "Site Settings", icon: Settings },
+    { path: basePath, label: "Dashboard", icon: LayoutDashboard, minRole: 'EDITOR' },
+    { path: `${basePath}/bookings`, label: "Bookings", icon: CreditCard, minRole: 'EDITOR' },
+    { path: `${basePath}/members`, label: "Members", icon: Users, minRole: 'EDITOR' },
+    { path: `${basePath}/membership-applications`, label: "Membership Applications", icon: ClipboardCheck, minRole: 'EDITOR' },
+    { path: `${basePath}/certifications`, label: "Certifications", icon: Award, minRole: 'EDITOR' },
+    { path: `${basePath}/user-management`, label: "User Roles", icon: ShieldCheck, minRole: 'SUPER_ADMIN' },
+    { path: `${basePath}/branding`, label: "Branding & Nav", icon: Palette, minRole: 'ADMIN' },
+    { path: `${basePath}/homepage`, label: "Site Content", icon: Home, minRole: 'ADMIN' },
+    { path: `${basePath}/coming-soon`, label: "Coming Soon", icon: Clock, minRole: 'ADMIN' },
+    { path: `${basePath}/venues`, label: "Venues & Locations", icon: MapPin, minRole: 'ADMIN' },
+    { path: `${basePath}/facilities`, label: "Facilities", icon: Building2, minRole: 'ADMIN' },
+    { path: `${basePath}/comparison-features`, label: "Comparison Features", icon: LayoutGrid, minRole: 'ADMIN' },
+    { path: `${basePath}/member-benefits`, label: "Member Benefits", icon: Gift, minRole: 'ADMIN' },
+    { path: `${basePath}/blogs`, label: "Blog / News", icon: FileEdit, minRole: 'ADMIN' },
+    { path: `${basePath}/testimonials`, label: "Testimonials", icon: MessageSquareQuote, minRole: 'ADMIN' },
+    { path: `${basePath}/roadmap`, label: "Construction Status", icon: HardHat, minRole: 'ADMIN' },
+    { path: `${basePath}/events`, label: "Events & Academies", icon: Calendar, minRole: 'ADMIN' },
+    { path: `${basePath}/pricing`, label: "Pricing Tiers", icon: DollarSign, minRole: 'ADMIN' },
+    { path: `${basePath}/announcements`, label: "Announcements", icon: Bell, minRole: 'ADMIN' },
+    { path: `${basePath}/careers`, label: "Careers", icon: Briefcase, minRole: 'ADMIN' },
+    { path: `${basePath}/rules`, label: "Rules & Safety", icon: FileText, minRole: 'ADMIN' },
+    { path: `${basePath}/faq`, label: "FAQ", icon: HelpCircle, minRole: 'ADMIN' },
+    { path: `${basePath}/policies`, label: "Privacy & Terms", icon: ShieldCheck, minRole: 'ADMIN' },
+    { path: `${basePath}/gallery`, label: "Gallery", icon: Image, minRole: 'ADMIN' },
+    { path: `${basePath}/site-images`, label: "Site Images", icon: Image, minRole: 'ADMIN' },
+    { path: `${basePath}/hero-sections`, label: "Hero Sections", icon: Image, minRole: 'ADMIN' },
+    { path: `${basePath}/ctas`, label: "CTAs", icon: MousePointer2, minRole: 'ADMIN' },
+    { path: `${basePath}/site-settings`, label: "Site Settings", icon: Settings, minRole: 'ADMIN' },
   ];
 }
 
@@ -127,12 +148,15 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
     );
   }
 
-  if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+  const userRole = user?.role as UserRole | undefined;
+  const isEditorOrAbove = userRole && hasMinRole(userRole, 'EDITOR');
+
+  if (!user || !isEditorOrAbove) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center p-8">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="text-muted-foreground mb-6">You need administrator privileges to access this page.</p>
+          <p className="text-muted-foreground mb-6">You need staff privileges to access this page.</p>
           <Link href="/">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" /> Return to Home
@@ -142,6 +166,8 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
       </div>
     );
   }
+
+  const filteredNavItems = navItems.filter(item => hasMinRole(userRole, item.minRole));
 
   return (
     <div className="min-h-screen bg-background">
@@ -178,7 +204,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
           </div>
 
           <nav className="flex-1 p-4 space-y-1">
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location === item.path || 
                 (item.path !== "/admin" && location.startsWith(item.path));
@@ -252,7 +278,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
             <CommandEmpty>No results found.</CommandEmpty>
             
             <CommandGroup heading="Navigation">
-              {navItems.map((item) => (
+              {filteredNavItems.map((item) => (
                 <CommandItem
                   key={item.path}
                   value={item.label}

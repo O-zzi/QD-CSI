@@ -6,6 +6,23 @@ export async function runStartupMigrations() {
   logger.info("Running startup migrations...", { source: "migrations" });
   
   try {
+    // Add EDITOR to user_role enum if it doesn't exist
+    await pool.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_enum e 
+          JOIN pg_type t ON e.enumtypid = t.oid 
+          WHERE t.typname = 'user_role' AND e.enumlabel = 'EDITOR'
+        ) THEN
+          ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'EDITOR' BEFORE 'ADMIN';
+        END IF;
+      EXCEPTION
+        WHEN duplicate_object THEN NULL;
+      END $$;
+    `);
+    logger.info("user_role enum EDITOR value verified", { source: "migrations" });
+
     // Create membership_tier_definitions table if not exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS membership_tier_definitions (

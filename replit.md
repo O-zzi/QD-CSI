@@ -38,7 +38,20 @@ All new CMS tables have complete CRUD APIs with admin protection and Zod validat
 
 ### Admin Dashboard
 
-An `/admin` panel provides role-based access (ADMIN, SUPER_ADMIN) for managing CMS content, facilities, pricing, announcements, careers, rules, and gallery images. All admin API endpoints are protected and use Zod for validation. It includes CRUD operations for dynamic membership tier definitions with configurable properties like discounts and guest passes, and an interface for payment verification.
+An `/admin` panel provides role-based access with a 4-tier hierarchy for managing the platform:
+
+**Role Hierarchy (lowest to highest):**
+1. **USER** - Regular members who can make bookings, register for events, and manage their profile
+2. **EDITOR** - Reception staff with limited admin access:
+   - Can view/manage bookings
+   - Can view members (read-only)
+   - Can process membership applications
+   - Can manage certifications
+   - CANNOT access CMS, site settings, pricing, events, announcements, gallery, or content management
+3. **ADMIN** - Full administrative access to all features including CMS, site settings, facilities, events, and content management
+4. **SUPER_ADMIN** - All admin permissions plus user role management (can promote/demote users)
+
+The admin navigation menu dynamically shows/hides sections based on the logged-in user's role. All admin API endpoints are protected using `isEditorOrAbove` (for EDITOR-accessible routes), `isAdmin` (for ADMIN-accessible routes), and `isSuperAdmin` (for role management routes). It includes CRUD operations for dynamic membership tier definitions with configurable properties like discounts and guest passes, and an interface for payment verification.
 
 ### CMS Image Management
 
