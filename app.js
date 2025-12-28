@@ -4,9 +4,15 @@
 const fs = require('fs');
 const path = require('path');
 
+// Log startup
+console.log('[Passenger] Starting The Quarterdeck...');
+console.log('[Passenger] Node version:', process.version);
+console.log('[Passenger] Working directory:', __dirname);
+
 // Load .env file from current directory
 const envPath = path.join(__dirname, '.env');
 if (fs.existsSync(envPath)) {
+  console.log('[Passenger] Loading .env from:', envPath);
   const envContent = fs.readFileSync(envPath, 'utf8');
   envContent.split('\n').forEach(line => {
     const trimmed = line.trim();
@@ -26,11 +32,35 @@ if (fs.existsSync(envPath)) {
       }
     }
   });
-  console.log('[Passenger] Loaded environment from .env file');
+  console.log('[Passenger] Environment loaded successfully');
+} else {
+  console.warn('[Passenger] No .env file found at:', envPath);
 }
 
 // Set production mode
 process.env.NODE_ENV = 'production';
 
+// Check critical environment variables
+const requiredVars = ['DATABASE_URL', 'SESSION_SECRET', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY'];
+const missing = requiredVars.filter(v => !process.env[v]);
+if (missing.length > 0) {
+  console.error('[Passenger] Missing required environment variables:', missing.join(', '));
+}
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('[Passenger] Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Passenger] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 // Now require the actual app
-require('./dist/index.cjs');
+try {
+  console.log('[Passenger] Loading application...');
+  require('./dist/index.cjs');
+} catch (err) {
+  console.error('[Passenger] Failed to load application:', err);
+  process.exit(1);
+}
