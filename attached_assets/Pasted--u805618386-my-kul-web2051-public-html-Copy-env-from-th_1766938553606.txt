@@ -1,0 +1,83 @@
+[u805618386@my-kul-web2051 public_html]$ # Copy .env from the main public_html to the domain's public_html
+cp /home/u805618386/public_html/.env /home/u805618386/domains/thequarterdeck.pk/public_html/.env
+
+# Test again
+cd /home/u805618386/domains/thequarterdeck.pk/public_html/
+node server.js
+Environment variables loaded from .env
+{"level":"info","message":"Validating environment variables...","service":"quarterdeck-api","source":"env","timestamp":"2025-12-28 16:15:23"}
+{"level":"warn","message":"PORT not set, using default: 5000","service":"quarterdeck-api","source":"env","timestamp":"2025-12-28 16:15:23"}
+{"level":"info","message":"Environment validation passed","service":"quarterdeck-api","source":"env","timestamp":"2025-12-28 16:15:23"}
+{"databaseConfigured":true,"emailConfigured":false,"level":"info","message":"Environment summary","nodeEnv":"production","port":"5000","replitDeployment":false,"service":"quarterdeck-api","sessionSecretConfigured":true,"source":"startup","timestamp":"2025-12-28 16:15:23","turnstileConfigured":false}
+{"level":"info","message":"Stripe disabled - using offline payment system for Pakistan market","service":"quarterdeck-api","source":"express","timestamp":"2025-12-28 16:15:23"}
+{"level":"info","message":"Security: Helmet headers and rate limiting enabled","service":"quarterdeck-api","source":"express","timestamp":"2025-12-28 16:15:23"}
+{"level":"info","message":"Running startup migrations...","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:23"}
+{"level":"info","message":"user_role enum EDITOR value verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:24"}
+{"level":"info","message":"membership_tier_definitions table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:24"}
+{"level":"info","message":"blogs table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:24"}
+{"level":"info","message":"hero_sections table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:24"}
+{"level":"info","message":"ctas table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:24"}
+{"level":"info","message":"testimonials table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:24"}
+{"level":"info","message":"event_galleries table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:24"}
+{"level":"info","message":"event_registrations table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:25"}
+{"level":"info","message":"event_registrations payment columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:25"}
+{"level":"info","message":"bookings receipt columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:25"}
+{"level":"info","message":"career_applications table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:25"}
+{"level":"info","message":"facilities.is_hidden column verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:25"}
+{"level":"info","message":"facilities extended CMS columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:25"}
+{"level":"info","message":"facilities educational content columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:25"}
+{"level":"info","message":"pricing_tiers extended CMS columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:25"}
+{"level":"info","message":"pricing_tiers booking privilege columns verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:26"}
+{"level":"info","message":"pricing_tiers booking privileges seeded","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:26"}
+{"level":"info","message":"membership_applications table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:26"}
+{"level":"info","message":"certifications table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:26"}
+{"level":"info","message":"certification_classes table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:26"}
+{"level":"info","message":"certification_enrollments table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:26"}
+{"level":"info","message":"user_certifications table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:26"}
+{"level":"info","message":"page_content table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:26"}
+{"level":"info","message":"comparison_features table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:26"}
+{"level":"info","message":"member_benefits table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:26"}
+{"level":"info","message":"member_benefits.tier_id column verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:27"}
+{"level":"info","message":"career_benefits table created/verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:27"}
+{"level":"info","message":"facility_add_ons.image_url column verified","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:27"}
+Seeding venues and facility addons...
+Error seeding venues and addons: error: column "country" does not exist
+    at /home/u805618386/domains/thequarterdeck.pk/public_html/dist/index.cjs:70:13330
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /home/u805618386/domains/thequarterdeck.pk/public_html/dist/index.cjs:70:28668
+    at async JF (/home/u805618386/domains/thequarterdeck.pk/public_html/dist/index.cjs:1114:34223)
+    at async e6 (/home/u805618386/domains/thequarterdeck.pk/public_html/dist/index.cjs:1461:80)
+    at async /home/u805618386/domains/thequarterdeck.pk/public_html/dist/index.cjs:1461:5643 {
+  length: 107,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '38',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3716',
+  routine: 'errorMissingColumn'
+}
+{"error":{"code":"42703","file":"parse_relation.c","length":107,"line":"3716","name":"error","position":"38","routine":"errorMissingColumn","severity":"ERROR"},"level":"warn","message":"Failed to seed venues and addons","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:27"}
+Seeding CMS Phase 2 content...
+  Hero Sections: 0 created
+  CTAs: 0 created
+  Comparison Features: 0 created
+  Member Benefits: 0 created
+  Bank/Payment Settings: 0 created
+CMS Phase 2 seeding complete!
+{"level":"info","message":"CMS Phase 2 content seeded","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:32"}
+{"level":"info","message":"All startup migrations completed successfully","service":"quarterdeck-api","source":"migrations","timestamp":"2025-12-28 16:15:32"}
+[auth] Using PostgreSQL session store
+{"level":"info","message":"[scheduler] Initializing scheduled jobs","service":"quarterdeck-api","timestamp":"2025-12-28 16:15:32"}
+{"level":"info","message":"[scheduler] Scheduled jobs initialized","service":"quarterdeck-api","timestamp":"2025-12-28 16:15:32"}
+{"level":"info","message":"serving on port 5000","service":"quarterdeck-api","source":"express","timestamp":"2025-12-28 16:15:32"}
+
