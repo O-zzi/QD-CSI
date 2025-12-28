@@ -512,6 +512,26 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/auth/user", (req: Request, res: Response) => {
+    // Development bypass - return mock user in dev mode
+    const isDevBypass = process.env.NODE_ENV !== 'production' && process.env.DEV_AUTH_BYPASS === 'true';
+    if (isDevBypass) {
+      return res.json({
+        id: 'dev-user-bypass',
+        email: 'dev@quarterdeck.local',
+        firstName: 'Dev',
+        lastName: 'User',
+        profileImageUrl: null,
+        phone: null,
+        role: 'SUPER_ADMIN',
+        isSafetyCertified: true,
+        hasSignedWaiver: true,
+        creditBalance: 1000,
+        totalHoursPlayed: 100,
+        membershipTier: 'platinum',
+        emailVerified: true,
+      });
+    }
+
     if (!req.isAuthenticated() || !req.user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -561,7 +581,30 @@ async function verifyTurnstileToken(token: string): Promise<boolean> {
   }
 }
 
+// Development auth bypass - only works when NODE_ENV !== 'production' and DEV_AUTH_BYPASS === 'true'
+const DEV_MOCK_USER = {
+  id: 'dev-user-bypass',
+  email: 'dev@quarterdeck.local',
+  firstName: 'Dev',
+  lastName: 'User',
+  role: 'SUPER_ADMIN' as const,
+  emailVerified: true,
+  membershipTier: 'platinum',
+  lastAuthenticatedAt: new Date(),
+  lastActivityAt: new Date(),
+};
+
+function isDevBypassEnabled(): boolean {
+  return process.env.NODE_ENV !== 'production' && process.env.DEV_AUTH_BYPASS === 'true';
+}
+
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  // Development bypass - skip auth in dev mode
+  if (isDevBypassEnabled()) {
+    (req as any).user = DEV_MOCK_USER;
+    return next();
+  }
+
   if (!req.isAuthenticated() || !req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -596,6 +639,12 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
 };
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
+  // Development bypass - skip auth in dev mode
+  if (isDevBypassEnabled()) {
+    (req as any).user = DEV_MOCK_USER;
+    return next();
+  }
+
   if (!req.isAuthenticated() || !req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -610,6 +659,12 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const isEditorOrAbove = (req: Request, res: Response, next: NextFunction) => {
+  // Development bypass - skip auth in dev mode
+  if (isDevBypassEnabled()) {
+    (req as any).user = DEV_MOCK_USER;
+    return next();
+  }
+
   if (!req.isAuthenticated() || !req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -624,6 +679,12 @@ export const isEditorOrAbove = (req: Request, res: Response, next: NextFunction)
 };
 
 export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) => {
+  // Development bypass - skip auth in dev mode
+  if (isDevBypassEnabled()) {
+    (req as any).user = DEV_MOCK_USER;
+    return next();
+  }
+
   if (!req.isAuthenticated() || !req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }

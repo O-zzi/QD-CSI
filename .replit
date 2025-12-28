@@ -52,3 +52,6 @@ SMTP_PORT = "465"
 SMTP_USER = "admin@thequarterdeck.pk"
 EMAIL_FROM = "\"The Quarterdeck\" <admin@thequarterdeck.pk>"
 APP_URL = "https://thequarterdeck.pk"
+
+[userenv.development]
+DEV_AUTH_BYPASS = "true"

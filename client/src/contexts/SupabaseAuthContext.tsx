@@ -35,9 +35,46 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   
   const [isConfigured, setIsConfigured] = useState(false);
   const [configLoaded, setConfigLoaded] = useState(false);
+  const [devBypassChecked, setDevBypassChecked] = useState(false);
+  const [isDevBypass, setIsDevBypass] = useState(false);
 
-  // Load Supabase config from API on mount
+  // Check for dev auth bypass first
   useEffect(() => {
+    const checkDevBypass = async () => {
+      try {
+        const response = await fetch('/api/auth/user', { credentials: 'include' });
+        if (response.ok) {
+          const userData = await response.json();
+          if (userData.id === 'dev-user-bypass') {
+            console.log('[Auth] Dev bypass detected, using mock user');
+            setIsDevBypass(true);
+            setState({
+              user: {
+                id: userData.id,
+                email: userData.email,
+                user_metadata: {
+                  firstName: userData.firstName,
+                  lastName: userData.lastName,
+                },
+              } as unknown as User,
+              session: null,
+              isLoading: false,
+              isAuthenticated: true,
+            });
+          }
+        }
+      } catch (error) {
+        console.log('[Auth] Dev bypass check failed, continuing with normal auth');
+      }
+      setDevBypassChecked(true);
+    };
+    checkDevBypass();
+  }, []);
+
+  // Load Supabase config from API on mount (skip if dev bypass)
+  useEffect(() => {
+    if (!devBypassChecked || isDevBypass) return;
+    
     console.log('[Auth] Loading Supabase config...');
     loadSupabaseConfig().then(() => {
       const configured = isSupabaseAuthConfigured();
@@ -45,10 +82,15 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
       setConfigLoaded(true);
       setIsConfigured(configured);
     });
-  }, []);
+  }, [devBypassChecked, isDevBypass]);
 
-  // Initialize Supabase auth after config is loaded
+  // Initialize Supabase auth after config is loaded (skip if dev bypass)
   useEffect(() => {
+    if (isDevBypass) {
+      console.log('[Auth] Dev bypass active, skipping Supabase init');
+      return;
+    }
+    
     if (!configLoaded) {
       console.log('[Auth] Waiting for config to load...');
       return;
@@ -114,7 +156,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     });
 
     return () => subscription.unsubscribe();
-  }, [configLoaded, isConfigured]);
+  }, [configLoaded, isConfigured, isDevBypass]);
 
   const syncUserToBackend = async (session: Session): Promise<{ success: boolean; requiresEmailVerification?: boolean; error?: string }> => {
     try {
