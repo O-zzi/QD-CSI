@@ -756,13 +756,32 @@ export async function registerRoutes(
 
       // Determine initial payment status based on payment method
       // For offline payments (cash, bank transfer), booking starts as PENDING until payment is verified
-      // For online payments (card - currently disabled for Pakistan), would be CONFIRMED after payment
+      // For credit payments (membership credits), auto-verify since credits are pre-paid
       const isOfflinePayment = data.paymentMethod === 'cash' || data.paymentMethod === 'bank_transfer';
-      const initialPaymentStatus = isOfflinePayment ? 'PENDING_PAYMENT' : 'PENDING_PAYMENT';
-      const initialBookingStatus = isOfflinePayment ? 'PENDING' : 'PENDING';
+      const isCreditPayment = data.paymentMethod === 'credits';
+      
+      let initialPaymentStatus = 'PENDING_PAYMENT';
+      let initialBookingStatus = 'PENDING';
+      
+      // Generate receipt info for auto-verified payments
+      let receiptNumber: string | null = null;
+      let receiptGeneratedAt: Date | null = null;
+      
+      if (isCreditPayment) {
+        // Credit payments are auto-verified - member has pre-paid credits
+        initialPaymentStatus = 'VERIFIED';
+        initialBookingStatus = 'CONFIRMED';
+        
+        // Generate receipt number for credit payments
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+        const shortId = crypto.randomUUID().slice(0, 8).toUpperCase();
+        receiptNumber = `TQ-${dateStr}-${shortId}`;
+        receiptGeneratedAt = now;
+      }
 
       // Create the booking
-      const booking = await storage.createBooking({
+      const bookingData: any = {
         userId,
         facilityId: facility.id,
         venue: data.venue,
@@ -784,7 +803,16 @@ export async function registerRoutes(
         isMatchmaking: data.isMatchmaking,
         currentPlayers: data.currentPlayers,
         maxPlayers: data.maxPlayers,
-      });
+      };
+      
+      // Add receipt info for auto-verified payments (credits)
+      if (receiptNumber && receiptGeneratedAt) {
+        bookingData.receiptNumber = receiptNumber;
+        bookingData.receiptGeneratedAt = receiptGeneratedAt;
+        bookingData.paymentVerifiedAt = receiptGeneratedAt;
+      }
+      
+      const booking = await storage.createBooking(bookingData);
 
       // Send booking confirmation email
       const user = await storage.getUser(userId);
@@ -3255,8 +3283,13 @@ export async function registerRoutes(
       <div class="section-title">Payment Information</div>
       <div class="detail-row">
         <span class="detail-label">Payment Method</span>
-        <span class="detail-value">${booking.paymentMethod === 'cash' ? 'Cash' : booking.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : booking.paymentMethod || 'N/A'}</span>
+        <span class="detail-value">${booking.paymentMethod === 'cash' ? 'Cash (On-Site)' : booking.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : booking.paymentMethod === 'credits' ? 'Membership Credits' : booking.paymentMethod || 'N/A'}</span>
       </div>
+      ${booking.payerType === 'MEMBER' && booking.payerMembershipNumber ? `
+      <div class="detail-row">
+        <span class="detail-label">Paid By Member</span>
+        <span class="detail-value">${booking.payerMembershipNumber}</span>
+      </div>` : ''}
       <div class="detail-row">
         <span class="detail-label">Payment Status</span>
         <span class="detail-value"><span class="status-badge status-verified">Verified</span></span>
