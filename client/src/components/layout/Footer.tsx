@@ -56,7 +56,7 @@ export function Footer() {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/95 to-primary/80 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900/80" />
       <div className="qd-container relative z-10">
-        <div className="flex flex-wrap justify-between gap-6 items-center">
+        <div className="flex flex-col items-center gap-6">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer" data-testid="link-footer-logo">
               <div className="qd-logo-mark">{siteName.charAt(0)}</div>
@@ -67,35 +67,20 @@ export function Footer() {
             </div>
           </Link>
 
-          <div className="flex flex-wrap gap-4">
-            <Link href="/vision">
-              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-vision">
-                Vision
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/terms">
+              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-terms">
+                Terms
               </span>
             </Link>
-            <Link href="/rules">
-              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-rules">
-                Club Rules
+            <Link href="/privacy">
+              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-privacy">
+                Privacy
               </span>
             </Link>
             <Link href="/careers">
               <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-careers">
                 Careers
-              </span>
-            </Link>
-            <Link href="/contact">
-              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-contact">
-                Contact
-              </span>
-            </Link>
-            <Link href="/terms">
-              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-terms-link">
-                Terms
-              </span>
-            </Link>
-            <Link href="/privacy">
-              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-privacy-link">
-                Privacy
               </span>
             </Link>
           </div>
