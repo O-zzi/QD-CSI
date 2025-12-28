@@ -64,6 +64,7 @@ export default function EventDetail() {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [pendingRegistration, setPendingRegistration] = useState<{ id: string; isPaid: boolean } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer'>('cash');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: bankSettings } = useQuery<SiteSetting[]>({
@@ -609,7 +610,7 @@ export default function EventDetail() {
               Complete Payment
             </DialogTitle>
             <DialogDescription>
-              Transfer the registration fee to complete your booking.
+              Choose your payment method and complete the registration fee.
             </DialogDescription>
           </DialogHeader>
           
@@ -623,111 +624,157 @@ export default function EventDetail() {
               </AlertDescription>
             </Alert>
 
-            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
-              <h4 className="font-medium flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                Bank Details
-              </h4>
-              
-              {getBankDetail('bank_name') && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Bank</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{getBankDetail('bank_name')}</span>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-6 w-6"
-                      onClick={() => copyToClipboard(getBankDetail('bank_name'), 'Bank name')}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              {getBankDetail('bank_account_title') && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Account Title</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{getBankDetail('bank_account_title')}</span>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-6 w-6"
-                      onClick={() => copyToClipboard(getBankDetail('bank_account_title'), 'Account title')}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              {getBankDetail('bank_account_number') && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Account No.</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium font-mono">{getBankDetail('bank_account_number')}</span>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-6 w-6"
-                      onClick={() => copyToClipboard(getBankDetail('bank_account_number'), 'Account number')}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              {getBankDetail('bank_iban') && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">IBAN</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium font-mono text-xs">{getBankDetail('bank_iban')}</span>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-6 w-6"
-                      onClick={() => copyToClipboard(getBankDetail('bank_iban'), 'IBAN')}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Payment Method</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('cash')}
+                  className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition border ${
+                    paymentMethod === 'cash'
+                      ? 'bg-green-500 text-white border-green-500'
+                      : 'bg-muted text-foreground border-border hover:bg-muted/80'
+                  }`}
+                  data-testid="button-payment-cash"
+                >
+                  Pay On-Site (Cash)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('bank_transfer')}
+                  className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition border ${
+                    paymentMethod === 'bank_transfer'
+                      ? 'bg-purple-600 text-white border-purple-600'
+                      : 'bg-muted text-foreground border-border hover:bg-muted/80'
+                  }`}
+                  data-testid="button-payment-bank"
+                >
+                  Bank Transfer
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Upload Payment Proof</p>
-              <p className="text-xs text-muted-foreground">
-                Upload a screenshot or photo of your transfer receipt.
-              </p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handlePaymentProofUpload(file);
-                }}
-                data-testid="input-payment-proof"
-              />
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                data-testid="button-upload-proof"
-              >
-                {isUploading ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
-                ) : (
-                  <><Upload className="w-4 h-4 mr-2" /> Select File</>
-                )}
-              </Button>
-            </div>
+            {paymentMethod === 'cash' && (
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <h4 className="font-medium text-green-800 dark:text-green-300 mb-2">Pay On-Site Instructions</h4>
+                <p className="text-sm text-green-700 dark:text-green-400">
+                  You can pay in cash when you arrive at the event. Please arrive early to complete payment and registration.
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-500 mt-2">
+                  Your registration is pending until payment is received.
+                </p>
+              </div>
+            )}
+
+            {paymentMethod === 'bank_transfer' && (
+              <>
+                <div className="space-y-3 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                  <h4 className="font-medium flex items-center gap-2 text-purple-800 dark:text-purple-300">
+                    <Building2 className="w-4 h-4" />
+                    Bank Details
+                  </h4>
+                  
+                  {getBankDetail('bank_name') && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-purple-600 dark:text-purple-400">Bank</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-purple-800 dark:text-purple-300">{getBankDetail('bank_name')}</span>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-6 w-6"
+                          onClick={() => copyToClipboard(getBankDetail('bank_name'), 'Bank name')}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {getBankDetail('bank_account_title') && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-purple-600 dark:text-purple-400">Account Title</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-purple-800 dark:text-purple-300">{getBankDetail('bank_account_title')}</span>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-6 w-6"
+                          onClick={() => copyToClipboard(getBankDetail('bank_account_title'), 'Account title')}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {getBankDetail('bank_account_number') && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-purple-600 dark:text-purple-400">Account No.</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium font-mono text-purple-800 dark:text-purple-300">{getBankDetail('bank_account_number')}</span>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-6 w-6"
+                          onClick={() => copyToClipboard(getBankDetail('bank_account_number'), 'Account number')}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {getBankDetail('bank_iban') && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-purple-600 dark:text-purple-400">IBAN</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium font-mono text-xs text-purple-800 dark:text-purple-300">{getBankDetail('bank_iban')}</span>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-6 w-6"
+                          onClick={() => copyToClipboard(getBankDetail('bank_iban'), 'IBAN')}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Upload Payment Proof</p>
+                  <p className="text-xs text-muted-foreground">
+                    Upload a screenshot or photo of your transfer receipt.
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handlePaymentProofUpload(file);
+                    }}
+                    data-testid="input-payment-proof"
+                  />
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    data-testid="button-upload-proof"
+                  >
+                    {isUploading ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                    ) : (
+                      <><Upload className="w-4 h-4 mr-2" /> Select File</>
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
 
             <div className="flex gap-2 pt-2">
               <Button 
@@ -737,10 +784,26 @@ export default function EventDetail() {
                   setShowPaymentDialog(false);
                   setPendingRegistration(null);
                 }}
-                data-testid="button-pay-later"
+                data-testid="button-close-payment"
               >
-                Pay Later
+                Close
               </Button>
+              {paymentMethod === 'cash' && (
+                <Button 
+                  className="flex-1 bg-green-500 hover:bg-green-600"
+                  onClick={() => {
+                    toast({
+                      title: "Registration Complete!",
+                      description: "Please pay in cash when you arrive at the event.",
+                    });
+                    setShowPaymentDialog(false);
+                    setPendingRegistration(null);
+                  }}
+                  data-testid="button-confirm-cash"
+                >
+                  Confirm Registration
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
