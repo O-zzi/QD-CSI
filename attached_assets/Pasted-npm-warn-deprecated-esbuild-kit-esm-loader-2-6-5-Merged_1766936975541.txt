@@ -1,0 +1,75 @@
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+
+added 605 packages, and audited 606 packages in 6s
+
+62 packages are looking for funding
+  run `npm fund` for details
+
+5 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+created temporary client/.env.production for build
+building client...
+vite v5.4.21 building for production...
+transforming...
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 3042 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                             2.03 kB │ gzip:   0.78 kB
+../dist/public/assets/dark_elegant_sports__61a0b4ec-CXuzKOFY.jpg     65.94 kB
+../dist/public/assets/professional_squash__c4dca43a-DYvE2Lp8.jpg    165.36 kB
+../dist/public/assets/padel_tennis_court_i_37ae0ba3-BrkfenoQ.jpg    180.78 kB
+../dist/public/assets/bottled_mineral_wate_edb6abad-CPxK56g4.jpg    194.07 kB
+../dist/public/assets/sports_facility_cons_44a23ac3-C9MzLDrF.jpg    198.89 kB
+../dist/public/assets/elegant_card_game_ro_26fec1dc-B0OzwSTX.jpg    203.04 kB
+../dist/public/assets/sports_facility_cons_6b087ae8-Bawvazvq.jpg    225.18 kB
+../dist/public/assets/modern_indoor_sports_8b182ff8-CMa6_W-x.jpg    244.25 kB
+../dist/public/assets/modern_cafe_bar_inte_bc2874c0-DokhLEuU.jpg    248.66 kB
+../dist/public/assets/bridge_card_game_clu_6f83cf65-D9nP8IVw.jpg    254.37 kB
+../dist/public/assets/architectural_render_cd4dce75-BruYoWlw.jpg    255.10 kB
+../dist/public/assets/architectural_render_b118ee78-hmTi1mjz.jpg    282.61 kB
+../dist/public/assets/air_rifle_shooting_r_931e6002-CX81Opd3.jpg    312.18 kB
+../dist/public/assets/padel_tennis_court_i_a0e484ae-Dqizodew.jpg    328.37 kB
+../dist/public/assets/elegant_card_game_ro_42b0454d-y4j-Rn8N.jpg    332.49 kB
+../dist/public/assets/indoor_squash_court__3447d74a-DPwnnr4G.jpg    374.76 kB
+../dist/public/assets/architectural_render_c7f63aa7-m2TWghKc.jpg    405.35 kB
+../dist/public/assets/multipurpose_event_h_e7c6ac62-D3KmV09D.jpg    412.80 kB
+../dist/public/assets/large_event_hall_int_32ffc7ae-BCjqhoII.jpg    441.49 kB
+../dist/public/assets/large_event_hall_int_39cfb773-D7tynaMB.jpg    451.37 kB
+../dist/public/assets/sports_facility_cons_aa71e508-BJWEQx7e.jpg    607.93 kB
+../dist/public/assets/indoor_squash_court__c97e350b-C624hay8.jpg    648.12 kB
+../dist/public/assets/index-zv1-Ib_0.css                            147.68 kB │ gzip:  22.75 kB
+../dist/public/assets/index-DUh0BkgJ.js                           1,863.65 kB │ gzip: 483.95 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 9.02s
+cleaned up temporary env file
+building server...
+▲ [WARNING] "import.meta" is not available with the "cjs" output format and will be empty [empty-import-meta]
+
+    server/seeds/seedImages.ts:512:22:
+      512 │ const isRunDirectly = import.meta.url === `file://${process.argv[...
+          ╵                       ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+1 warning
+
+  dist/index.cjs  1.7mb ⚠️
+
+⚡ Done in 101ms
+creating Hostinger-compatible entry point with dotenv loader...
+build complete!
