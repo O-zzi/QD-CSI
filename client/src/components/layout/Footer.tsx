@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Instagram, Facebook, Linkedin, Youtube } from "lucide-react";
+import { Instagram, Facebook, Twitter, Youtube } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import footerBgDefault from "@assets/stock_images/dark_elegant_sports__61a0b4ec.jpg";
@@ -45,7 +45,7 @@ export function Footer() {
   const siteTagline = getSetting("site_tagline", "Sports & Recreation Complex");
   const instagramUrl = getSetting("instagram_url") || getSetting("social_instagram", "#");
   const facebookUrl = getSetting("facebook_url") || getSetting("social_facebook", "#");
-  const linkedinUrl = getSetting("linkedin_url") || getSetting("social_linkedin", "#");
+  const twitterUrl = getSetting("twitter_url") || getSetting("social_twitter", "#");
   const youtubeUrl = getSetting("youtube_url") || getSetting("social_youtube", "#");
   const copyrightYear = new Date().getFullYear();
 
@@ -116,14 +116,14 @@ export function Footer() {
               <Facebook className="w-4 h-4" />
             </a>
             <a
-              href={linkedinUrl}
+              href={twitterUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="qd-social-icon"
-              aria-label="LinkedIn"
-              data-testid="link-social-linkedin"
+              aria-label="X (Twitter)"
+              data-testid="link-social-twitter"
             >
-              <Linkedin className="w-4 h-4" />
+              <Twitter className="w-4 h-4" />
             </a>
             <a
               href={youtubeUrl}
