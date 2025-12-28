@@ -1653,6 +1653,35 @@ export async function registerRoutes(
     }
   });
 
+  // Payment proof upload for membership applications
+  app.post('/api/membership/upload-payment-proof', isAuthenticated, (req: any, res, next) => {
+    upload.single('file')(req, res, (err: any) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+        }
+        return res.status(400).json({ message: err.message || "File upload failed" });
+      }
+      
+      (async () => {
+        try {
+          if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+          }
+          
+          const userId = (req.user as any).id;
+          const url = await handleFileUpload(req.file, 'payment-proof');
+          
+          logger.info(`Payment proof uploaded for user ${userId}: ${url}`);
+          res.json({ url });
+        } catch (error: any) {
+          logger.error("Error uploading payment proof:", error);
+          res.status(500).json({ message: error.message || "Failed to upload payment proof" });
+        }
+      })();
+    });
+  });
+
   app.patch('/api/membership-applications/:id', isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
@@ -3215,6 +3244,54 @@ export async function registerRoutes(
   });
 
   // Career Application Routes
+  // CV/Resume file upload endpoint
+  app.post('/api/careers/upload-cv', (req: any, res, next) => {
+    const cvUpload = multer({
+      storage: multer.memoryStorage(),
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+      },
+      fileFilter: (_req, file, cb) => {
+        const allowedMimes = [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        if (allowedMimes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(new Error('Invalid file type. Only PDF, DOC, and DOCX files are allowed.'));
+        }
+      }
+    });
+
+    cvUpload.single('cv')(req, res, (err: any) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+        }
+        return res.status(400).json({ message: err.message || "File upload failed" });
+      }
+      
+      (async () => {
+        try {
+          if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+          }
+          
+          const cvUrl = await handleFileUpload(req.file, 'careers');
+          const fileName = req.file.originalname;
+          
+          logger.info(`CV uploaded: ${fileName} -> ${cvUrl}`);
+          res.json({ cvUrl, fileName });
+        } catch (error: any) {
+          logger.error('CV upload error:', error);
+          res.status(500).json({ message: error.message || "Failed to upload CV" });
+        }
+      })();
+    });
+  });
+
   // General CV submission (no specific career) - must be defined before :careerId route
   app.post('/api/careers/general-application', async (req, res) => {
     try {

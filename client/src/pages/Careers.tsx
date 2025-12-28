@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Clock, Briefcase, ChevronRight, Loader2, Send, Linkedin, FileText } from "lucide-react";
+import { MapPin, Clock, Briefcase, ChevronRight, Loader2, Send, Linkedin, FileText, Upload, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -27,12 +27,19 @@ const applicationSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().min(10, "Please enter a valid phone number"),
-  cvUrl: z.string().url("Please enter a valid URL to your CV/resume").optional().or(z.literal("")),
+  cvUrl: z.string().optional().or(z.literal("")),
   linkedinUrl: z.string().url("Please enter a valid LinkedIn URL").optional().or(z.literal("")),
   coverLetter: z.string().min(50, "Cover letter should be at least 50 characters"),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
+
+const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+];
+const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx'];
 
 const defaultJobs = [
   {
@@ -103,6 +110,16 @@ export default function Careers() {
   const [selectedJob, setSelectedJob] = useState<typeof defaultJobs[0] | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCvDialogOpen, setIsCvDialogOpen] = useState(false);
+  
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [cvFileName, setCvFileName] = useState<string>("");
+  const [isUploadingCv, setIsUploadingCv] = useState(false);
+  const cvInputRef = useRef<HTMLInputElement>(null);
+  
+  const [generalCvFile, setGeneralCvFile] = useState<File | null>(null);
+  const [generalCvFileName, setGeneralCvFileName] = useState<string>("");
+  const [isUploadingGeneralCv, setIsUploadingGeneralCv] = useState(false);
+  const generalCvInputRef = useRef<HTMLInputElement>(null);
 
   const { getValue } = useCmsMultiple([
     'page_careers_title',
@@ -198,14 +215,126 @@ export default function Careers() {
     },
   });
 
-  const onSubmit = (data: ApplicationFormData) => {
-    if (selectedJob) {
-      applyMutation.mutate({ ...data, careerId: selectedJob.id });
+  const validateFile = (file: File): boolean => {
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a PDF, DOC, or DOCX file.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Maximum file size is 10MB.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const uploadCvFile = async (file: File): Promise<string | null> => {
+    const formData = new FormData();
+    formData.append('cv', file);
+    
+    const response = await fetch('/api/careers/upload-cv', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to upload CV');
+    }
+    
+    const result = await response.json();
+    return result.cvUrl;
+  };
+
+  const handleCvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && validateFile(file)) {
+      setCvFile(file);
+      setCvFileName(file.name);
+    }
+  };
+
+  const handleGeneralCvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && validateFile(file)) {
+      setGeneralCvFile(file);
+      setGeneralCvFileName(file.name);
+    }
+  };
+
+  const clearCvFile = () => {
+    setCvFile(null);
+    setCvFileName("");
+    if (cvInputRef.current) {
+      cvInputRef.current.value = "";
+    }
+  };
+
+  const clearGeneralCvFile = () => {
+    setGeneralCvFile(null);
+    setGeneralCvFileName("");
+    if (generalCvInputRef.current) {
+      generalCvInputRef.current.value = "";
+    }
+  };
+
+  const onSubmit = async (data: ApplicationFormData) => {
+    if (!selectedJob) return;
+    
+    try {
+      let cvUrl = data.cvUrl || null;
+      
+      if (cvFile) {
+        setIsUploadingCv(true);
+        cvUrl = await uploadCvFile(cvFile);
+      }
+      
+      applyMutation.mutate({ ...data, careerId: selectedJob.id, cvUrl: cvUrl || "" });
+    } catch (error: any) {
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload CV. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingCv(false);
+    }
+  };
+
+  const onGeneralCvSubmit = async (data: ApplicationFormData) => {
+    try {
+      let cvUrl = data.cvUrl || null;
+      
+      if (generalCvFile) {
+        setIsUploadingGeneralCv(true);
+        cvUrl = await uploadCvFile(generalCvFile);
+      }
+      
+      generalCvMutation.mutate({ ...data, cvUrl: cvUrl || "" });
+    } catch (error: any) {
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload CV. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingGeneralCv(false);
     }
   };
 
   const handleApply = (job: { id: string; title: string }) => {
     setSelectedJob(job as typeof defaultJobs[0]);
+    clearCvFile();
     setIsDialogOpen(true);
   };
 
@@ -398,22 +527,48 @@ export default function Careers() {
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="cvUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>CV/Resume URL (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://drive.google.com/..." {...field} data-testid="input-applicant-cv" />
-                    </FormControl>
-                    <FormMessage />
-                    <p className="text-xs text-muted-foreground">
-                      Share a link to your CV on Google Drive, Dropbox, or similar service
-                    </p>
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>CV/Resume (Optional)</FormLabel>
+                <div className="space-y-2">
+                  <input
+                    ref={cvInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={handleCvFileChange}
+                    className="hidden"
+                    data-testid="input-applicant-cv-file"
+                  />
+                  {cvFileName ? (
+                    <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                      <FileText className="w-4 h-4 text-primary dark:text-sky-400" />
+                      <span className="flex-1 text-sm truncate" data-testid="text-cv-filename">{cvFileName}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={clearCvFile}
+                        data-testid="button-clear-cv"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => cvInputRef.current?.click()}
+                      className="w-full"
+                      data-testid="button-upload-cv"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload CV/Resume
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Accepted formats: PDF, DOC, DOCX (max 10MB)
+                  </p>
+                </div>
+              </FormItem>
               
               <FormField
                 control={form.control}
@@ -462,16 +617,16 @@ export default function Careers() {
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={applyMutation.isPending}
+                  disabled={applyMutation.isPending || isUploadingCv}
                   className=""
                   data-testid="button-submit-application"
                 >
-                  {applyMutation.isPending ? (
+                  {(applyMutation.isPending || isUploadingCv) ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
                     <Send className="w-4 h-4 mr-2" />
                   )}
-                  Submit Application
+                  {isUploadingCv ? "Uploading CV..." : "Submit Application"}
                 </Button>
               </div>
             </form>
@@ -489,7 +644,7 @@ export default function Careers() {
           </DialogHeader>
           
           <Form {...cvForm}>
-            <form onSubmit={cvForm.handleSubmit((data) => generalCvMutation.mutate(data))} className="space-y-4">
+            <form onSubmit={cvForm.handleSubmit(onGeneralCvSubmit)} className="space-y-4">
               <FormField
                 control={cvForm.control}
                 name="name"
@@ -532,22 +687,48 @@ export default function Careers() {
                 )}
               />
               
-              <FormField
-                control={cvForm.control}
-                name="cvUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>CV/Resume URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://drive.google.com/..." {...field} data-testid="input-cv-url" />
-                    </FormControl>
-                    <FormMessage />
-                    <p className="text-xs text-muted-foreground">
-                      Share a link to your CV on Google Drive, Dropbox, or similar service
-                    </p>
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>CV/Resume</FormLabel>
+                <div className="space-y-2">
+                  <input
+                    ref={generalCvInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={handleGeneralCvFileChange}
+                    className="hidden"
+                    data-testid="input-general-cv-file"
+                  />
+                  {generalCvFileName ? (
+                    <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                      <FileText className="w-4 h-4 text-primary dark:text-sky-400" />
+                      <span className="flex-1 text-sm truncate" data-testid="text-general-cv-filename">{generalCvFileName}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={clearGeneralCvFile}
+                        data-testid="button-clear-general-cv"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => generalCvInputRef.current?.click()}
+                      className="w-full"
+                      data-testid="button-upload-general-cv"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload CV/Resume
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Accepted formats: PDF, DOC, DOCX (max 10MB)
+                  </p>
+                </div>
+              </FormItem>
               
               <FormField
                 control={cvForm.control}
@@ -596,16 +777,16 @@ export default function Careers() {
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={generalCvMutation.isPending}
+                  disabled={generalCvMutation.isPending || isUploadingGeneralCv}
                   className=""
                   data-testid="button-submit-cv-form"
                 >
-                  {generalCvMutation.isPending ? (
+                  {(generalCvMutation.isPending || isUploadingGeneralCv) ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
                     <Send className="w-4 h-4 mr-2" />
                   )}
-                  Submit CV
+                  {isUploadingGeneralCv ? "Uploading CV..." : "Submit CV"}
                 </Button>
               </div>
             </form>

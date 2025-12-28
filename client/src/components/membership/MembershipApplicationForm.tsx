@@ -109,7 +109,7 @@ export function MembershipApplicationForm({ onSuccess }: MembershipApplicationFo
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/upload', {
+      const res = await fetch('/api/membership/upload-payment-proof', {
         method: 'POST',
         body: formData,
         credentials: 'include',
