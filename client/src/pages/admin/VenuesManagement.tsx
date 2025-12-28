@@ -93,8 +93,13 @@ export default function VenuesManagement() {
       queryClient.invalidateQueries({ queryKey: ["/api/venues"] });
       toast({ title: "Venue updated successfully" });
     },
-    onError: () => {
-      toast({ title: "Failed to update venue", variant: "destructive" });
+    onError: (error: Error) => {
+      console.error("Update venue error:", error);
+      toast({ 
+        title: "Failed to update venue", 
+        description: error.message || "Please check your input and try again",
+        variant: "destructive" 
+      });
     },
   });
 
@@ -117,8 +122,13 @@ export default function VenuesManagement() {
       });
       toast({ title: "Venue created successfully" });
     },
-    onError: () => {
-      toast({ title: "Failed to create venue", variant: "destructive" });
+    onError: (error: Error) => {
+      console.error("Create venue error:", error);
+      toast({ 
+        title: "Failed to create venue", 
+        description: error.message || "Please check your input and try again",
+        variant: "destructive" 
+      });
     },
   });
 

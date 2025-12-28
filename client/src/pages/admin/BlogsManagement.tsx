@@ -75,8 +75,13 @@ export default function BlogsManagement() {
       setIsDialogOpen(false);
       resetForm();
     },
-    onError: () => {
-      toast({ title: "Failed to create blog post", variant: "destructive" });
+    onError: (error: Error) => {
+      console.error("Create blog error:", error);
+      toast({ 
+        title: "Failed to create blog post", 
+        description: error.message || "Please check your input and try again",
+        variant: "destructive" 
+      });
     },
   });
 
@@ -92,8 +97,13 @@ export default function BlogsManagement() {
       setEditingBlog(null);
       resetForm();
     },
-    onError: () => {
-      toast({ title: "Failed to update blog post", variant: "destructive" });
+    onError: (error: Error) => {
+      console.error("Update blog error:", error);
+      toast({ 
+        title: "Failed to update blog post", 
+        description: error.message || "Please check your input and try again",
+        variant: "destructive" 
+      });
     },
   });
 
