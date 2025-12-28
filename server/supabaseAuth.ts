@@ -4,7 +4,8 @@ import { storage } from './storage';
 import { logger } from './logger';
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+// Support both SUPABASE_SERVICE_KEY and SUPABASE_SERVICE_ROLE_KEY for flexibility
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let supabaseAdmin: ReturnType<typeof createClient> | null = null;
 
