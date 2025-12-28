@@ -1146,6 +1146,27 @@ export async function registerRoutes(
     }
   });
 
+  // Seed CMS Phase 2 content (Hero Sections, CTAs, Comparison Features, Member Benefits)
+  app.post('/api/admin/cms/seed', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { seedCmsPhase2 } = await import('./seeds/seedCmsPhase2');
+      const result = await seedCmsPhase2();
+      res.json({ 
+        message: "CMS Phase 2 seeding complete",
+        result,
+        locations: {
+          heroSections: "Admin > Hero Sections - Per-page hero banners",
+          ctas: "Admin > CTAs - Call-to-action components",
+          comparisonFeatures: "Admin > Membership > Comparison Features",
+          memberBenefits: "Admin > Membership > Member Benefits"
+        }
+      });
+    } catch (error) {
+      console.error("Error seeding CMS Phase 2 content:", error);
+      res.status(500).json({ message: "Failed to seed CMS Phase 2 content" });
+    }
+  });
+
   // Admin Announcements routes
   app.get('/api/admin/announcements', isAuthenticated, isAdmin, async (req, res) => {
     try {

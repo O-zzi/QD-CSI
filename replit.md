@@ -87,6 +87,16 @@ All images on the site are database-driven and editable via the admin panel. No 
 - Seed script: `server/seeds/seedImages.ts`
 - Uses stock images from `attached_assets/stock_images/`
 
+**CMS Phase 2 Seeding (December 2024):**
+- Run `POST /api/admin/cms/seed` to populate CMS Phase 2 content
+- Seed script: `server/seeds/seedCmsPhase2.ts`
+- Auto-runs on server startup via `server/migrations.ts`
+- Seeds the following content:
+  - **Hero Sections** (12 entries): Per-page hero banners for landing, facilities, membership, events, contact, careers, gallery, roadmap, faq, rules, leaderboard
+  - **CTAs** (6 entries): Call-to-action components for landing, facilities, membership, events pages
+  - **Comparison Features** (12 entries): Membership tier comparison table data
+  - **Member Benefits** (8 entries): "Why Become a Member" section icons and descriptions
+
 ### Key Features
 
 - **Event Registration:** Authenticated users can register and cancel event participation.

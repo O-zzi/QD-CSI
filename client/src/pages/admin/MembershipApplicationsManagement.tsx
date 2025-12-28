@@ -82,10 +82,15 @@ export default function MembershipApplicationsManagement() {
 
   const approveMutation = useMutation({
     mutationFn: async ({ id, notes }: { id: string; notes: string }) => {
-      return await apiRequest("POST", `/api/admin/membership-applications/${id}/approve`, { notes });
+      return await apiRequest("POST", `/api/admin/membership-applications/${id}/approve`, { 
+        notes, 
+        skipAmountVerification: true 
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/membership-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/memberships"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/me"] });
       toast({ title: "Application approved", description: "Membership has been activated and user notified." });
       setIsApproveDialogOpen(false);
       setSelectedApplication(null);

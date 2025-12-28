@@ -1,6 +1,7 @@
 import { pool } from "./db";
 import logger from "./logger";
 import { seedVenuesAndAddons } from "./seeds/seedVenuesAndAddons";
+import { seedCmsPhase2 } from "./seeds/seedCmsPhase2";
 
 export async function runStartupMigrations() {
   logger.info("Running startup migrations...", { source: "migrations" });
@@ -468,6 +469,14 @@ export async function runStartupMigrations() {
       logger.info("Venues and addons seeded", { source: "migrations" });
     } catch (seedError) {
       logger.warn("Failed to seed venues and addons", { source: "migrations", error: seedError });
+    }
+    
+    // Seed CMS Phase 2 content (Hero Sections, CTAs, Comparison Features, Member Benefits)
+    try {
+      await seedCmsPhase2();
+      logger.info("CMS Phase 2 content seeded", { source: "migrations" });
+    } catch (seedError) {
+      logger.warn("Failed to seed CMS Phase 2 content", { source: "migrations", error: seedError });
     }
     
     logger.info("All startup migrations completed successfully", { source: "migrations" });
