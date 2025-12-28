@@ -151,7 +151,35 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
       }
     },
     enabled: isAuthenticated,
+    staleTime: 30000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
+
+  // Fetch site settings for CMS-driven bank details
+  interface SiteSettingItem {
+    key: string;
+    value: string;
+  }
+  const { data: siteSettings } = useQuery<SiteSettingItem[]>({
+    queryKey: ['/api/site-settings'],
+  });
+  
+  // Transform array to keyed object
+  const settingsMap = useMemo(() => {
+    if (!siteSettings) return {};
+    return siteSettings.reduce((acc, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [siteSettings]);
+
+  const bankDetails = {
+    bankName: settingsMap?.bank_name || "Bank Details Loading...",
+    accountTitle: settingsMap?.bank_account_title || "-",
+    accountNumber: settingsMap?.bank_account_number || "-",
+    iban: settingsMap?.bank_iban || "-",
+  };
 
   // Fetch leaderboard data from database
   const { data: apiLeaderboard = [] } = useQuery<LeaderboardEntry[]>({
@@ -1589,10 +1617,10 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
                         <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl">
                           <h5 className="font-bold text-purple-800 dark:text-purple-300 text-sm mb-2">Bank Transfer Instructions</h5>
                           <div className="text-xs text-purple-700 dark:text-purple-400 space-y-1">
-                            <p><span className="font-semibold">Bank:</span> HBL (Habib Bank Limited)</p>
-                            <p><span className="font-semibold">Account Title:</span> The Quarterdeck Sports Club</p>
-                            <p><span className="font-semibold">Account #:</span> 1234-5678-9012-3456</p>
-                            <p><span className="font-semibold">IBAN:</span> PK00HABB1234567890123456</p>
+                            <p><span className="font-semibold">Bank:</span> {bankDetails.bankName}</p>
+                            <p><span className="font-semibold">Account Title:</span> {bankDetails.accountTitle}</p>
+                            <p><span className="font-semibold">Account #:</span> {bankDetails.accountNumber}</p>
+                            <p><span className="font-semibold">IBAN:</span> {bankDetails.iban}</p>
                           </div>
                           <p className="text-xs text-purple-600 dark:text-purple-400 mt-3 italic">
                             After payment, please share your receipt with admin for verification. Your booking will be confirmed once payment is verified.

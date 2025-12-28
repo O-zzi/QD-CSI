@@ -33,9 +33,13 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const { data: membership } = useQuery<Membership>({
+  const { data: membership, refetch: refetchMembership } = useQuery<Membership>({
     queryKey: ['/api/memberships/my'],
     enabled: isAuthenticated,
+    staleTime: 30000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    retry: false,
   });
 
   const { data: bookings = [] } = useQuery<Booking[]>({

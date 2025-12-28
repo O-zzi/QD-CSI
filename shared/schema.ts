@@ -176,6 +176,8 @@ export const bookings = pgTable("bookings", {
   paymentVerifiedBy: varchar("payment_verified_by"),
   paymentVerifiedAt: timestamp("payment_verified_at"),
   paymentNotes: text("payment_notes"),
+  receiptNumber: varchar("receipt_number"),
+  receiptGeneratedAt: timestamp("receipt_generated_at"),
   cancellationReason: text("cancellation_reason"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -225,6 +227,13 @@ export const eventRegistrations = pgTable("event_registrations", {
   guestCount: integer("guest_count").default(0),
   notes: text("notes"),
   status: varchar("status").default('REGISTERED'),
+  paymentStatus: varchar("payment_status").default('NOT_REQUIRED'),
+  paymentMethod: varchar("payment_method"),
+  paymentAmount: integer("payment_amount"),
+  paymentProofUrl: text("payment_proof_url"),
+  paymentNotes: text("payment_notes"),
+  paymentVerifiedBy: varchar("payment_verified_by"),
+  paymentVerifiedAt: timestamp("payment_verified_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

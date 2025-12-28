@@ -729,6 +729,31 @@ export async function registerRoutes(
         return res.status(409).json({ message: "This time slot is already booked" });
       }
 
+      // Validate time slot is not in the past (Pakistan timezone: UTC+5)
+      const now = new Date();
+      const pkOffset = 5 * 60 * 60 * 1000; // Pakistan is UTC+5
+      const pkNow = new Date(now.getTime() + pkOffset);
+      const pkNowDate = pkNow.toISOString().split('T')[0]; // YYYY-MM-DD
+      const pkNowTime = pkNow.toISOString().split('T')[1].substring(0, 5); // HH:MM
+      
+      // If booking is for today, check if the start time has already passed
+      if (data.date === pkNowDate && data.startTime < pkNowTime) {
+        return res.status(400).json({ 
+          message: `Cannot book a time slot that has already passed. Current time is ${pkNowTime} PKT.`,
+          currentTime: pkNowTime,
+          requestedTime: data.startTime
+        });
+      }
+      
+      // If booking date is in the past
+      if (data.date < pkNowDate) {
+        return res.status(400).json({ 
+          message: "Cannot book for a date in the past.",
+          currentDate: pkNowDate,
+          requestedDate: data.date
+        });
+      }
+
       // Determine initial payment status based on payment method
       // For offline payments (cash, bank transfer), booking starts as PENDING until payment is verified
       // For online payments (card - currently disabled for Pakistan), would be CONFIRMED after payment
@@ -3069,11 +3094,18 @@ export async function registerRoutes(
       const adminUserId = (req.user as any).id;
       const updateData: any = { ...result.data };
       
-      // If verifying payment, set verification details
+      // If verifying payment, set verification details and generate receipt
       if (result.data.paymentStatus === 'VERIFIED') {
         updateData.paymentVerifiedBy = adminUserId;
         updateData.paymentVerifiedAt = new Date();
         updateData.status = 'CONFIRMED'; // Auto-confirm booking when payment is verified
+        
+        // Generate receipt number: YYYYMMDD-BOOKINGID format
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+        const shortId = req.params.id.slice(0, 8).toUpperCase();
+        updateData.receiptNumber = `TQ-${dateStr}-${shortId}`;
+        updateData.receiptGeneratedAt = now;
       }
 
       const booking = await storage.updateBookingPayment(req.params.id, updateData);
@@ -3113,6 +3145,200 @@ export async function registerRoutes(
       console.error("Error updating booking payment:", error);
       res.status(500).json({ message: "Failed to update booking payment" });
     }
+  });
+
+  // Generate receipt HTML for a booking
+  app.get('/api/admin/bookings/:id/receipt', isAuthenticated, isEditorOrAbove, async (req, res) => {
+    try {
+      const booking = await storage.getBookingById(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Only generate receipt for verified/paid bookings
+      if (booking.paymentStatus !== 'VERIFIED') {
+        return res.status(400).json({ message: "Receipt only available for verified payments" });
+      }
+
+      const user = await storage.getUser(booking.userId);
+      const facility = await storage.getFacility(booking.facilityId);
+      const siteSettings = await storage.getSiteSettings();
+      
+      // Build settings map
+      const settingsMap: Record<string, string> = {};
+      siteSettings.forEach((s: any) => { settingsMap[s.key] = s.value; });
+
+      const receiptNumber = booking.receiptNumber || `TQ-${booking.id.slice(0, 8).toUpperCase()}`;
+      const generatedAt = booking.receiptGeneratedAt || new Date();
+      
+      const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt - ${receiptNumber}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
+    .receipt { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .header { text-align: center; border-bottom: 2px solid #2d5a4a; padding-bottom: 20px; margin-bottom: 30px; }
+    .logo { font-size: 28px; font-weight: bold; color: #2d5a4a; }
+    .tagline { font-size: 12px; color: #666; margin-top: 5px; }
+    .receipt-title { font-size: 24px; color: #333; margin-top: 15px; }
+    .receipt-number { font-size: 14px; color: #666; margin-top: 5px; font-family: monospace; }
+    .section { margin-bottom: 25px; }
+    .section-title { font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #666; }
+    .detail-value { color: #333; font-weight: 500; text-align: right; }
+    .total-section { background: #f8f8f8; padding: 15px; border-radius: 6px; margin-top: 20px; }
+    .total-row { display: flex; justify-content: space-between; padding: 5px 0; }
+    .total-row.grand-total { font-size: 18px; font-weight: bold; color: #2d5a4a; border-top: 2px solid #2d5a4a; padding-top: 10px; margin-top: 10px; }
+    .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #999; font-size: 12px; }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .status-verified { background: #d4edda; color: #155724; }
+    @media print {
+      body { background: white; padding: 0; }
+      .receipt { box-shadow: none; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt">
+    <div class="header">
+      <div class="logo">The Quarterdeck</div>
+      <div class="tagline">Sports & Recreation Complex</div>
+      <div class="receipt-title">Payment Receipt</div>
+      <div class="receipt-number">Receipt #: ${receiptNumber}</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Customer Details</div>
+      <div class="detail-row">
+        <span class="detail-label">Name</span>
+        <span class="detail-value">${user?.fullName || user?.username || 'Guest'}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Email</span>
+        <span class="detail-value">${user?.email || 'N/A'}</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Booking Details</div>
+      <div class="detail-row">
+        <span class="detail-label">Facility</span>
+        <span class="detail-value">${facility?.name || 'Facility'}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Date</span>
+        <span class="detail-value">${booking.date}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Time</span>
+        <span class="detail-value">${booking.startTime} - ${booking.endTime}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Duration</span>
+        <span class="detail-value">${booking.durationMinutes} minutes</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Court/Resource</span>
+        <span class="detail-value">#${booking.resourceId}</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Payment Information</div>
+      <div class="detail-row">
+        <span class="detail-label">Payment Method</span>
+        <span class="detail-value">${booking.paymentMethod === 'cash' ? 'Cash' : booking.paymentMethod === 'bank_transfer' ? 'Bank Transfer' : booking.paymentMethod || 'N/A'}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Payment Status</span>
+        <span class="detail-value"><span class="status-badge status-verified">Verified</span></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Verified On</span>
+        <span class="detail-value">${booking.paymentVerifiedAt ? new Date(booking.paymentVerifiedAt).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' }) : 'N/A'}</span>
+      </div>
+    </div>
+
+    <div class="total-section">
+      <div class="total-row">
+        <span>Base Price</span>
+        <span>PKR ${(booking.basePrice || 0).toLocaleString()}</span>
+      </div>
+      ${booking.discount && booking.discount > 0 ? `
+      <div class="total-row">
+        <span>Discount</span>
+        <span>- PKR ${booking.discount.toLocaleString()}</span>
+      </div>` : ''}
+      ${booking.addOnTotal && booking.addOnTotal > 0 ? `
+      <div class="total-row">
+        <span>Add-ons</span>
+        <span>PKR ${booking.addOnTotal.toLocaleString()}</span>
+      </div>` : ''}
+      <div class="total-row grand-total">
+        <span>Total Paid</span>
+        <span>PKR ${(booking.totalPrice || 0).toLocaleString()}</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>${settingsMap['contact_address'] || 'The Quarterdeck, Islamabad'}</p>
+      <p>${settingsMap['contact_phone'] || ''} | ${settingsMap['contact_email'] || ''}</p>
+      <p style="margin-top: 10px;">Generated on ${new Date(generatedAt).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}</p>
+      <p style="margin-top: 15px; font-style: italic;">Thank you for choosing The Quarterdeck!</p>
+    </div>
+  </div>
+
+  <div class="no-print" style="text-align: center; margin-top: 20px;">
+    <button onclick="window.print()" style="padding: 10px 30px; font-size: 16px; background: #2d5a4a; color: white; border: none; border-radius: 6px; cursor: pointer;">
+      Print Receipt
+    </button>
+  </div>
+</body>
+</html>`;
+
+      res.setHeader('Content-Type', 'text/html');
+      res.send(html);
+    } catch (error) {
+      console.error("Error generating receipt:", error);
+      res.status(500).json({ message: "Failed to generate receipt" });
+    }
+  });
+
+  // Admin endpoint to upload booking payment proof
+  app.post('/api/admin/bookings/upload-proof', isAuthenticated, isEditorOrAbove, (req: any, res, next) => {
+    upload.single('file')(req, res, (err: any) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+        }
+        return res.status(400).json({ message: err.message || "File upload failed" });
+      }
+      
+      (async () => {
+        try {
+          if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+          }
+          
+          const adminId = (req.user as any).id;
+          const url = await handleFileUpload(req.file, 'booking-proof');
+          
+          logger.info(`Booking proof uploaded by admin ${adminId}: ${url}`);
+          res.json({ url });
+        } catch (error: any) {
+          logger.error("Error uploading booking proof:", error);
+          res.status(500).json({ message: error.message || "Failed to upload booking proof" });
+        }
+      })();
+    });
   });
 
   app.patch('/api/admin/bookings/:id/status', isAuthenticated, isEditorOrAbove, async (req, res) => {
@@ -3164,7 +3390,7 @@ export async function registerRoutes(
       }
       
       const { eventId } = req.params;
-      const { fullName, email, phone, guestCount, notes } = req.body;
+      const { fullName, email, phone, guestCount, notes, paymentMethod } = req.body;
       
       // Check if user is already registered
       const isAlreadyRegistered = await storage.isUserRegisteredForEvent(userId, eventId);
@@ -3178,6 +3404,10 @@ export async function registerRoutes(
         return res.status(400).json({ message: "This email is already registered for this event" });
       }
       
+      // Get event to check if it's paid
+      const event = await storage.getEvent(eventId);
+      const isPaidEvent = event && event.price && event.price > 0;
+      
       const result = insertEventRegistrationSchema.safeParse({
         userId,
         eventId,
@@ -3186,7 +3416,10 @@ export async function registerRoutes(
         phone,
         guestCount: guestCount || 0,
         notes,
-        status: 'REGISTERED'
+        status: isPaidEvent ? 'PENDING_PAYMENT' : 'REGISTERED',
+        paymentStatus: isPaidEvent ? 'PENDING' : 'NOT_REQUIRED',
+        paymentMethod: isPaidEvent ? (paymentMethod || 'BANK_TRANSFER') : null,
+        paymentAmount: isPaidEvent ? event.price : null
       });
       
       if (!result.success) {
@@ -3196,14 +3429,13 @@ export async function registerRoutes(
       const registration = await storage.registerForEvent(result.data);
 
       // Send event registration confirmation email
-      const event = await storage.getEvent(eventId);
       if (event && email) {
-        sendEventRegistrationEmail(event, { firstName: fullName, email }, 'pending').catch(err => {
+        sendEventRegistrationEmail(event, { firstName: fullName, email }, isPaidEvent ? 'pending_payment' : 'pending').catch(err => {
           console.error('[email] Failed to send event registration email:', err);
         });
       }
 
-      res.status(201).json(registration);
+      res.status(201).json({ ...registration, isPaidEvent, eventPrice: event?.price });
     } catch (error) {
       console.error("Error registering for event:", error);
       res.status(500).json({ message: "Failed to register for event" });
@@ -3261,6 +3493,101 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching event registrations:", error);
       res.status(500).json({ message: "Failed to fetch registrations" });
+    }
+  });
+
+  // Event registration payment proof upload
+  app.post('/api/event-registrations/:registrationId/upload-proof', isAuthenticated, (req: any, res, next) => {
+    const proofUpload = multer({
+      storage: multer.memoryStorage(),
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+      },
+      fileFilter: (_req, file, cb) => {
+        const allowedMimes = [
+          'image/jpeg',
+          'image/png',
+          'image/webp',
+          'application/pdf'
+        ];
+        if (allowedMimes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(new Error('Invalid file type. Only JPEG, PNG, WebP, and PDF files are allowed.'));
+        }
+      }
+    });
+
+    proofUpload.single('proof')(req, res, (err: any) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ message: "File too large. Maximum size is 10MB." });
+        }
+        return res.status(400).json({ message: err.message || "File upload failed" });
+      }
+      
+      (async () => {
+        try {
+          if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+          }
+          
+          const userId = req.user?.id;
+          const { registrationId } = req.params;
+          
+          // Verify user owns this registration
+          const registrations = await storage.getUserEventRegistrations(userId);
+          const registration = registrations.find(r => r.id === registrationId);
+          
+          if (!registration) {
+            return res.status(404).json({ message: "Registration not found" });
+          }
+          
+          const proofUrl = await handleFileUpload(req.file, 'event-payments');
+          
+          // Update registration with payment proof
+          await pool.query(`
+            UPDATE event_registrations 
+            SET payment_proof_url = $1, payment_status = 'PENDING_VERIFICATION'
+            WHERE id = $2
+          `, [proofUrl, registrationId]);
+          
+          logger.info(`Event payment proof uploaded for registration ${registrationId}`);
+          res.json({ proofUrl, message: "Payment proof uploaded successfully" });
+        } catch (error: any) {
+          logger.error('Event payment proof upload error:', error);
+          res.status(500).json({ message: error.message || "Failed to upload payment proof" });
+        }
+      })();
+    });
+  });
+
+  // Admin verify event registration payment
+  app.post('/api/admin/event-registrations/:registrationId/verify-payment', isAuthenticated, isEditorOrAbove, async (req: any, res) => {
+    try {
+      const { registrationId } = req.params;
+      const { status, notes } = req.body;
+      const adminUserId = req.user?.id;
+      
+      if (!['VERIFIED', 'REJECTED'].includes(status)) {
+        return res.status(400).json({ message: "Status must be VERIFIED or REJECTED" });
+      }
+      
+      await pool.query(`
+        UPDATE event_registrations 
+        SET payment_status = $1, 
+            payment_notes = $2, 
+            payment_verified_by = $3, 
+            payment_verified_at = NOW(),
+            status = $4
+        WHERE id = $5
+      `, [status, notes || null, adminUserId, status === 'VERIFIED' ? 'REGISTERED' : 'PAYMENT_REJECTED', registrationId]);
+      
+      logger.info(`Event registration ${registrationId} payment ${status} by admin ${adminUserId}`);
+      res.json({ message: `Payment ${status.toLowerCase()} successfully` });
+    } catch (error) {
+      logger.error('Error verifying event registration payment:', error);
+      res.status(500).json({ message: "Failed to verify payment" });
     }
   });
 

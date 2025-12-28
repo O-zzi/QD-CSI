@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AdminLayout } from "./AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Check, X, Clock, AlertCircle, Eye, Search, Filter, ExternalLink } from "lucide-react";
+import { Check, X, Clock, AlertCircle, Eye, Search, Filter, ExternalLink, Upload, Loader2, FileText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -48,6 +48,47 @@ export default function BookingsManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedProof, setUploadedProof] = useState<{ name: string; url: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleProofUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Maximum file size is 10MB", variant: "destructive" });
+      return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ title: "Invalid file type", description: "Please upload an image (JPEG, PNG, WebP) or PDF", variant: "destructive" });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/admin/bookings/upload-proof', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (!res.ok) throw new Error('Upload failed');
+      const result = await res.json();
+      setUploadedProof({ name: file.name, url: result.url });
+      setPaymentProofUrl(result.url);
+      toast({ title: "Payment proof uploaded successfully" });
+    } catch (error) {
+      toast({ title: "Upload failed", description: "Please try again", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ["/api/admin/bookings"],
@@ -303,6 +344,7 @@ export default function BookingsManagement() {
                               setSelectedBooking(booking);
                               setPaymentNotes(booking.paymentNotes || "");
                               setPaymentProofUrl(booking.paymentProofUrl || "");
+                              setUploadedProof(null);
                               setIsDetailDialogOpen(true);
                             }}
                             data-testid={`button-view-${booking.id}`}
@@ -377,21 +419,38 @@ export default function BookingsManagement() {
                     </div>
                   </div>
 
-                  <div className="mb-4 space-y-2">
-                    <Label htmlFor="paymentProofUrl">Payment Proof URL</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="paymentProofUrl"
-                        value={paymentProofUrl}
-                        onChange={(e) => setPaymentProofUrl(e.target.value)}
-                        placeholder="Enter proof URL (receipt/transfer screenshot)"
-                        data-testid="input-payment-proof-url"
+                  <div className="mb-4 space-y-3">
+                    <Label>Payment Proof</Label>
+                    
+                    {/* File Upload Option */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleProofUpload}
+                        accept="image/jpeg,image/png,image/webp,application/pdf"
+                        className="hidden"
+                        data-testid="input-file-proof"
                       />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="flex-1"
+                        data-testid="button-upload-proof"
+                      >
+                        {isUploading ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...</>
+                        ) : (
+                          <><Upload className="h-4 w-4 mr-2" /> Upload Receipt/Screenshot</>
+                        )}
+                      </Button>
                       {(selectedBooking.paymentProofUrl || paymentProofUrl) && (
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => window.open(paymentProofUrl || selectedBooking.paymentProofUrl, '_blank')}
+                          onClick={() => window.open(paymentProofUrl || selectedBooking.paymentProofUrl || '', '_blank')}
                           title="View proof document"
                           data-testid="button-view-proof"
                         >
@@ -399,7 +458,29 @@ export default function BookingsManagement() {
                         </Button>
                       )}
                     </div>
-                    {selectedBooking.paymentProofUrl && !paymentProofUrl && (
+
+                    {uploadedProof && (
+                      <p className="text-xs text-green-600 dark:text-green-400">
+                        Uploaded: {uploadedProof.name}
+                      </p>
+                    )}
+
+                    {/* Or enter URL manually */}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex-1 h-px bg-border" />
+                      <span>or enter URL manually</span>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+
+                    <Input
+                      id="paymentProofUrl"
+                      value={paymentProofUrl}
+                      onChange={(e) => { setPaymentProofUrl(e.target.value); setUploadedProof(null); }}
+                      placeholder="Enter proof URL (receipt/transfer screenshot)"
+                      data-testid="input-payment-proof-url"
+                    />
+
+                    {selectedBooking.paymentProofUrl && !paymentProofUrl && !uploadedProof && (
                       <p className="text-xs text-muted-foreground">
                         Current: <a href={selectedBooking.paymentProofUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">View existing proof</a>
                       </p>
@@ -412,6 +493,32 @@ export default function BookingsManagement() {
                       {selectedBooking.paymentVerifiedAt && (
                         <> on {format(new Date(selectedBooking.paymentVerifiedAt), 'PPp')}</>
                       )}
+                    </div>
+                  )}
+
+                  {selectedBooking.paymentStatus === "VERIFIED" && (
+                    <div className="mb-4 p-3 bg-green-50 dark:bg-green-950 rounded-md border border-green-200 dark:border-green-800">
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                            Receipt Available
+                          </p>
+                          {(selectedBooking as any).receiptNumber && (
+                            <p className="text-xs text-green-600 dark:text-green-400 font-mono">
+                              #{(selectedBooking as any).receiptNumber}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`/api/admin/bookings/${selectedBooking.id}/receipt`, '_blank')}
+                          data-testid="button-view-receipt"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          View Receipt
+                        </Button>
+                      </div>
                     </div>
                   )}
 

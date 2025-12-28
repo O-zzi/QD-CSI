@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { heroSections, ctas, comparisonFeatures, memberBenefits } from "@shared/schema";
+import { heroSections, ctas, comparisonFeatures, memberBenefits, siteSettings } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export interface CmsPhase2SeedResult {
@@ -7,7 +7,53 @@ export interface CmsPhase2SeedResult {
   ctas: number;
   comparisonFeatures: number;
   memberBenefits: number;
+  siteSettings: number;
 }
+
+const BANK_SETTINGS_SEEDS = [
+  {
+    key: "bank_name",
+    value: "MCB Bank",
+    type: "text",
+    label: "Bank Name",
+    category: "payment",
+  },
+  {
+    key: "bank_account_title",
+    value: "The Quarterdeck Sports Club",
+    type: "text",
+    label: "Account Title",
+    category: "payment",
+  },
+  {
+    key: "bank_account_number",
+    value: "0123456789012345",
+    type: "text",
+    label: "Account Number",
+    category: "payment",
+  },
+  {
+    key: "bank_iban",
+    value: "PK00MCBL0123456789012345",
+    type: "text",
+    label: "IBAN",
+    category: "payment",
+  },
+  {
+    key: "bank_branch_code",
+    value: "0123",
+    type: "text",
+    label: "Branch Code",
+    category: "payment",
+  },
+  {
+    key: "bank_swift_code",
+    value: "MUCBPKKA",
+    type: "text",
+    label: "SWIFT Code",
+    category: "payment",
+  },
+];
 
 const HERO_SECTIONS_SEEDS = [
   {
@@ -243,6 +289,7 @@ export async function seedCmsPhase2(): Promise<CmsPhase2SeedResult> {
     ctas: 0,
     comparisonFeatures: 0,
     memberBenefits: 0,
+    siteSettings: 0,
   };
 
   console.log("Seeding CMS Phase 2 content...");
@@ -311,6 +358,22 @@ export async function seedCmsPhase2(): Promise<CmsPhase2SeedResult> {
     }
   }
   console.log(`  Member Benefits: ${result.memberBenefits} created`);
+
+  // Seed bank/payment settings (unique by key)
+  for (const setting of BANK_SETTINGS_SEEDS) {
+    try {
+      const existing = await db.select().from(siteSettings).where(eq(siteSettings.key, setting.key));
+      if (existing.length === 0) {
+        await db.insert(siteSettings).values(setting);
+        result.siteSettings++;
+      }
+    } catch (error: any) {
+      if (!error.message?.includes('duplicate key') && !error.message?.includes('unique constraint')) {
+        console.error(`  Error seeding site setting ${setting.key}:`, error.message);
+      }
+    }
+  }
+  console.log(`  Bank/Payment Settings: ${result.siteSettings} created`);
 
   console.log("CMS Phase 2 seeding complete!");
   return result;

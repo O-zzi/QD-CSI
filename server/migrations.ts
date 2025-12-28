@@ -170,6 +170,27 @@ export async function runStartupMigrations() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_event_registrations_email ON event_registrations(email)`).catch(() => {});
     logger.info("event_registrations table created/verified", { source: "migrations" });
 
+    // Add payment fields to event_registrations for paid events
+    await pool.query(`
+      ALTER TABLE event_registrations 
+      ADD COLUMN IF NOT EXISTS payment_status VARCHAR DEFAULT 'NOT_REQUIRED',
+      ADD COLUMN IF NOT EXISTS payment_method VARCHAR,
+      ADD COLUMN IF NOT EXISTS payment_amount INTEGER,
+      ADD COLUMN IF NOT EXISTS payment_proof_url TEXT,
+      ADD COLUMN IF NOT EXISTS payment_notes TEXT,
+      ADD COLUMN IF NOT EXISTS payment_verified_by VARCHAR,
+      ADD COLUMN IF NOT EXISTS payment_verified_at TIMESTAMP
+    `).catch(() => {});
+    logger.info("event_registrations payment columns verified", { source: "migrations" });
+
+    // Add receipt columns to bookings for auto-generated receipts
+    await pool.query(`
+      ALTER TABLE bookings 
+      ADD COLUMN IF NOT EXISTS receipt_number VARCHAR,
+      ADD COLUMN IF NOT EXISTS receipt_generated_at TIMESTAMP
+    `).catch(() => {});
+    logger.info("bookings receipt columns verified", { source: "migrations" });
+
     // Create career_applications table if not exists (fixes 500 error on career applications)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS career_applications (

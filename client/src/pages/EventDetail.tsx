@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -15,17 +15,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   Calendar, Users, Clock, Trophy, MapPin, User, 
   Check, Loader2, LogIn, ArrowLeft, Share2, 
-  DollarSign, CalendarDays, Info
+  DollarSign, CalendarDays, Info, Upload, CreditCard,
+  Building2, Copy, AlertCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Event } from "@shared/schema";
+import type { Event, SiteSetting } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PageBreadcrumb } from "@/components/layout/PageBreadcrumb";
 import { PageHero } from "@/components/layout/PageHero";
 import { useSEO } from "@/hooks/use-seo";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const registrationFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -59,6 +61,22 @@ export default function EventDetail() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [pendingRegistration, setPendingRegistration] = useState<{ id: string; isPaid: boolean } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: bankSettings } = useQuery<SiteSetting[]>({
+    queryKey: ['/api/site-settings'],
+    select: (settings) => settings.filter(s => 
+      ['bank_name', 'bank_account_title', 'bank_account_number', 'bank_iban', 'bank_branch_code', 'bank_swift_code'].includes(s.key)
+    ),
+  });
+
+  const getBankDetail = (key: string) => {
+    const setting = bankSettings?.find(s => s.key === key);
+    return setting?.value || '';
+  };
 
   const form = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationFormSchema),
@@ -84,7 +102,7 @@ export default function EventDetail() {
   useSEO({
     title: event?.title || "Event Details",
     description: event?.description || "View event details and register for events at The Quarterdeck sports complex.",
-    ogImage: event?.imageUrl,
+    ogImage: event?.imageUrl || undefined,
   });
 
   const { data: userRegistrations = [] } = useQuery<{ eventId: string }[]>({
@@ -103,15 +121,25 @@ export default function EventDetail() {
     mutationFn: async (data: RegistrationFormData & { eventId: string }) => {
       return await apiRequest("POST", `/api/events/${data.eventId}/register`, data);
     },
-    onSuccess: () => {
+    onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/event-registrations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
-      toast({
-        title: "Registration Successful",
-        description: "You have been registered for this event.",
-      });
       setIsDialogOpen(false);
       form.reset();
+      
+      if (response.isPaidEvent) {
+        setPendingRegistration({ id: response.id, isPaid: true });
+        setShowPaymentDialog(true);
+        toast({
+          title: "Registration Initiated",
+          description: "Please complete the payment to confirm your spot.",
+        });
+      } else {
+        toast({
+          title: "Registration Successful",
+          description: "You have been registered for this event.",
+        });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -121,6 +149,51 @@ export default function EventDetail() {
       });
     },
   });
+
+  const handlePaymentProofUpload = async (file: File) => {
+    if (!pendingRegistration) return;
+    
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('proof', file);
+      
+      const response = await fetch(`/api/event-registrations/${pendingRegistration.id}/upload-proof`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Upload failed');
+      }
+      
+      toast({
+        title: "Proof Uploaded",
+        description: "Your payment proof has been submitted for verification.",
+      });
+      setShowPaymentDialog(false);
+      setPendingRegistration(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/user/event-registrations'] });
+    } catch (error: any) {
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload payment proof.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied",
+      description: `${label} copied to clipboard`,
+    });
+  };
 
   const cancelMutation = useMutation({
     mutationFn: async (eventId: string) => {
@@ -525,6 +598,151 @@ export default function EventDetail() {
               </Button>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Complete Payment
+            </DialogTitle>
+            <DialogDescription>
+              Transfer the registration fee to complete your booking.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <span className="font-semibold">Amount: PKR {(event?.price || 0).toLocaleString()}</span>
+                <br />
+                Your spot will be confirmed once payment is verified.
+              </AlertDescription>
+            </Alert>
+
+            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+              <h4 className="font-medium flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                Bank Details
+              </h4>
+              
+              {getBankDetail('bank_name') && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Bank</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{getBankDetail('bank_name')}</span>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-6 w-6"
+                      onClick={() => copyToClipboard(getBankDetail('bank_name'), 'Bank name')}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {getBankDetail('bank_account_title') && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Account Title</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{getBankDetail('bank_account_title')}</span>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-6 w-6"
+                      onClick={() => copyToClipboard(getBankDetail('bank_account_title'), 'Account title')}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {getBankDetail('bank_account_number') && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Account No.</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium font-mono">{getBankDetail('bank_account_number')}</span>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-6 w-6"
+                      onClick={() => copyToClipboard(getBankDetail('bank_account_number'), 'Account number')}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {getBankDetail('bank_iban') && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">IBAN</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium font-mono text-xs">{getBankDetail('bank_iban')}</span>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-6 w-6"
+                      onClick={() => copyToClipboard(getBankDetail('bank_iban'), 'IBAN')}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Upload Payment Proof</p>
+              <p className="text-xs text-muted-foreground">
+                Upload a screenshot or photo of your transfer receipt.
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handlePaymentProofUpload(file);
+                }}
+                data-testid="input-payment-proof"
+              />
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                data-testid="button-upload-proof"
+              >
+                {isUploading ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                ) : (
+                  <><Upload className="w-4 h-4 mr-2" /> Select File</>
+                )}
+              </Button>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button 
+                variant="ghost" 
+                className="flex-1"
+                onClick={() => {
+                  setShowPaymentDialog(false);
+                  setPendingRegistration(null);
+                }}
+                data-testid="button-pay-later"
+              >
+                Pay Later
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 

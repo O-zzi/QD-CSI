@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,14 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import type { MembershipApplication } from "@shared/schema";
 
-const bankDetails = {
-  bankName: "MCB Bank",
-  accountTitle: "Quarterdeck Sports Complex",
-  accountNumber: "0123456789012345",
-  iban: "PK00MCBL0123456789012345",
-  branchCode: "0123",
-};
-
 const tierPrices: Record<string, number> = {
   FOUNDING: 35000,
   GOLD: 15000,
@@ -47,6 +39,31 @@ export function MembershipApplicationForm({ onSuccess }: MembershipApplicationFo
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedProof, setUploadedProof] = useState<{ name: string; url: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  interface SiteSettingItem {
+    key: string;
+    value: string;
+  }
+  const { data: siteSettings } = useQuery<SiteSettingItem[]>({
+    queryKey: ["/api/site-settings"],
+  });
+
+  // Transform array to keyed object
+  const settingsMap = useMemo(() => {
+    if (!siteSettings) return {};
+    return siteSettings.reduce((acc, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [siteSettings]);
+
+  const bankDetails = {
+    bankName: settingsMap?.bank_name || "Bank Details Loading...",
+    accountTitle: settingsMap?.bank_account_title || "-",
+    accountNumber: settingsMap?.bank_account_number || "-",
+    iban: settingsMap?.bank_iban || "-",
+    branchCode: settingsMap?.bank_branch_code || "-",
+  };
 
   const { data: existingApplications, isLoading: applicationsLoading } = useQuery<MembershipApplication[]>({
     queryKey: ["/api/membership-applications/mine"],

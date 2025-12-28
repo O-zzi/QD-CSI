@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Plus, Pencil, Trash2, Save, Calendar, Users, Clock, Upload, Link as LinkIcon, Loader2, CheckCircle, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, Calendar, Users, Clock, Upload, Link as LinkIcon, Loader2, CheckCircle, Image as ImageIcon, Eye, ExternalLink, Check, X, CreditCard, AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -29,7 +30,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import type { Event, Facility } from "@shared/schema";
+import type { Event, Facility, EventRegistration } from "@shared/schema";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function EventsManagement() {
   const { toast } = useToast();
@@ -38,6 +40,8 @@ export default function EventsManagement() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<{ name: string; url: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedEventForRegistrations, setSelectedEventForRegistrations] = useState<Event | null>(null);
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     facilityId: "",
     title: "",
@@ -109,6 +113,48 @@ export default function EventsManagement() {
       toast({ title: "Failed to delete event", variant: "destructive" });
     },
   });
+
+  const { data: eventRegistrations, isLoading: registrationsLoading } = useQuery<EventRegistration[]>({
+    queryKey: ["/api/admin/events", selectedEventForRegistrations?.id, "registrations"],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/events/${selectedEventForRegistrations?.id}/registrations`, {
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error('Failed to fetch registrations');
+      return res.json();
+    },
+    enabled: !!selectedEventForRegistrations,
+  });
+
+  const verifyPaymentMutation = useMutation({
+    mutationFn: async ({ registrationId, status, notes }: { registrationId: string; status: 'VERIFIED' | 'REJECTED'; notes?: string }) => {
+      return await apiRequest("POST", `/api/admin/event-registrations/${registrationId}/verify-payment`, { status, notes });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/events", selectedEventForRegistrations?.id, "registrations"] });
+      toast({ title: "Payment status updated" });
+      setVerifyingId(null);
+    },
+    onError: () => {
+      toast({ title: "Failed to update payment status", variant: "destructive" });
+    },
+  });
+
+  const getPaymentStatusBadge = (status: string | null | undefined) => {
+    switch (status) {
+      case 'VERIFIED':
+        return <Badge className="bg-green-500">Verified</Badge>;
+      case 'PENDING':
+        return <Badge variant="secondary">Awaiting Payment</Badge>;
+      case 'PENDING_VERIFICATION':
+        return <Badge className="bg-amber-500">Needs Verification</Badge>;
+      case 'REJECTED':
+        return <Badge variant="destructive">Rejected</Badge>;
+      case 'NOT_REQUIRED':
+      default:
+        return <Badge variant="outline">Free</Badge>;
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -599,6 +645,15 @@ export default function EventsManagement() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => setSelectedEventForRegistrations(event)}
+                        title="View registrations"
+                        data-testid={`button-view-registrations-${event.id}`}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleEdit(event)}
                         data-testid={`button-edit-event-${event.id}`}
                       >
@@ -630,6 +685,105 @@ export default function EventsManagement() {
             </Table>
           </CardContent>
         </Card>
+
+        <Dialog open={!!selectedEventForRegistrations} onOpenChange={(open) => !open && setSelectedEventForRegistrations(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Registrations - {selectedEventForRegistrations?.title}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedEventForRegistrations?.price && selectedEventForRegistrations.price > 0 ? (
+                  <span className="flex items-center gap-1">
+                    <CreditCard className="w-4 h-4" />
+                    Paid event: PKR {selectedEventForRegistrations.price.toLocaleString()}
+                  </span>
+                ) : (
+                  'Free event - no payment required'
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {registrationsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin" />
+              </div>
+            ) : eventRegistrations && eventRegistrations.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {eventRegistrations.map((reg) => (
+                    <TableRow key={reg.id} data-testid={`row-registration-${reg.id}`}>
+                      <TableCell className="font-medium">{reg.fullName}</TableCell>
+                      <TableCell>{reg.email}</TableCell>
+                      <TableCell>{reg.phone || '-'}</TableCell>
+                      <TableCell>
+                        {getPaymentStatusBadge(reg.paymentStatus)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={reg.status === 'REGISTERED' ? 'default' : 'secondary'}>
+                          {reg.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {reg.paymentProofUrl && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => window.open(reg.paymentProofUrl || '', '_blank')}
+                            title="View payment proof"
+                            data-testid={`button-view-proof-${reg.id}`}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {reg.paymentStatus === 'PENDING_VERIFICATION' && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => verifyPaymentMutation.mutate({ registrationId: reg.id, status: 'VERIFIED' })}
+                              disabled={verifyPaymentMutation.isPending}
+                              title="Approve payment"
+                              data-testid={`button-approve-payment-${reg.id}`}
+                            >
+                              <Check className="w-4 h-4 text-green-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => verifyPaymentMutation.mutate({ registrationId: reg.id, status: 'REJECTED', notes: 'Payment not verified' })}
+                              disabled={verifyPaymentMutation.isPending}
+                              title="Reject payment"
+                              data-testid={`button-reject-payment-${reg.id}`}
+                            >
+                              <X className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                No registrations yet for this event.
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
