@@ -76,12 +76,12 @@ WHERE a.id > b.id
   AND a.slug = b.slug;
 
 -- ============================================
--- 10. Remove duplicate membership_tier_definitions (keep first by tier)
+-- 10. Remove duplicate membership_tier_definitions (keep first by slug)
 -- ============================================
 DELETE FROM membership_tier_definitions a
 USING membership_tier_definitions b
 WHERE a.id > b.id 
-  AND a.tier = b.tier;
+  AND a.slug = b.slug;
 
 -- ============================================
 -- 11. VERIFY - Show counts after cleanup
