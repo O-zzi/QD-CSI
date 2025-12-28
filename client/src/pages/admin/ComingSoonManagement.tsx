@@ -72,7 +72,7 @@ export default function ComingSoonManagement() {
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
 
   const { data: cmsContent, isLoading: cmsLoading } = useQuery<CmsContent[]>({
-    queryKey: ["/api/cms"],
+    queryKey: ["/api/cms/bulk"],
   });
 
   const { data: siteSettings, isLoading: settingsLoading } = useQuery<SiteSetting[]>({
@@ -96,7 +96,6 @@ export default function ComingSoonManagement() {
       return await apiRequest("POST", "/api/admin/cms", { key, content: value });
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cms"] });
       queryClient.invalidateQueries({ queryKey: ["/api/cms/bulk"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/site-settings"] });
       setEditedFields((prev) => {
@@ -126,7 +125,6 @@ export default function ComingSoonManagement() {
     );
     try {
       await Promise.all(promises);
-      queryClient.invalidateQueries({ queryKey: ["/api/cms"] });
       queryClient.invalidateQueries({ queryKey: ["/api/cms/bulk"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/site-settings"] });
       setEditedFields(new Set());
