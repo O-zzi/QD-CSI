@@ -1,0 +1,41 @@
+[u805618386@my-kul-web2051 public_html]$ # Check if there's a domains folder wit                                                                                                                                                             h symlinks
+ls -la /home/u805618386/domains/
+
+# Find where thequarterdeck files actually are
+find /home/u805618386 -name "server.js" -type f 2>/dev/null
+
+# Check .htaccess in public_html - maybe we need to remove it for managed Node.j                                                                                                                                                             s
+cat /home/u805618386/public_html/.htaccess
+total 28
+drwxr-xr-x  7 u805618386 o1007739533 4096 Dec 24 15:02 .
+drwx--x--- 16 u805618386 apache      4096 Dec 28 16:07 ..
+drwxr-xr-x  3 u805618386 o1007739533 4096 Sep 12 07:05 diabesity.life
+drwxr-xr-x  3 u805618386 o1007739533 4096 Aug 21 10:29 gradxpert.org
+drwxr-xr-x  4 u805618386 o1007739533 4096 Dec 28 15:13 thequarterdeck.pk
+drwxr-xr-x  3 u805618386 o1007739533 4096 Dec 22 05:57 thesportscollective.org
+drwxr-xr-x  3 u805618386 o1007739533 4096 Dec 22 05:55 thesportscollective-org-3                                                                                                                                                             33286.hostingersite.com
+/home/u805618386/public_html/server.js
+/home/u805618386/public_html/node_modules/lucide-react/dist/esm/icons/server.js
+/home/u805618386/public_html/node_modules/react-dom/server.js
+/home/u805618386/domains/thesportscollective.org/public_html/server.js
+/home/u805618386/domains/thesportscollective.org/public_html/node_modules/lucide                                                                                                                                                             -react/dist/esm/icons/server.js
+/home/u805618386/domains/thesportscollective.org/public_html/node_modules/react-                                                                                                                                                             dom/server.js
+/home/u805618386/domains/thequarterdeck.pk/public_html/server.js
+/home/u805618386/domains/thequarterdeck.pk/public_html/node_modules/lucide-react                                                                                                                                                             /dist/esm/icons/server.js
+/home/u805618386/domains/thequarterdeck.pk/public_html/node_modules/react-dom/se                                                                                                                                                             rver.js
+/home/u805618386/domains/thequarterdeck.pk/public_html (old)/server.js
+/home/u805618386/domains/thequarterdeck.pk/public_html (old)/node_modules/lucide                                                                                                                                                             -react/dist/esm/icons/server.js
+/home/u805618386/domains/thequarterdeck.pk/public_html (old)/node_modules/react-                                                                                                                                                             dom/server.js
+/home/u805618386/app/node_modules/lucide-react/dist/esm/icons/server.js
+/home/u805618386/app/node_modules/react-dom/server.js
+/home/u805618386/apps/the-sports-collective/server.js
+/home/u805618386/apps/the-sports-collective/node_modules/lucide-react/dist/esm/icons/server.js
+/home/u805618386/apps/the-sports-collective/node_modules/react-dom/server.js
+/home/u805618386/.nvm/versions/node/v20.19.6/lib/node_modules/npm/node_modules/@npmcli/redact/lib/server.js
+/home/u805618386/.nvm/versions/node/v20.19.6/lib/node_modules/pm2/node_modules/pm2-axon-rpc/lib/server.js
+PassengerEnabled on
+PassengerAppType node
+PassengerStartupFile server.js
+PassengerAppRoot /home/u805618386/public_html
+PassengerNodejs /home/u805618386/.nvm/versions/node/v20.19.6/bin/node
+[u805618386@my-kul-web2051 public_html]$
