@@ -150,16 +150,9 @@ export function log(message: string, source = "express") {
   }
 
   const port = parseInt(process.env.PORT || "5000", 10);
-  const host = "0.0.0.0";
   
-  httpServer.listen(
-    {
-      port,
-      host,
-      reusePort: true,
-    },
-    () => {
-      log(`serving on ${host}:${port}`);
-    },
-  );
+  // Simplified listen for Passenger compatibility
+  httpServer.listen(port, () => {
+    log(`serving on port ${port}`);
+  });
 })();
