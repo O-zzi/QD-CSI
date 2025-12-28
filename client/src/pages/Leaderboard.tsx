@@ -46,7 +46,6 @@ export default function Leaderboard() {
 
   const { data: entries = [], isLoading } = useQuery<LeaderboardEntryWithUser[]>({
     queryKey: ['/api/leaderboard', selectedFacility !== 'all' ? selectedFacility : undefined],
-    enabled: isAuthenticated,
   });
 
   const getRankStyle = (rank: number) => {

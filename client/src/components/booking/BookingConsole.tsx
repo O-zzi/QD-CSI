@@ -157,22 +157,22 @@ export function BookingConsole({ initialView = 'booking' }: BookingConsoleProps)
   });
 
   // Fetch site settings for CMS-driven bank details
-  interface SiteSettingItem {
-    key: string;
-    value: string;
-  }
-  const { data: siteSettings } = useQuery<SiteSettingItem[]>({
+  const { data: siteSettings } = useQuery<Record<string, string>>({
     queryKey: ['/api/site-settings'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/site-settings');
+        if (!res.ok) return {};
+        const data = await res.json();
+        return data && typeof data === 'object' && !data.message ? data : {};
+      } catch {
+        return {};
+      }
+    },
   });
   
-  // Transform array to keyed object
-  const settingsMap = useMemo(() => {
-    if (!siteSettings) return {};
-    return siteSettings.reduce((acc, s) => {
-      acc[s.key] = s.value;
-      return acc;
-    }, {} as Record<string, string>);
-  }, [siteSettings]);
+  // Settings map is now the data directly (already key-value object)
+  const settingsMap = siteSettings || {};
 
   const bankDetails = {
     bankName: settingsMap?.bank_name || "Bank Details Loading...",
