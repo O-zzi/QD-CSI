@@ -154,3 +154,48 @@ Supabase Auth handles email verification, requiring users to verify their email 
 - `memoizee`
 - `ws` (WebSockets)
 - Winston (logging)
+
+## Production Deployment (Hostinger)
+
+**Live URL:** https://thequarterdeck.pk
+
+**Deployment Details:**
+- **Host:** Hostinger shared hosting with Node.js support
+- **Repository:** QD-CSI on GitHub, branch: main
+- **Deployment Path:** `/home/u805618386/domains/thequarterdeck.pk/public_html/`
+- **Node Version:** 20.x (via nvm)
+- **Entry Point:** `server.js` (ES module wrapper that loads `dist/index.cjs`)
+
+**Key Files for Deployment:**
+- `server.js` - Entry point with dotenv loader
+- `loadEnv.cjs` - CommonJS environment loader
+- `.htaccess` - Passenger configuration
+- `dist/index.cjs` - Bundled server code
+- `dist/public/` - Built frontend assets
+
+**.htaccess Configuration:**
+```
+PassengerEnabled on
+PassengerAppType node
+PassengerStartupFile server.js
+PassengerAppRoot /home/u805618386/domains/thequarterdeck.pk/public_html
+PassengerNodejs /home/u805618386/.nvm/versions/node/v20.19.6/bin/node
+```
+
+**Deployment Process:**
+1. Build on Replit: `npm run build` (creates dist/ folder)
+2. Push to GitHub (main branch)
+3. Hostinger auto-deploys via Git integration
+4. **Important:** `.env` file must be manually copied to deployment directory (not in Git for security)
+5. Restart app: `touch tmp/restart.txt` in deployment directory
+
+**Environment Variables Required:**
+- DATABASE_URL (PostgreSQL connection string)
+- SESSION_SECRET
+- SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+- SMTP credentials (optional, for email)
+
+**Troubleshooting:**
+- If 503 errors occur, check `.env` file exists in deployment directory
+- Manual test: `cd /home/u805618386/domains/thequarterdeck.pk/public_html/ && node server.js`
+- Logs: Check Hostinger panel or run app manually via SSH
