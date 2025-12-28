@@ -69,13 +69,13 @@ export function Footer() {
 
           <div className="flex flex-wrap gap-4">
             <Link href="/vision">
-              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-about">
-                About Us
+              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-vision">
+                Vision
               </span>
             </Link>
             <Link href="/rules">
               <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-rules">
-                Rules & Safety
+                Club Rules
               </span>
             </Link>
             <Link href="/careers">
@@ -86,6 +86,16 @@ export function Footer() {
             <Link href="/contact">
               <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-contact">
                 Contact
+              </span>
+            </Link>
+            <Link href="/terms">
+              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-terms-link">
+                Terms
+              </span>
+            </Link>
+            <Link href="/privacy">
+              <span className="text-primary-foreground/70 hover:text-primary-foreground transition-colors cursor-pointer" data-testid="link-footer-privacy-link">
+                Privacy
               </span>
             </Link>
           </div>
@@ -125,14 +135,7 @@ export function Footer() {
         </div>
 
         <p className="text-center mt-6 text-primary-foreground/60 text-xs">
-          © {copyrightYear} {siteName} – All rights reserved.{" "}
-          <Link href="/terms" className="font-semibold hover:text-primary-foreground cursor-pointer" data-testid="link-footer-terms">
-            Terms & Conditions
-          </Link>
-          {" | "}
-          <Link href="/privacy" className="font-semibold hover:text-primary-foreground cursor-pointer" data-testid="link-footer-privacy">
-            Privacy Policy
-          </Link>
+          © {copyrightYear} {siteName} – All rights reserved.
         </p>
       </div>
     </footer>

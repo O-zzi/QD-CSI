@@ -30,7 +30,7 @@ interface NavLink {
 const defaultNavLinks: NavLink[] = [
   { label: "Facilities", href: "/facilities" },
   { label: "Events & Academies", href: "/events" },
-  { label: "Updates", href: "/roadmap" },
+  { label: "Updates", href: "/updates" },
   { label: "Contact", href: "/contact" },
 ];
 
